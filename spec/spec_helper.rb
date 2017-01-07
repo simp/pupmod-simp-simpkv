@@ -154,3 +154,30 @@ Dir.glob("#{RSpec.configuration.module_path}/*").each do |dir|
     fail "ERROR: The module '#{dir}' is not installed. Tests cannot continue."
   end
 end
+def providers()
+[
+  {
+	  "name" => "mock",
+	  "url" => "mock://",
+  },
+  {
+	  "name" => "consul with daemon",
+	  "url" => "consul://172.17.0.1:8500/puppet",
+	  "softfail" => false,
+	  "should_error" => false,
+  },
+  # {
+	  # "name" => "consul without daemon and softfail = false",
+	  # "url" => "consul://172.17.0.1:8500/puppet",
+	  # "softfail" => false,
+  #         "should_error" => true,
+  # },
+  # {
+	  # "name" => "consul without daemon and softfail = true",
+	  # "url" => "consul://172.17.0.1:8500/puppet",
+	  # "softfail" => false,
+  #         "should_error" => false,
+  # },
+]
+end
+

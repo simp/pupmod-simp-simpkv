@@ -1,0 +1,119 @@
+---
+delete:
+  :description: 'Deletes the specified `key`. Must be a single key'
+  :softfail: 'false'
+  :signatures:
+    v1:
+      args:
+        - type: 'String'
+          name: 'key'
+deletetree:
+  :description: 'Deletes the whole folder named `key`. This action is inherently unsafe.'
+  :softfail: 'false'
+  :signatures:
+    v1:
+      args:
+        - type: 'String'
+          name: 'key'
+get:
+  :description: 'Returns the data stored at `key`'
+  :softfail: nil
+  :signatures:
+    v1:
+      args:
+        - type: 'String'
+          name: 'key'
+put:
+  :description: 'Sets the data at `key` to the specified `value`'
+  :softfail: 'false'
+  :signatures:
+    v1:
+      args:
+        - type: 'String'
+          name: 'key'
+        - type: 'Any'
+          name: 'value'
+exists:
+  :description: 'Returns true if `key` exists'
+  :softfail: nil
+  :signatures:
+    v1:
+      args:
+        - type: 'String'
+          name: 'key'
+list:
+  :description: 'Lists all keys in the folder named `key`'
+  :softfail: "{}"
+  :signatures:
+    v1:
+      args:
+        - type: 'String'
+          name: 'key'
+atomic_create:
+  :description: 'Store `value` in `key`, but only if key does not exist already, and do so atomically'
+  :softfail: "{}"
+  :signatures:
+    v1:
+      args:
+        - type: 'String'
+          name: 'key'
+        - type: 'Any'
+          name: 'value'
+atomic_delete:
+  :description: 'Delete `key`, but only if key still matches the value of `previous`'
+  :softfail: "{}"
+  :signatures:
+    v1:
+      args:
+        - type: 'String'
+          name: 'key'
+        - type: 'Hash'
+          name: 'previous'
+atomic_get:
+  :description: 'Get the value of key, but return it in a hash suitable for use with other atomic functions'
+  :softfail: "{}"
+  :signatures:
+    v1:
+      args:
+        - type: 'String'
+          name: 'key'
+atomic_put:
+  :description: 'Set `key` to `value`, but only if the key is still set to `previous`'
+  :softfail: "{}"
+  :signatures:
+    v1:
+      args:
+        - type: 'String'
+          name: 'key'
+        - type: 'Any'
+          name: 'value'
+        - type: 'Hash'
+          name: 'previous'
+atomic_list:
+  :description: 'List all keys in folder `key`, but return them in a format suitable for other atomic functions'
+  :softfail: "{}"
+  :signatures:
+    v1:
+      args:
+        - type: 'String'
+          name: 'key'
+empty_value:
+  :description: 'Return an hash suitable for other atomic functions, that represents an empty value'
+  :softfail: nil
+  :allow_empty: true
+info:
+  :description: 'Return a hash of informtion on the underlying provider. Provider specific'
+  :softfail: "{}"
+  :allow_empty: true
+supports:
+  :description: 'Return an array of all supported functions'
+  :softfail: "[]"
+  :allow_empty: true
+provider:
+  :description: 'Return the name of the current provider'
+  :softfail: '""'
+  :allow_empty: true
+watch: {}
+watchtree: {}
+newlock: {}
+
