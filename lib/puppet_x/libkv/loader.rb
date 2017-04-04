@@ -33,11 +33,17 @@ c = Class.new do
       hash['provider'] = colonsplit[0].split("+")[0];
       return hash
   end
-  def method_missing(symbol, url, *args, &block)
-    if (urls[url] == nil)
+  def method_missing(symbol, url, auth, *args, &block)
+    if (auth == nil)
+      auth_hash = ""
+    else
+      auth_hash = auth.hash
+    end
+    instance = url + auth_hash
+    if (urls[instance] == nil)
       urlspec = parseurl(url)
       provider = urlspec['provider']
-      urls[url] = classes[provider].new(url)
+      urls[url] = classes[provider].new(url, auth)
     end
     object = urls[url];
     object.send(symbol, *args, &block);
