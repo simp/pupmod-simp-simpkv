@@ -2,7 +2,7 @@
 require 'net/http'
 require 'uri'
 libkv.load("consul") do
-  def initialize(url)
+  def initialize(url, auth)
     @uri = URI.parse(url)
     @resturi = URI.parse(url)
     case @uri.scheme
@@ -11,6 +11,7 @@ libkv.load("consul") do
     when "consul+ssl"
       @resturi.scheme = "https"
     end
+    @auth = auth
     @basepath = @uri.path.chomp("/")
     # XXX: Todo: break out the rest client into a mixin
     #
@@ -35,10 +36,23 @@ libkv.load("consul") do
       request = Net::HTTP::Put.new(params[:path])
       request.body = params[:body]
     end
+    if (params.key?("headers"))
+      params["headers"].each do |key, value|
+        request[key] = value
+      end
+    end
     response = http.request(request)
   end
 
   # End REST Client
+  def consul_request(params)
+    headers = {}
+    if (@auth != nil)
+      headers['X-Consul-Token'] = @auth["token"]
+    end
+    params["headers"] = headers
+    rest_request(params)
+  end
   def supports(params)
     [
       "delete",
@@ -69,7 +83,7 @@ libkv.load("consul") do
       throw Exception
     end
     begin
-      response = rest_request(path: "/v1/kv" + @basepath + key)
+      response = consul_request(path: "/v1/kv" + @basepath + key)
       if (response.class == Net::HTTPOK)
         json = response.body
         parsed = JSON.parse(json)[0];
@@ -96,7 +110,7 @@ libkv.load("consul") do
     if (value == nil)
       throw Exception
     end
-    response = rest_request(path: "/v1/kv" + @basepath + key, method: 'PUT', body: value)
+    response = consul_request(path: "/v1/kv" + @basepath + key, method: 'PUT', body: value)
     if (debug == true)
       retval["response_class"] = response.class
       retval["response_body"] = response.body
@@ -122,7 +136,7 @@ libkv.load("consul") do
       throw Exception
     end
     begin
-      response = rest_request(path: "/v1/kv" + @basepath + key)
+      response = consul_request(path: "/v1/kv" + @basepath + key)
       if (response.class == Net::HTTPOK)
         json = response.body
         parsed = JSON.parse(json)[0];
@@ -154,7 +168,7 @@ libkv.load("consul") do
       throw Exception
     end
     previndex=previous["ModifyIndex"]
-    response = rest_request(path: "/v1/kv" + @basepath + key + "?cas=" + previndex.to_s, method: 'PUT', body: value)
+    response = consul_request(path: "/v1/kv" + @basepath + key + "?cas=" + previndex.to_s, method: 'PUT', body: value)
     if (response.class == Net::HTTPOK)
       if (response.body == "true\n")
         true
@@ -178,7 +192,7 @@ libkv.load("consul") do
       throw Exception
     end
     previndex=previous["ModifyIndex"]
-    response = rest_request(path: "/v1/kv" + @basepath + key + "?cas=" + previndex.to_s, method: 'DELETE')
+    response = consul_request(path: "/v1/kv" + @basepath + key + "?cas=" + previndex.to_s, method: 'DELETE')
     if (response.class == Net::HTTPOK)
       if (response.body == "true\n")
         true
@@ -195,7 +209,7 @@ libkv.load("consul") do
       throw Exception
     end
     # Get the value of key first. This is the only way to tell if we try to delete a key 
-    response = rest_request(path: "/v1/kv" + @basepath + key, method: 'DELETE')
+    response = consul_request(path: "/v1/kv" + @basepath + key, method: 'DELETE')
     if (response.class == Net::HTTPOK)
       if (response.body == "true\n")
         true
@@ -220,7 +234,7 @@ libkv.load("consul") do
       throw Exception
     end
     begin
-      response = rest_request(path: "/v1/kv" + @basepath + key + "?recurse")
+      response = consul_request(path: "/v1/kv" + @basepath + key + "?recurse")
       if (response.class == Net::HTTPOK)
         json = response.body
         value = JSON.parse(json)
@@ -255,7 +269,7 @@ libkv.load("consul") do
       throw Exception
     end
     # Get the value of key first. This is the only way to tell if we try to delete a key 
-    response = rest_request(path: "/v1/kv" + @basepath + key + "?keys", method: 'GET')
+    response = consul_request(path: "/v1/kv" + @basepath + key + "?keys", method: 'GET')
     if (response.class == Net::HTTPOK)
       true
     elsif(response.class == Net::HTTPNotFound)

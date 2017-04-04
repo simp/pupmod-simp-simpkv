@@ -42,6 +42,13 @@ def put(params)
     else
       url = call_function('lookup', 'libkv::url', { 'default_value' => 'mock://'})
     end
+    require 'pry'
+    binding.pry
+    if params.key?('auth')
+      auth = params['auth']
+    else
+      auth = call_function('lookup', 'libkv::auth', { 'default_value' => nil })
+    end
     if params.key?('key')
       regex = Regexp.new('^\/[a-zA-Z0-9._\-\/]+$')
       unless (regex =~ params['key'])
@@ -55,12 +62,12 @@ def put(params)
     end
     if (params["softfail"] == true)
       begin
-        retval = libkv.put(url, params);
+        retval = libkv.put(url, auth, params);
       rescue
         retval = false
       end
     else
-      retval = libkv.put(url, params);
+      retval = libkv.put(url, auth, params);
     end
     return retval;
   end

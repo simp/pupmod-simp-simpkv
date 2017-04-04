@@ -1,7 +1,7 @@
 # vim: set expandtab ts=2 sw=2:
 
 libkv.load("mock") do
-  def initialize(url)
+  def initialize(url, auth)
     @root = {};
     @mutex = Mutex.new();
     @sequence = 1;

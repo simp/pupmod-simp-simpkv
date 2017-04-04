@@ -42,6 +42,11 @@ def atomic_get(params)
     else
       url = call_function('lookup', 'libkv::url', { 'default_value' => 'mock://'})
     end
+    if params.key?('auth')
+      auth = params['auth']
+    else
+      auth = call_function('lookup', 'libkv::auth', { 'default_value' => nil })
+    end
     if params.key?('key')
       regex = Regexp.new('^\/[a-zA-Z0-9._\-\/]+$')
       unless (regex =~ params['key'])
@@ -55,12 +60,12 @@ def atomic_get(params)
     end
     if (params["softfail"] == true)
       begin
-        retval = libkv.atomic_get(url, params);
+        retval = libkv.atomic_get(url, auth, params);
       rescue
         retval = {}
       end
     else
-      retval = libkv.atomic_get(url, params);
+      retval = libkv.atomic_get(url, auth, params);
     end
     return retval;
   end
