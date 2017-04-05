@@ -39,7 +39,7 @@ c = Class.new do
     else
       auth_hash = auth.hash
     end
-    instance = url + auth_hash.to_s
+    instance = url + "@" + auth_hash.to_s
     if (urls[instance] == nil)
       urlspec = parseurl(url)
       provider = urlspec['provider']
