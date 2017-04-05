@@ -38,7 +38,7 @@ libkv.load("consul") do
     end
     if (params.key?("headers"))
       params["headers"].each do |key, value|
-        req[key] = value
+        request[key] = value
       end
     end
     response = http.request(request)
