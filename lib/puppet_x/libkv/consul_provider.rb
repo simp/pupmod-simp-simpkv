@@ -50,7 +50,7 @@ libkv.load("consul") do
     if (@auth != nil)
       require 'pry'
       binding.pry
-      headers['X-Consul-Token'] = auth["token"]
+      headers['X-Consul-Token'] = @auth["token"]
     end
     params["headers"] = headers
     rest_request(params)
