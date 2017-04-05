@@ -11,6 +11,7 @@ libkv.load("consul") do
     when "consul+ssl"
       @resturi.scheme = "https"
     end
+    @auth = auth
     @basepath = @uri.path.chomp("/")
     # XXX: Todo: break out the rest client into a mixin
     #
@@ -35,11 +36,21 @@ libkv.load("consul") do
       request = Net::HTTP::Put.new(params[:path])
       request.body = params[:body]
     end
+    if (params.key?("headers"))
+      params["headers"].each do |key, value|
+        req[key] = value
+      end
+    end
     response = http.request(request)
   end
 
   # End REST Client
   def consul_request(params)
+    headers = {}
+    if (@auth != nil)
+      headers['X-Consul-Token'] = auth["token"]
+    end
+    params["headers"] = headers
     rest_request(params)
   end
   def supports(params)
