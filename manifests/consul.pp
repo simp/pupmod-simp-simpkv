@@ -10,7 +10,7 @@ class libkv::consul(
   $bootstrap = false,
   $dont_copy_files = false,
 ) {
-  include ::archive
+  package { "unzip": }
   if ($bootstrap == true) {
     $bootstrap_expect = 1
   }
