@@ -5,11 +5,10 @@
 #
 class libkv::consul(
   $server = false,
-  $bootstrap = false,
-  $key = undef,
   $version = '0.8.0',
+  $use_puppet_pki => true,
 ) {
-  package { "unzip": }
+  include ::archive
   if ($bootstrap == true) {
     $bootstrap_expect = 1
   }
