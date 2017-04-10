@@ -15,7 +15,7 @@ class libkv::consul(
   }
   $keypath = '/etc/simp/bootstrap/consul/key'
   $master_token_path = '/etc/simp/bootstrap/consul/master_token'
-  if ($server == true)
+  if ($server == true) {
     $cert_file_name = '/etc/simp/bootstrap/consul/server.dc1.consul.cert.pem'
     $private_file_name = '/etc/simp/bootstrap/consul/server.dc1.consul.private.pem'
     $ca_file_name = '/etc/simp/bootstrap/consul/ca.pem'
