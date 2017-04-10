@@ -14,6 +14,8 @@ class libkv::consul(
   if ($bootstrap == true) {
     $bootstrap_expect = 1
   }
+  $hash = lookup('consul::config_hash', { "default_value" => {} })
+  notify { "hash = $hash": }
   class { '::consul':
     config_hash          => {
       'data_dir'         => '/opt/consul',
