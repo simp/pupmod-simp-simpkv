@@ -8,6 +8,7 @@ class libkv::consul(
   $version = '0.8.0',
   $use_puppet_pki = true,
   $bootstrap = false,
+  $dont_copy_files = false,
 ) {
   include ::archive
   if ($bootstrap == true) {
@@ -20,25 +21,26 @@ class libkv::consul(
     $private_file_name = '/etc/simp/bootstrap/consul/server.dc1.consul.private.pem'
     $ca_file_name = '/etc/simp/bootstrap/consul/ca.pem'
   }
-  file { $cert_file_name:
-    content => file($cert_file_name)
+  if ($dont_copy_files == false) {
+    file { $cert_file_name:
+      content => file($cert_file_name)
+    }
+    file { $private_file_name:
+      content => file($private_file_name)
+    }
+    file { $private_file_name:
+      content => file($private_file_name)
+    }
   }
-  file { $private_file_name:
-    content => file($private_file_name)
-  }
-  file { $private_file_name:
-    content => file($private_file_name)
-  }
-
   $hash = lookup('consul::config_hash', { "default_value" => {} })
   $class_hash =     {
-      'data_dir'         => '/opt/consul',
-      'bootstrap_expect' => $bootstrap_expect,
-      'server'           => $server,
-      'node_name'        => $::hostname,
-      'retry_join'       => [ $serverip ],
-      'advertise_addr'   => $::ipaddress,
-      'ui_dir'           => '/opt/consul/ui',
+    'data_dir'         => '/opt/consul',
+    'bootstrap_expect' => $bootstrap_expect,
+    'server'           => $server,
+    'node_name'        => $::hostname,
+    'retry_join'       => [ $serverip ],
+    'advertise_addr'   => $::ipaddress,
+    'ui_dir'           => '/opt/consul/ui',
   }
   $merged_hash = $class_hash.merge($hash)
   notify { "hash = $hash": }
