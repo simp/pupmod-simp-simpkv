@@ -12,6 +12,9 @@ class libkv::consul(
   $serverhost = undef,
   $advertise = undef,
   $datacenter = undef,
+  $ca_file_name = undef,
+  $private_file_name = undef,
+  $cert_file_name = undef,
 ) {
   package { "unzip": }
   if ($bootstrap == true) {
@@ -38,20 +41,26 @@ class libkv::consul(
   }
   $keypath = '/etc/simp/bootstrap/consul/key'
   $master_token_path = '/etc/simp/bootstrap/consul/master_token'
-  if ($server == true) {
-    $cert_file_name = '/etc/simp/bootstrap/consul/server.dc1.consul.cert.pem'
-    $private_file_name = '/etc/simp/bootstrap/consul/server.dc1.consul.private.pem'
-    $ca_file_name = '/etc/simp/bootstrap/consul/ca.pem'
-  }
-  if ($dont_copy_files == false) {
-    file { $cert_file_name:
-      content => file($cert_file_name)
-    }
-    file { $private_file_name:
-      content => file($private_file_name)
-    }
-    file { $ca_file_name:
-      content => file($ca_file_name)
+  if ($use_puppet_pki == true) {
+    if ($server == true) {
+      $_cert_file_name = '/etc/simp/bootstrap/consul/server.dc1.consul.cert.pem'
+      $_private_file_name = '/etc/simp/bootstrap/consul/server.dc1.consul.private.pem'
+      $_ca_file_name = '/etc/simp/bootstrap/consul/ca.pem'
+      if ($dont_copy_files == false) {
+        file { $cert_file_name:
+          content => file($cert_file_name)
+        }
+        file { $private_file_name:
+          content => file($private_file_name)
+        }
+        file { $ca_file_name:
+          content => file($ca_file_name)
+        }
+      }
+    } else {
+      $_cert_file_name = '/etc/puppetlabs/puppet/ssl/certs/${::clientcert}.pem'
+      $_ca_file_name = '/etc/puppetlabs/puppet/ssl/certs/ca.pem'
+      $_private_file_name = '/etc/puppetlabs/puppet/ssl/private_keys/${::clientcert}.pem'
     }
   }
   $hash = lookup('consul::config_hash', { "default_value" => {} })
