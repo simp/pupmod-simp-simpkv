@@ -15,9 +15,7 @@ class libkv::consul(
     $bootstrap_expect = 1
   }
   $hash = lookup('consul::config_hash', { "default_value" => {} })
-  notify { "hash = $hash": }
-  class { '::consul':
-    config_hash          => {
+  $class_hash =     {
       'data_dir'         => '/opt/consul',
       'bootstrap_expect' => $bootstrap_expect,
       'server'           => $server,
@@ -26,7 +24,11 @@ class libkv::consul(
       'advertise_addr'   => $::ipaddress,
       'client_addr'      => $client_addr,
       'ui_dir'           => '/opt/consul/ui',
-    },
+  }
+
+  notify { "hash = $hash": }
+  class { '::consul':
+    config_hash          => $hash,
     version => $version,
   }
 }
