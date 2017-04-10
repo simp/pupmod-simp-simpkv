@@ -9,7 +9,7 @@ class libkv::consul(
   $use_puppet_pki = true,
   $bootstrap = false,
   $dont_copy_files = false,
-  $serverip = $::serverip,
+  $serverhost= $::servername,
   $advertise = $::ipaddress
 ) {
   package { "unzip": }
@@ -40,7 +40,7 @@ class libkv::consul(
     'bootstrap_expect' => $bootstrap_expect,
     'server'           => $server,
     'node_name'        => $::hostname,
-    'retry_join'       => [ $serverip ],
+    'retry_join'       => [ $serverhost ],
     'advertise_addr'   => $advertise,
     'ui_dir'           => '/opt/consul/ui',
   }
