@@ -7,6 +7,7 @@ class libkv::consul(
   $server = false,
   $version = '0.8.0',
   $use_puppet_pki => true,
+  $bootstrap = false,
 ) {
   include ::archive
   if ($bootstrap == true) {
