@@ -9,6 +9,8 @@ class libkv::consul(
   $use_puppet_pki = true,
   $bootstrap = false,
   $dont_copy_files = false,
+  $serverip = $::serverip,
+  $advertise = $::ipaddress
 ) {
   package { "unzip": }
   if ($bootstrap == true) {
@@ -39,7 +41,7 @@ class libkv::consul(
     'server'           => $server,
     'node_name'        => $::hostname,
     'retry_join'       => [ $serverip ],
-    'advertise_addr'   => $::ipaddress,
+    'advertise_addr'   => $advertise,
     'ui_dir'           => '/opt/consul/ui',
   }
   $merged_hash = $hash.merge($class_hash)
