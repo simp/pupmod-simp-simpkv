@@ -1,6 +1,4 @@
 include libkv::consul
-package { "unzip":
-} ->
 file { "/etc/simp":
 	ensure => directory,
 } ->
