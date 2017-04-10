@@ -7,12 +7,17 @@ class libkv::consul(
   $server = false,
   $bootstrap = false,
   $key = undef,
-  $version = '0.7.4',
+  $version = '0.8.0',
   $client_addr = '0.0.0.0',
 ) {
   package { "unzip": }
   if ($bootstrap == true) {
     $bootstrap_expect = 1
+  }
+  if ($server == true)
+    $cert_file_name = '/etc/simp/bootstrap/consul/server.dc1.consul.cert.pem'
+    $private_file_name = '/etc/simp/bootstrap/consul/server.dc1.consul.private.pem'
+    $ca_file_name = '/etc/simp/bootstrap/consul/ca.pem'
   }
   $hash = lookup('consul::config_hash', { "default_value" => {} })
   $class_hash =     {
@@ -25,10 +30,10 @@ class libkv::consul(
       'client_addr'      => $client_addr,
       'ui_dir'           => '/opt/consul/ui',
   }
-
+  $merged_hash = $class_hash.merge($hash)
   notify { "hash = $hash": }
   class { '::consul':
-    config_hash          => $hash,
+    config_hash          => $merged_hash,
     version => $version,
   }
 }
