@@ -25,6 +25,11 @@ class libkv::consul(
   } else {
     $_serverhost = $serverhost
   }
+  if ($advertise == undef) {
+    $_advertise = $::ipaddress
+  } else {
+    $_advertise = $advertise
+  }
   $keypath = '/etc/simp/bootstrap/consul/key'
   $master_token_path = '/etc/simp/bootstrap/consul/master_token'
   if ($server == true) {
@@ -50,7 +55,7 @@ class libkv::consul(
     'server'           => $server,
     'node_name'        => $::hostname,
     'retry_join'       => [ $_serverhost ],
-    'advertise_addr'   => $advertise,
+    'advertise_addr'   => $_advertise,
     'ui_dir'           => '/opt/consul/ui',
   }
   $merged_hash = $hash + $class_hash
