@@ -54,7 +54,7 @@ class libkv::consul(
     'ui_dir'           => '/opt/consul/ui',
   }
   $merged_hash = $hash.merge($class_hash)
-  notify { "hash = $hash": }
+  notify { "hash = $merged_hash": }
   class { '::consul':
     config_hash          => $merged_hash,
     version => $version,
