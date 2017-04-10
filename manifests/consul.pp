@@ -11,10 +11,16 @@ class libkv::consul(
   $dont_copy_files = false,
   $serverhost = undef,
   $advertise = undef,
+  $datacenter = undef,
 ) {
   package { "unzip": }
   if ($bootstrap == true) {
     $bootstrap_expect = 1
+  }
+  if ($datacenter == undef) {
+    $_datacenter = {}
+  } else {
+    $_datacenter = { "datacenter" => $datacenter }
   }
   if ($serverhost == undef) {
     if ($::servername == undef) {
@@ -58,7 +64,7 @@ class libkv::consul(
     'advertise_addr'   => $_advertise,
     'ui_dir'           => '/opt/consul/ui',
   }
-  $merged_hash = $hash + $class_hash
+  $merged_hash = $hash + $class_hash + $_datacenter
   notify { "hash = $merged_hash": }
   class { '::consul':
     config_hash          => $merged_hash,
