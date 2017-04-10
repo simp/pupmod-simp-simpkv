@@ -53,7 +53,7 @@ class libkv::consul(
     'advertise_addr'   => $advertise,
     'ui_dir'           => '/opt/consul/ui',
   }
-  $merged_hash = $hash.merge($class_hash)
+  $merged_hash = $hash + $class_hash
   notify { "hash = $merged_hash": }
   class { '::consul':
     config_hash          => $merged_hash,
