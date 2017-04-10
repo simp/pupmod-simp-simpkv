@@ -9,12 +9,17 @@ class libkv::consul(
   $use_puppet_pki = true,
   $bootstrap = false,
   $dont_copy_files = false,
-  $serverhost= $::servername,
-  $advertise = $::ipaddress
+  $serverhost = undef,
+  $advertise = undef,
 ) {
   package { "unzip": }
   if ($bootstrap == true) {
     $bootstrap_expect = 1
+  }
+  if ($serverhost == undef) {
+    $_serverhost = $::servername
+  } else {
+    $_serverhost = $serverhost
   }
   $keypath = '/etc/simp/bootstrap/consul/key'
   $master_token_path = '/etc/simp/bootstrap/consul/master_token'
@@ -40,7 +45,7 @@ class libkv::consul(
     'bootstrap_expect' => $bootstrap_expect,
     'server'           => $server,
     'node_name'        => $::hostname,
-    'retry_join'       => [ $serverhost ],
+    'retry_join'       => [ $_serverhost ],
     'advertise_addr'   => $advertise,
     'ui_dir'           => '/opt/consul/ui',
   }
