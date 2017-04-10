@@ -25,7 +25,7 @@ source => '/etc/puppetlabs/puppet/ssl/certs/server.dc1.consul.pem',
 file { "/etc/simp/bootstrap/consul/ca.pem":
 source => '/etc/puppetlabs/puppet/ssl/ca/ca_crt.pem',
 } -> 
-Class["consul"] -->
+Class["consul"] ->
 exec { "/usr/local/bin/consul keygen >/etc/simp/bootstrap/consul/key":
   path => $::path,
   creates => '/etc/simp/bootstrap/consul/key',
