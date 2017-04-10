@@ -66,8 +66,6 @@ def put(params)
     else
       url = call_function('lookup', 'libkv::url', { 'default_value' => 'mock://'})
     end
-    require 'pry'
-    binding.pry
     if params.key?('auth')
       auth = params['auth']
     else
