@@ -48,8 +48,6 @@ libkv.load("consul") do
   def consul_request(params)
     headers = {}
     if (@auth != nil)
-      require 'pry'
-      binding.pry
       headers['X-Consul-Token'] = @auth["token"]
     end
     params["headers"] = headers
