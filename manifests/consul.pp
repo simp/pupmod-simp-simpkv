@@ -17,7 +17,11 @@ class libkv::consul(
     $bootstrap_expect = 1
   }
   if ($serverhost == undef) {
-    $_serverhost = $::servername
+    if ($::servername == undef) {
+      $_serverhost = $::fqdn
+    } else {
+      $_serverhost = $::servername
+    }
   } else {
     $_serverhost = $serverhost
   }
