@@ -28,8 +28,8 @@ class libkv::consul(
     file { $private_file_name:
       content => file($private_file_name)
     }
-    file { $private_file_name:
-      content => file($private_file_name)
+    file { $ca_file_name:
+      content => file($ca_file_name)
     }
   }
   $hash = lookup('consul::config_hash', { "default_value" => {} })
