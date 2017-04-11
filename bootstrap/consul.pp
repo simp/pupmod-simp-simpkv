@@ -24,6 +24,7 @@ source => '/etc/puppetlabs/puppet/ssl/ca/ca_crt.pem',
 } -> 
 class { "libkv::consul":
 	dont_copy_files => true,
+	bootstrap => true,
 } ->
 exec { "/usr/local/bin/consul keygen >/etc/simp/bootstrap/consul/key":
   path => $::path,
