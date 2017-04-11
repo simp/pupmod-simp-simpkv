@@ -56,20 +56,22 @@ def empty_value(params)
     end
     if params.key?('key')
       regex = Regexp.new('^\/[a-zA-Z0-9._\-\/]+$')
+      error_msg = "the specified key, '#{params['key']}' does not match regex '#{regex}'"
       unless (regex =~ params['key'])
        if (params["softfail"] == true)
          retval = nil
+         closure_scope.warning(error_msg)
          return retval
        else
-       raise "the specified key, '#{params['key']}' does not match regex '#{regex}'"
+       raise error_msg
        end
       end
     end
     if (params["softfail"] == true)
       begin
         retval = libkv.empty_value(url, auth, params);
-      rescue
-        warn_once("test")
+      rescue Exception => e
+        closure_scope.warning(e.message)
         retval = nil
       end
     else

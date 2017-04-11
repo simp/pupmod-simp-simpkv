@@ -1,7 +1,7 @@
 class libkv::test(
 $url = "mock://"
 ) {
-	$supports = libkv::supports({'url' => $url})
+	$supports = libkv::supports({'url' => $url, "softfail" => true})
 	notify { "supports = ${supports}": }
 	$provider = libkv::provider({'url' => $url})
 	notify { "provider = ${provider}": }
@@ -13,8 +13,8 @@ $url = "mock://"
 		"/fruits/apple"  => "test3",
 		"/fruits/banana" => "test4",
 	}.each |$key, $value| {
-          libkv::put({ 'url' => $url, 'key' => $key, 'value' => $value});
-	  $get = libkv::get({'url' => $url, 'key'       => $key});
+          libkv::put({ 'url' => $url, 'key' => $key, 'value' => $value,"softfail" =>  true});
+	  $get = libkv::get({'url' => $url, 'key' => $key});
           notify { "${key} get = ${get}": }
 	  $atomic_get = libkv::atomic_get({'url' => $url, 'key' => $key});
           notify { "${key} atomic_get = ${atomic_get}": } 
