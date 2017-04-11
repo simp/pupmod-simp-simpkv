@@ -66,11 +66,16 @@ class libkv::consul(
   }
   $hash = lookup('consul::config_hash', { "default_value" => {} })
   $class_hash =     {
-    'bootstrap_expect'       => $bootstrap_expect,
-    'server'                 => $server,
-    'node_name'              => $::hostname,
-    'retry_join'             => [ $_serverhost ],
-    'advertise_addr'         => $_advertise,
+    'bootstrap_expect' => $bootstrap_expect,
+    'server'           => $server,
+    'node_name'        => $::hostname,
+    'retry_join'       => [ $_serverhost ],
+    'advertise_addr'   => $_advertise,
+    'cert_file'        => $_cert_file_name,
+    'ca_file'          => $_ca_file_name,
+    'key_file'         => $_key_File_name,
+    'acl_master_token' => file($master_token_path),
+    'encrypt'          => file($keypath),
   }
   $merged_hash = $hash + $class_hash + $_datacenter + $config_hash
   class { '::consul':
