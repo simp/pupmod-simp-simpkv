@@ -68,6 +68,9 @@ class libkv::consul(
       file { "/etc/simp/bootstrap/":
 	ensure => directory,
       }
+      file { "/etc/simp":
+	ensure => directory,
+      }
       file { "/etc/simp/bootstrap/consul":
   	ensure => directory,
         }
