@@ -15,6 +15,7 @@ class libkv::consul(
   $ca_file_name = undef,
   $private_file_name = undef,
   $cert_file_name = undef,
+  $config_hash = undef,
 ) {
   package { "unzip": }
   if ($bootstrap == true) {
@@ -65,15 +66,13 @@ class libkv::consul(
   }
   $hash = lookup('consul::config_hash', { "default_value" => {} })
   $class_hash =     {
-    'data_dir'         => '/opt/consul',
-    'bootstrap_expect' => $bootstrap_expect,
-    'server'           => $server,
-    'node_name'        => $::hostname,
-    'retry_join'       => [ $_serverhost ],
-    'advertise_addr'   => $_advertise,
-    'ui_dir'           => '/opt/consul/ui',
+    'bootstrap_expect'       => $bootstrap_expect,
+    'server'                 => $server,
+    'node_name'              => $::hostname,
+    'retry_join'             => [ $_serverhost ],
+    'advertise_addr'         => $_advertise,
   }
-  $merged_hash = $hash + $class_hash + $_datacenter
+  $merged_hash = $hash + $class_hash + $_datacenter + $config_hash
   class { '::consul':
     config_hash          => $merged_hash,
     version => $version,
