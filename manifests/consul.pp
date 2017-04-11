@@ -41,7 +41,20 @@ class libkv::consul(
     $_advertise = $advertise
   }
   $keypath = '/etc/simp/bootstrap/consul/key'
+  $keydata = file($keypath, "/dev/null")
+  if ($keydata != undef) {
+    $_key_hash = { 'encrypt' => $keydata.chomp }
+  } else {
+    $_key_hash = {}
+  }
   $master_token_path = '/etc/simp/bootstrap/consul/master_token'
+    'acl_master_token' => 
+  $token = file($master_token_path, "/dev/null")
+  if ($token != undef) {
+    $_token_hash = { "encrypt" => $token.chomp }
+  } else {
+    $_token_hash = {}
+  }
   if ($use_puppet_pki == true) {
     if ($server == true) {
       $_cert_file_name = '/etc/simp/bootstrap/consul/server.dc1.consul.cert.pem'
@@ -74,10 +87,8 @@ class libkv::consul(
     'cert_file'        => $_cert_file_name,
     'ca_file'          => $_ca_file_name,
     'key_file'         => $_private_file_name,
-    'acl_master_token' => file($master_token_path).chomp,
-    'encrypt'          => file($keypath).chomp,
   }
-  $merged_hash = $hash + $class_hash + $_datacenter + $config_hash
+  $merged_hash = $hash + $class_hash + $_datacenter + $config_hash + $_key_hash + $_token_hash
   class { '::consul':
     config_hash          => $merged_hash,
     version => $version,
