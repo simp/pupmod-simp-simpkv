@@ -1,14 +1,9 @@
 file { "/etc/simp":
 	ensure => directory,
-} ->
-file { "/etc/simp/bootstrap/":
-	ensure => directory,
-} ->
-file { "/etc/simp/bootstrap/consul":
-	ensure => directory,
-} ->
+}
 exec { "/usr/bin/uuidgen >/etc/simp/bootstrap/consul/master_token":
 	creates => '/etc/simp/bootstrap/consul/master_token',
+        require => File["/etc/simp/bootstrap/consul"],
 } ->
 exec { "/opt/puppetlabs/bin/puppet cert generate server.dc1.consul":
 	creates => '/etc/puppetlabs/puppet/ssl/private_keys/server.dc1.consul.pem',
