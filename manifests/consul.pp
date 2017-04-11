@@ -85,9 +85,18 @@ class libkv::consul(
         }
       }
     } else {
-      $_cert_file_name = "/etc/puppetlabs/puppet/ssl/certs/${::clientcert}.pem"
-      $_ca_file_name = '/etc/puppetlabs/puppet/ssl/certs/ca.pem'
-      $_private_file_name = "/etc/puppetlabs/puppet/ssl/private_keys/${::clientcert}.pem"
+      $_cert_file_name_source = "/etc/puppetlabs/puppet/ssl/certs/${::clientcert}.pem"
+      $_ca_file_name_source = '/etc/puppetlabs/puppet/ssl/certs/ca.pem'
+      $_private_file_name_source = "/etc/puppetlabs/puppet/ssl/private_keys/${::clientcert}.pem"
+      file { '/etc/consul/cert.pem':
+        source => $_cert_file_name_source
+      }
+      file { '/etc/consul/ca.pem':
+        source => $_ca_file_name_source
+      }
+      file { '/etc/consul/key.pem':
+        source => $_key_file_name_source
+      }
     }
   }
   # Attempt to store bootstrap info into consul directly via libkv.
@@ -98,9 +107,9 @@ class libkv::consul(
     'node_name'        => $::hostname,
     'retry_join'       => [ $_serverhost ],
     'advertise_addr'   => $_advertise,
-    'cert_file'        => $_cert_file_name,
-    'ca_file'          => $_ca_file_name,
-    'key_file'         => $_private_file_name,
+    'cert_file'        => '/etc/consul/cert.pem',
+    'ca_file'          => '/etc/consul/ca.pem',
+    'key_file'         => '/etc/consul/key.pem',
   }
   $merged_hash = $hash + $class_hash + $_datacenter + $config_hash + $_key_hash + $_token_hash + $_bootstrap_hash
   class { '::consul':
