@@ -52,7 +52,10 @@ class libkv::consul(
   $master_token_path = '/etc/simp/bootstrap/consul/master_token'
   $token = file($master_token_path, "/dev/null")
   if ($token != undef) {
-    $_token_hash = { "acl_master_token" => $token.chomp }
+    $_token_hash = { 
+    "acl_master_token" => $token.chomp,
+    "acl_token"        => $token.chomp,
+    }
   } else {
     $_token_hash = {}
   }
