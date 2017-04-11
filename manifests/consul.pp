@@ -60,9 +60,11 @@ class libkv::consul(
     $_token_hash = {}
   }
   if ($use_puppet_pki == true) {
+     if ($bootstrap == false) {
       file { "/etc/simp":
 	ensure => directory,
       }
+    }
     file { "/etc/simp/consul":
      ensure => directory,
     }
