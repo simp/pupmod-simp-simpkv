@@ -83,13 +83,13 @@ class libkv::consul(
         file { $_ca_file_name:
           content => file($_ca_file_name)
         }
-        file { '/etc/consul/cert.pem':
+        file { '/etc/simp/consul/cert.pem':
           content => file($_cert_file_name)
         }
-        file { '/etc/consul/ca.pem':
+        file { '/etc/simp/consul/ca.pem':
           content => file($_private_file_name)
         }
-        file { '/etc/consul/key.pem':
+        file { '/etc/simp/consul/key.pem':
           content => file($_ca_file_name)
         }
       }
@@ -97,13 +97,13 @@ class libkv::consul(
       $_cert_file_name_source = "/etc/puppetlabs/puppet/ssl/certs/${::clientcert}.pem"
       $_ca_file_name_source = '/etc/puppetlabs/puppet/ssl/certs/ca.pem'
       $_private_file_name_source = "/etc/puppetlabs/puppet/ssl/private_keys/${::clientcert}.pem"
-      file { '/etc/consul/cert.pem':
+      file { '/etc/simp/consul/cert.pem':
         source => $_cert_file_name_source
       }
-      file { '/etc/consul/ca.pem':
+      file { '/etc/simp/consul/ca.pem':
         source => $_ca_file_name_source
       }
-      file { '/etc/consul/key.pem':
+      file { '/etc/simp/consul/key.pem':
         source => $_key_file_name_source
       }
     }
@@ -116,9 +116,9 @@ class libkv::consul(
     'node_name'        => $::hostname,
     'retry_join'       => [ $_serverhost ],
     'advertise_addr'   => $_advertise,
-    'cert_file'        => '/etc/consul/cert.pem',
-    'ca_file'          => '/etc/consul/ca.pem',
-    'key_file'         => '/etc/consul/key.pem',
+    'cert_file'        => '/etc/simp/consul/cert.pem',
+    'ca_file'          => '/etc/simp/consul/ca.pem',
+    'key_file'         => '/etc/simp/consul/key.pem',
   }
   $merged_hash = $hash + $class_hash + $_datacenter + $config_hash + $_key_hash + $_token_hash + $_bootstrap_hash
   class { '::consul':
