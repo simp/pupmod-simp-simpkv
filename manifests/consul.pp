@@ -60,6 +60,9 @@ class libkv::consul(
     $_token_hash = {}
   }
   if ($use_puppet_pki == true) {
+    file { "/etc/simp/consul":
+     ensure => directory,
+    }
     if ($server == true) {
       $_cert_file_name = '/etc/simp/bootstrap/consul/server.dc1.consul.cert.pem'
       $_private_file_name = '/etc/simp/bootstrap/consul/server.dc1.consul.private.pem'
