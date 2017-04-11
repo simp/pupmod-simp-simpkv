@@ -107,6 +107,11 @@ class libkv::consul(
         source => $_key_file_name_source
       }
     }
+    $_cert_hash = {
+      "cert_file" => '/etc/simp/consul/cert.pem',
+      "ca_file" => '/etc/simp/consul/ca.pem',
+      "key_file" => '/etc/simp/consul/key.pem',
+    }
   }
   # Attempt to store bootstrap info into consul directly via libkv.
   # Use softfail to get around issues if the service isn't up
@@ -116,11 +121,8 @@ class libkv::consul(
     'node_name'        => $::hostname,
     'retry_join'       => [ $_serverhost ],
     'advertise_addr'   => $_advertise,
-    'cert_file'        => '/etc/simp/consul/cert.pem',
-    'ca_file'          => '/etc/simp/consul/ca.pem',
-    'key_file'         => '/etc/simp/consul/key.pem',
   }
-  $merged_hash = $hash + $class_hash + $_datacenter + $config_hash + $_key_hash + $_token_hash + $_bootstrap_hash
+  $merged_hash = $hash + $class_hash + $_datacenter + $config_hash + $_key_hash + $_token_hash + $_bootstrap_hash + $_cert_hash
   class { '::consul':
     config_hash          => $merged_hash,
     version => $version,
