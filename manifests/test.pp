@@ -1,6 +1,6 @@
 class libkv::test(
 $url = "mock://",
-$softfail = false,
+$softfail = true,
 ) {
 	$supports = libkv::supports({'url' => $url, "softfail" => $softfail})
 	notify { "supports = ${supports}": }

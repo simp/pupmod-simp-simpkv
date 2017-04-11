@@ -39,8 +39,6 @@ Puppet::Functions.create_function(:'libkv::put') do
   
 
 def put(params)
-    require 'pry'
-    binding.pry
     if (closure_scope.class.to_s == 'Puppet::Parser::Scope') 
       catalog = closure_scope.find_global_scope.catalog
     else
