@@ -68,7 +68,7 @@ def empty_value(params)
       unless (regex =~ params['key'])
        if (params["softfail"] == true)
          retval = nil
-         closure_scope.warning(error_msg)
+         Puppet.warning(error_msg)
          return retval
        else
        raise error_msg
@@ -79,7 +79,7 @@ def empty_value(params)
       begin
         retval = libkv.empty_value(url, auth, params);
       rescue Exception => e
-        closure_scope.warning(e.message)
+        Puppet.warning(e.message)
         retval = nil
       end
     else

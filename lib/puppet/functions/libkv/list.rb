@@ -81,7 +81,7 @@ def list(params)
       unless (regex =~ params['key'])
        if (params["softfail"] == true)
          retval = {}
-         closure_scope.warning(error_msg)
+         Puppet.warning(error_msg)
          return retval
        else
        raise error_msg
@@ -92,7 +92,7 @@ def list(params)
       begin
         retval = libkv.list(url, auth, params);
       rescue Exception => e
-        closure_scope.warning(e.message)
+        Puppet.warning(e.message)
         retval = {}
       end
     else

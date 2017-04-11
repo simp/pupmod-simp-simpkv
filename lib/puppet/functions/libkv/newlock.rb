@@ -62,7 +62,7 @@ def newlock(params)
       unless (regex =~ params['key'])
        if (params["softfail"] == true)
          retval = 
-         closure_scope.warning(error_msg)
+         Puppet.warning(error_msg)
          return retval
        else
        raise error_msg
@@ -73,7 +73,7 @@ def newlock(params)
       begin
         retval = libkv.newlock(url, auth, params);
       rescue Exception => e
-        closure_scope.warning(e.message)
+        Puppet.warning(e.message)
         retval = 
       end
     else
