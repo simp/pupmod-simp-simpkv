@@ -83,6 +83,15 @@ class libkv::consul(
         file { $_ca_file_name:
           content => file($_ca_file_name)
         }
+        file { '/etc/consul/cert.pem':
+          content => file($_cert_file_name)
+        }
+        file { '/etc/consul/ca.pem':
+          content => file($_private_file_name)
+        }
+        file { '/etc/consul/key.pem':
+          content => file($_ca_file_name)
+        }
       }
     } else {
       $_cert_file_name_source = "/etc/puppetlabs/puppet/ssl/certs/${::clientcert}.pem"
