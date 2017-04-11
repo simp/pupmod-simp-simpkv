@@ -59,9 +59,9 @@ class libkv::consul(
         }
       }
     } else {
-      $_cert_file_name = '/etc/puppetlabs/puppet/ssl/certs/${::clientcert}.pem'
+      $_cert_file_name = "/etc/puppetlabs/puppet/ssl/certs/${::clientcert}.pem"
       $_ca_file_name = '/etc/puppetlabs/puppet/ssl/certs/ca.pem'
-      $_private_file_name = '/etc/puppetlabs/puppet/ssl/private_keys/${::clientcert}.pem'
+      $_private_file_name = "/etc/puppetlabs/puppet/ssl/private_keys/${::clientcert}.pem"
     }
   }
   $hash = lookup('consul::config_hash', { "default_value" => {} })
