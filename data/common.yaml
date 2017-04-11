@@ -13,7 +13,6 @@ libkv::consul::config_hash:
     http: 8500
   verify_server_hostname: true
   verify_outgoing: true
-  verify_incoming: true
   data_dir: '/opt/consul'
   node_name: "%{::hostname}"
   client_addr: '0.0.0.0'
