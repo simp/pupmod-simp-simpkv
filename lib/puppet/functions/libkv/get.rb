@@ -35,6 +35,8 @@ Puppet::Functions.create_function(:'libkv::get') do
   
 
 def get(params)
+    require 'pry'
+    binding.pry
     if (closure_scope.class.to_s == 'Puppet::Parser::Scope') 
       catalog = closure_scope.find_global_scope.catalog
     else
@@ -62,16 +64,19 @@ def get(params)
     else
       url = call_function('lookup', 'libkv::url', { 'default_value' => 'mock://'})
     end
+    params["url"] = url
     if params.key?('softfail')
-      url = params['softfail']
+      softfail = params['softfail']
     else
-      url = call_function('lookup', 'libkv::softfail', { 'default_value' => false})
+      softfail = call_function('lookup', 'libkv::softfail', { 'default_value' => false})
     end
+    params["softfail"] = softfail 
     if params.key?('auth')
       auth = params['auth']
     else
       auth = call_function('lookup', 'libkv::auth', { 'default_value' => nil })
     end
+    params["auth"] = auth
     if params.key?('key')
       regex = Regexp.new('^\/[a-zA-Z0-9._\-\/]+$')
       error_msg = "the specified key, '#{params['key']}' does not match regex '#{regex}'"

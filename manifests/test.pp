@@ -1,9 +1,10 @@
 class libkv::test(
-$url = "mock://"
+$url = "mock://",
+$softfail = false,
 ) {
-	$supports = libkv::supports({'url' => $url, "softfail" => true})
+	$supports = libkv::supports({'url' => $url, "softfail" => $softfail})
 	notify { "supports = ${supports}": }
-	$provider = libkv::provider({'url' => $url})
+	$provider = libkv::provider({'url' => $url, "softfail" => $softfail})
 	notify { "provider = ${provider}": }
 	$loopvar = {
 		"/meats/pork"    => "test1",
@@ -13,21 +14,21 @@ $url = "mock://"
 		"/fruits/apple"  => "test3",
 		"/fruits/banana" => "test4",
 	}.each |$key, $value| {
-          libkv::put({ 'url' => $url, 'key' => $key, 'value'    => $value,"softfail" => true});
-	  $get = libkv::get({'url' => $url, 'key' => $key, "softfail" =>  true});
+          libkv::put({ 'url' => $url, 'key' => $key, 'value'    => $value, "softfail" => $softfail})
+	  $get = libkv::get({'url' => $url, 'key' => $key, "softfail" =>  $softfail})
           notify { "${key} get = ${get}": }
-	  $atomic_get = libkv::atomic_get({'url' => $url, 'key' => $key, "softfail" => true});
+	  $atomic_get = libkv::atomic_get({'url' => $url, 'key' => $key, "softfail" => $softfail})
           notify { "${key} atomic_get = ${atomic_get}": } 
-	  libkv::atomic_put({'url'            => $url, 'key' => $key, 'value' => 'testzor', 'previous' => $atomic_get});
-	  $atomic_put = libkv::atomic_get({'url' =>  $url, 'key'       => $key});
+	  libkv::atomic_put({'url'               => $url, 'key' => $key, 'value'    => 'testzor', 'previous' => $atomic_get, "softfail" => $softfail})
+	  $atomic_put = libkv::atomic_get({'url' => $url, 'key' => $key, "softfail" =>  $softfail})
           notify { "${key} atomic_put = ${atomic_put}": }
-  	  $info = libkv::info({'url' => $url})
+  	  $info = libkv::info({'url' => $url, "softfail" =>  $softfail})
 	  notify { "${key} info = ${info}": } 
 	}
-	$list = libkv::list({ 'url' => $url, 'key' => '/meats' })
+	$list = libkv::list({ 'url' => $url, 'key' => '/meats', "softfail" => $softfail})
 	notify { "first list = ${list}": }
-        libkv::delete({'url'  => $url, 'key' => '/meats/pork'})
-	$listm = libkv::list({'url' => $url, 'key'       => '/meats' })
+        libkv::delete({'url'  => $url, 'key' => '/meats/pork', "softfail" => $softfail})
+	$listm = libkv::list({'url' => $url, 'key' => '/meats', "softfail"      => $softfail })
 	notify { "second list = ${listm}": }
-	libkv::put({ 'url' => $url, 'key' => "/hosts/${trusted[certname]}/ipaddress", 'value' => $::ipaddress})
+	libkv::put({ 'url' => $url, 'key' => "/hosts/${trusted[certname]}/ipaddress", 'value' => $::ipaddress, "softfail" =>  $softfail})
 }
