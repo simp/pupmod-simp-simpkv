@@ -64,14 +64,13 @@ class libkv::consul(
       $_cert_file_name = '/etc/simp/bootstrap/consul/server.dc1.consul.cert.pem'
       $_private_file_name = '/etc/simp/bootstrap/consul/server.dc1.consul.private.pem'
       $_ca_file_name = '/etc/simp/bootstrap/consul/ca.pem'
+      if ($dont_copy_files == false) {
       file { "/etc/simp/bootstrap/":
 	ensure => directory,
       }
       file { "/etc/simp/bootstrap/consul":
-	ensure => directory,
-      }
-      if ($dont_copy_files == false) {
-
+  	ensure => directory,
+        }
         file { $_cert_file_name:
           content => file($_cert_file_name)
         }

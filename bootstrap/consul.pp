@@ -1,6 +1,12 @@
 file { "/etc/simp":
 	ensure => directory,
 }
+      file { "/etc/simp/bootstrap/":
+	ensure => directory,
+      }
+      file { "/etc/simp/bootstrap/consul":
+	ensure => directory,
+      }
 exec { "/usr/bin/uuidgen >/etc/simp/bootstrap/consul/master_token":
 	creates => '/etc/simp/bootstrap/consul/master_token',
         require => File["/etc/simp/bootstrap/consul"],
