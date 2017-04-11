@@ -69,6 +69,7 @@ def empty_value(params)
       begin
         retval = libkv.empty_value(url, auth, params);
       rescue
+        warn_once("test")
         retval = nil
       end
     else

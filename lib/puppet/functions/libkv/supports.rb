@@ -69,6 +69,7 @@ def supports(params)
       begin
         retval = libkv.supports(url, auth, params);
       rescue
+        warn_once("test")
         retval = []
       end
     else

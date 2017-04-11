@@ -82,6 +82,7 @@ def exists(params)
       begin
         retval = libkv.exists(url, auth, params);
       rescue
+        warn_once("test")
         retval = nil
       end
     else

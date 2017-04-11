@@ -86,6 +86,7 @@ def atomic_create(params)
       begin
         retval = libkv.atomic_create(url, auth, params);
       rescue
+        warn_once("test")
         retval = {}
       end
     else

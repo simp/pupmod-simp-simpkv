@@ -63,6 +63,7 @@ def watch(params)
       begin
         retval = libkv.watch(url, auth, params);
       rescue
+        warn_once("test")
         retval = 
       end
     else

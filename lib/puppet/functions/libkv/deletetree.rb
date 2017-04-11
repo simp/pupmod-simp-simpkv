@@ -82,6 +82,7 @@ def deletetree(params)
       begin
         retval = libkv.deletetree(url, auth, params);
       rescue
+        warn_once("test")
         retval = false
       end
     else

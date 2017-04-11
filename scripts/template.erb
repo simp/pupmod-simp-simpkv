@@ -96,6 +96,7 @@ def <%= function %>(params)
       begin
         retval = libkv.<%= function %>(url, auth, params);
       rescue
+        warn_once("test")
         retval = <%= value[:softfail] %>
       end
     else

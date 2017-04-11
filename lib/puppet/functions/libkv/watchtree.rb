@@ -63,6 +63,7 @@ def watchtree(params)
       begin
         retval = libkv.watchtree(url, auth, params);
       rescue
+        warn_once("test")
         retval = 
       end
     else

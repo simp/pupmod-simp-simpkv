@@ -82,6 +82,7 @@ def delete(params)
       begin
         retval = libkv.delete(url, auth, params);
       rescue
+        warn_once("test")
         retval = false
       end
     else

@@ -82,6 +82,7 @@ def atomic_list(params)
       begin
         retval = libkv.atomic_list(url, auth, params);
       rescue
+        warn_once("test")
         retval = {}
       end
     else

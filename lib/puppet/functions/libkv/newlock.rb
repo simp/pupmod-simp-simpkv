@@ -63,6 +63,7 @@ def newlock(params)
       begin
         retval = libkv.newlock(url, auth, params);
       rescue
+        warn_once("test")
         retval = 
       end
     else

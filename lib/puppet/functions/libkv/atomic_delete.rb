@@ -86,6 +86,7 @@ def atomic_delete(params)
       begin
         retval = libkv.atomic_delete(url, auth, params);
       rescue
+        warn_once("test")
         retval = {}
       end
     else

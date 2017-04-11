@@ -82,6 +82,7 @@ def get(params)
       begin
         retval = libkv.get(url, auth, params);
       rescue
+        warn_once("test")
         retval = nil
       end
     else

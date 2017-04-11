@@ -69,6 +69,7 @@ def provider(params)
       begin
         retval = libkv.provider(url, auth, params);
       rescue
+        warn_once("test")
         retval = ""
       end
     else

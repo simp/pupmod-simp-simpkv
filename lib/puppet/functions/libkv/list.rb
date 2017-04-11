@@ -82,6 +82,7 @@ def list(params)
       begin
         retval = libkv.list(url, auth, params);
       rescue
+        warn_once("test")
         retval = {}
       end
     else

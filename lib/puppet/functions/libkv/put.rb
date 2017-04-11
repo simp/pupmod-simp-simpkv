@@ -86,6 +86,7 @@ def put(params)
       begin
         retval = libkv.put(url, auth, params);
       rescue
+        warn_once("test")
         retval = false
       end
     else

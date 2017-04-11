@@ -90,6 +90,7 @@ def atomic_put(params)
       begin
         retval = libkv.atomic_put(url, auth, params);
       rescue
+        warn_once("test")
         retval = {}
       end
     else
