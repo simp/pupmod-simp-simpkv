@@ -60,6 +60,9 @@ class libkv::consul(
     $_token_hash = {}
   }
   if ($use_puppet_pki == true) {
+      file { "/etc/simp":
+	ensure => directory,
+      }
     file { "/etc/simp/consul":
      ensure => directory,
     }
@@ -69,9 +72,6 @@ class libkv::consul(
       $_ca_file_name = '/etc/simp/bootstrap/consul/ca.pem'
       if ($dont_copy_files == false) {
       file { "/etc/simp/bootstrap/":
-	ensure => directory,
-      }
-      file { "/etc/simp":
 	ensure => directory,
       }
       file { "/etc/simp/bootstrap/consul":
