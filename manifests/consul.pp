@@ -73,7 +73,7 @@ class libkv::consul(
     'advertise_addr'   => $_advertise,
     'cert_file'        => $_cert_file_name,
     'ca_file'          => $_ca_file_name,
-    'key_file'         => $_key_file_name,
+    'key_file'         => $_private_file_name,
     'acl_master_token' => file($master_token_path).chomp,
     'encrypt'          => file($keypath).chomp,
   }
