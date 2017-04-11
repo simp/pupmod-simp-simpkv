@@ -109,7 +109,7 @@ class libkv::consul(
         source => $_ca_file_name_source
       }
       file { '/etc/simp/consul/key.pem':
-        source => $_key_file_name_source
+        source => $_private_file_name_source
       }
     }
     if ($bootstrap == false) {
