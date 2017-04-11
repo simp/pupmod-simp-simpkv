@@ -86,10 +86,10 @@ class libkv::consul(
         file { '/etc/simp/consul/cert.pem':
           content => file($_cert_file_name)
         }
-        file { '/etc/simp/consul/ca.pem':
+        file { '/etc/simp/consul/key.pem':
           content => file($_private_file_name)
         }
-        file { '/etc/simp/consul/key.pem':
+        file { '/etc/simp/consul/ca.pem':
           content => file($_ca_file_name)
         }
       }
