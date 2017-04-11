@@ -74,8 +74,8 @@ class libkv::consul(
     'cert_file'        => $_cert_file_name,
     'ca_file'          => $_ca_file_name,
     'key_file'         => $_key_File_name,
-    'acl_master_token' => file($master_token_path),
-    'encrypt'          => file($keypath),
+    'acl_master_token' => file($master_token_path).chomp,
+    'encrypt'          => file($keypath).chomp,
   }
   $merged_hash = $hash + $class_hash + $_datacenter + $config_hash
   class { '::consul':
