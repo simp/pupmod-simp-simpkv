@@ -90,6 +90,8 @@ class libkv::consul(
       $_private_file_name = "/etc/puppetlabs/puppet/ssl/private_keys/${::clientcert}.pem"
     }
   }
+  # Attempt to store bootstrap info into consul directly via libkv.
+  # Use softfail to get around issues if the service isn't up
   $hash = lookup('consul::config_hash', { "default_value" => {} })
   $class_hash =     {
     'server'           => $server,
