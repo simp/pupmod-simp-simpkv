@@ -13,10 +13,10 @@ $url = "mock://"
 		"/fruits/apple"  => "test3",
 		"/fruits/banana" => "test4",
 	}.each |$key, $value| {
-          libkv::put({ 'url' => $url, 'key' => $key, 'value' => $value,"softfail" =>  true});
-	  $get = libkv::get({'url' => $url, 'key' => $key});
+          libkv::put({ 'url' => $url, 'key' => $key, 'value'    => $value,"softfail" => true});
+	  $get = libkv::get({'url' => $url, 'key' => $key, "softfail" =>  true});
           notify { "${key} get = ${get}": }
-	  $atomic_get = libkv::atomic_get({'url' => $url, 'key' => $key});
+	  $atomic_get = libkv::atomic_get({'url' => $url, 'key' => $key, "softfail" => true});
           notify { "${key} atomic_get = ${atomic_get}": } 
 	  libkv::atomic_put({'url'            => $url, 'key' => $key, 'value' => 'testzor', 'previous' => $atomic_get});
 	  $atomic_put = libkv::atomic_get({'url' =>  $url, 'key'       => $key});

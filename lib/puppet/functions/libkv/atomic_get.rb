@@ -62,6 +62,11 @@ def atomic_get(params)
     else
       url = call_function('lookup', 'libkv::url', { 'default_value' => 'mock://'})
     end
+    if params.key?('softfail')
+      url = params['softfail']
+    else
+      url = call_function('lookup', 'libkv::softfail', { 'default_value' => false})
+    end
     if params.key?('auth')
       auth = params['auth']
     else
