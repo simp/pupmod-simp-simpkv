@@ -18,8 +18,3 @@ libkv::consul::config_hash:
   node_name: "%{::hostname}"
   client_addr: '0.0.0.0'
   ui_dir: /opt/consul/ui
-consul::version: '0.8.0'
-lookup_options:
-  consul::config_hash:
-    merge: hash
-  
