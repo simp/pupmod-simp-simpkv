@@ -110,10 +110,12 @@ class libkv::consul(
         source => $_key_file_name_source
       }
     }
-    $_cert_hash = {
+    if ($bootstrap == false) {
+      $_cert_hash = {
       "cert_file" => '/etc/simp/consul/cert.pem',
       "ca_file" => '/etc/simp/consul/ca.pem',
       "key_file" => '/etc/simp/consul/key.pem',
+      }
     }
   }
   # Attempt to store bootstrap info into consul directly via libkv.
