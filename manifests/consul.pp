@@ -7,7 +7,7 @@ class libkv::consul(
   $server = false,
   $version = '0.8.0',
   $use_puppet_pki = true,
-  $bootstrap = false,
+  $bootstrap = undef,
   $dont_copy_files = false,
   $serverhost = undef,
   $advertise = undef,
@@ -18,10 +18,14 @@ class libkv::consul(
   $config_hash = undef,
 ) {
   package { "unzip": }
-  if ($bootstrap == true) {
-    $_bootstrap_hash = { "bootstrap_expect" => 1 }
+  if ($bootstrap == undef) {
+    if ($ 
   } else {
-    $_bootstrap_hash = {}
+    if ($bootstrap == true) {
+      $_bootstrap_hash = { "bootstrap_expect" => 1}
+    } else {
+      $_bootstrap_hash = {}
+    }
   }
   if ($datacenter == undef) {
     $_datacenter = {}
