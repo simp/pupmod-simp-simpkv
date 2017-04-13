@@ -33,6 +33,7 @@ exec { "/usr/local/bin/consul keygen >/etc/simp/bootstrap/consul/key":
   creates => '/etc/simp/bootstrap/consul/key',
 } ->
 file { "/opt/puppetlabs/facter/facts.d/consul_bootstrap.sh":
+	mode    => "a+x",
 	content => "#!/bin/sh\necho 'consul_bootstrap=true'",
 }
 
