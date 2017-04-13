@@ -19,7 +19,11 @@ class libkv::consul(
 ) {
   package { "unzip": }
   if ($bootstrap == undef) {
-    if ($ 
+    if ($facts["consul_bootstrap"] == "true") {
+      $_bootstrap_hash = { "bootstrap_expect" => 1 }
+    } else {
+      $_bootstrap_hash = {}
+    }
   } else {
     if ($bootstrap == true) {
       $_bootstrap_hash = { "bootstrap_expect" => 1}
