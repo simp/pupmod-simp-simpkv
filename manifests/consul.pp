@@ -123,9 +123,12 @@ class libkv::consul(
     }
     if ($bootstrap == false) {
       $_cert_hash = {
-      "cert_file" => '/etc/simp/consul/cert.pem',
-      "ca_file" => '/etc/simp/consul/ca.pem',
-      "key_file" => '/etc/simp/consul/key.pem',
+      "cert_file"              => '/etc/simp/consul/cert.pem',
+      "ca_file"                => '/etc/simp/consul/ca.pem',
+      "key_file"               => '/etc/simp/consul/key.pem',
+      "verify_outgoing"        => true,
+      "verify_incoming"        => true,
+      "verify_server_hsotname" => true,
       }
     } else {
       $_cert_hash = {}
