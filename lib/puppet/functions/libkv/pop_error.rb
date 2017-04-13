@@ -1,7 +1,7 @@
 # vim: set expandtab ts=2 sw=2:
 #
 # @author Dylan Cochran <dylan.cochran@onyxpoint.com>
-Puppet::Functions.create_function(:'libkv::supports') do
+Puppet::Functions.create_function(:'libkv::pop_error') do
   # @param parameters [Hash] Hash of all parameters
   # 
   # @param key [String] string of the key to retrieve
@@ -9,21 +9,19 @@ Puppet::Functions.create_function(:'libkv::supports') do
   # @return [Any] The value in the underlying backing store
   #
   #
-  dispatch :supports do
+  dispatch :pop_error do
     param 'Hash', :parameters
   end
 
 
-  dispatch :supports_empty do
+  dispatch :pop_error_empty do
   end
-  def supports_empty
-     self.supports({})
+  def pop_error_empty
+     self.pop_error({})
   end
 
 
-def supports(params)
-    require 'pry'
-    binding.pry
+def pop_error(params)
     if (closure_scope.class.to_s == 'Puppet::Parser::Scope') 
       catalog = closure_scope.find_global_scope.catalog
     else
@@ -69,7 +67,7 @@ def supports(params)
       error_msg = "the specified key, '#{params['key']}' does not match regex '#{regex}'"
       unless (regex =~ params['key'])
        if (params["softfail"] == true)
-         retval = []
+         retval = ""
          Puppet.warning(error_msg)
          return retval
        else
@@ -79,13 +77,13 @@ def supports(params)
     end
     if (params["softfail"] == true)
       begin
-        retval = libkv.supports(url, auth, params);
+        retval = libkv.pop_error(url, auth, params);
       rescue Exception => e
         Puppet.warning(e.message)
-        retval = []
+        retval = ""
       end
     else
-      retval = libkv.supports(url, auth, params);
+      retval = libkv.pop_error(url, auth, params);
     end
     return retval;
   end

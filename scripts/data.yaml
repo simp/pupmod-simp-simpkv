@@ -109,6 +109,10 @@ supports:
   :description: 'Return an array of all supported functions'
   :softfail: "[]"
   :allow_empty: true
+pop_error:
+  :description: 'Return the error message for the last call'
+  :softfail: '""'
+  :allow_empty: true
 provider:
   :description: 'Return the name of the current provider'
   :softfail: '""'

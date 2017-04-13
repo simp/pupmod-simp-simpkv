@@ -18,14 +18,17 @@ c = Class.new do
   def initialize()
     @classes = {}
     @urls = {}
+    @errorlogs = {}
     @default_url = ""
   end
   attr_accessor :classes
   attr_accessor :urls
   attr_accessor :default_url
+  attr_accessor :errorlogs
   
   def load(name, &block)
-    @classes[name] = Class.new(&block)
+    klass = Class.new(&block)
+    @classes[name] = klass
   end
   def parseurl(url)
       hash = {}
@@ -33,19 +36,29 @@ c = Class.new do
       hash['provider'] = colonsplit[0].split("+")[0];
       return hash
   end
-  def method_missing(symbol, url, auth, *args, &block)
+  def instancename(url, auth)
     if (auth == nil)
       auth_hash = ""
     else
       auth_hash = auth.hash
     end
-    instance = url + "@" + auth_hash.to_s
+    url + "@" + auth_hash.to_s
+  end
+  def pop_error(url, auth, *args, &block)
+    instance == instancename(url, auth)
+    if (errorlogs.key?(instance))
+      errorlogs[instance].pop()
+    end
+  end
+  def method_missing(symbol, url, auth, *args, &block)
+    instance = instancename(url, auth)
     if (urls[instance] == nil)
       urlspec = parseurl(url)
       provider = urlspec['provider']
-      urls[url] = classes[provider].new(url, auth)
+      urls[instance] = classes[provider].new(url, auth)
+      errorlogs[instance] = [] 
     end
-    object = urls[url];
+    object = urls[instance];
     object.send(symbol, *args, &block);
   end
 
