@@ -1,7 +1,8 @@
 #!/bin/sh
-TOKEN=$1
+TOKEN=$(cat $1)
+OUTPUTFILE=$2
 curl     --request PUT     --data '{
   "Name": "libkv-default-acl",
   "Type": "client",
   "Rules": "{\"key\":{\"puppet/\":{\"policy\":\"write\"}},\"operator\":\"read\"}"
-}' http://localhost:8500/v1/acl/create?token=${TOKEN}
+}' http://localhost:8500/v1/acl/create?token=${TOKEN} >${OUTPUTFILE}
