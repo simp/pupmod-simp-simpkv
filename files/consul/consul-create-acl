@@ -5,4 +5,4 @@ curl     --request PUT     --data '{
   "Name": "libkv-default-acl",
   "Type": "client",
   "Rules": "{\"key\":{\"puppet/\":{\"policy\":\"write\"}},\"operator\":\"read\"}"
-}' http://localhost:8500/v1/acl/create?token=${TOKEN} >${OUTPUTFILE}
+}' http://localhost:8500/v1/acl/create?token="${TOKEN}" >"${OUTPUTFILE}"
