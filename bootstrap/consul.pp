@@ -14,7 +14,7 @@ exec { "/usr/bin/uuidgen >/etc/simp/bootstrap/consul/master_token":
 ## Create real token
 file { "/usr/bin/consul-create-acl":
   mode   => "a+x",
-	source => "puppet:///libkv/consul/consul-create-acl"
+	source => "puppet:///modules/libkv/consul/consul-create-acl"
 } ->
 exec { "/opt/puppetlabs/bin/puppet cert generate server.dc1.consul":
 	creates => '/etc/puppetlabs/puppet/ssl/private_keys/server.dc1.consul.pem',
