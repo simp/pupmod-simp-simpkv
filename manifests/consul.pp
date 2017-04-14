@@ -22,12 +22,21 @@ class libkv::consul(
     notify { "consul_bootstrap = ${facts["consul_bootstrap"]}": }
     if ($facts["consul_bootstrap"] == "true") {
       $_bootstrap_hash = { "bootstrap_expect" => 1 }
+     ## Create real token
+     file { "/usr/bin/consul-create-acl":
+        mode   => "a+x",
+	source => "puppet:///modules/libkv/consul/consul-create-acl"
+      } ->
+      exec { "/usr/bin/consul-create-acl /etc/simp/bootstrap/consul/master_token /etc/simp/bootstrap/consul/libkv_token":
+        creates => "/etc/simp/bootstrap/consul/libkv_token",
+      }
+
     } else {
       $_bootstrap_hash = {}
     }
   } else {
     if ($bootstrap == true) {
-      $_bootstrap_hash = { "bootstrap_expect" => 1}
+      $_bootstrap_hash = { "bootstrap_expect" => 1 }
     } else {
       $_bootstrap_hash = {}
     }
