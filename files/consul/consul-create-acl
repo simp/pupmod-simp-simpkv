@@ -1,0 +1,26 @@
+#!/bin/sh
+TOKEN=$(cat $1)
+OUTPUTFILE=$2
+# Give consul some time to attempt a join, then realize it's bootstrapping
+# a new cluster
+sleep 10
+if [ "${TYPE}" = "" ] ; then
+  TYPE="libkv"
+fi
+case "${TYPE}" in
+	libkv)
+		POLICY='{
+  "Name": "libkv-acl",
+  "Type": "client",
+  "Rules": "{\"key\":{\"puppet/\":{\"policy\":\"write\"}},\"operator\":\"read\"}"
+}'
+		;;
+	agent)
+		POLICY='{
+  "Name": "agent-acl",
+  "Taype": "client",
+  "Rules": "{\"key\":{\"\":{\"policy\":\"write\"}, \"puppet/\":{\"policy\":\"deny\"}},\"operator\":\"read\"}"
+}'
+		;;
+esac
+curl --request PUT --data "${POLICY}" -q http://localhost:8500/v1/acl/create?token="${TOKEN}" | cut -d '"' -f 4 >"${OUTPUTFILE}"
