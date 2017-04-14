@@ -16,8 +16,6 @@ file { "/usr/bin/consul-create-acl":
   mode   => "a+x",
 	source => "puppet:///modules/libkv/consul/consul-create-acl"
 } ->
-exec { "/usr/bin/consul-create-acl /etc/simp/bootstrap/consul/master_token /etc/simp/bootstrap/consul/libkv_token":
-} ->
 exec { "/opt/puppetlabs/bin/puppet cert generate server.dc1.consul":
 	creates => '/etc/puppetlabs/puppet/ssl/private_keys/server.dc1.consul.pem',
 } ->
@@ -39,8 +37,9 @@ exec { "/usr/local/bin/consul keygen >/etc/simp/bootstrap/consul/key":
   path => $::path,
   creates => '/etc/simp/bootstrap/consul/key',
 } ->
+exec { "/usr/bin/consul-create-acl /etc/simp/bootstrap/consul/master_token /etc/simp/bootstrap/consul/libkv_token":creates => "/etc/simp/bootstrap/consul/libkv_token",
+} ->
 file { "/opt/puppetlabs/facter/facts.d/consul_bootstrap.sh":
 	mode    => "a+x",
 	content => "#!/bin/sh\necho 'consul_bootstrap=true'",
 }
-
