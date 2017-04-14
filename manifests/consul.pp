@@ -29,6 +29,7 @@ class libkv::consul(
       } ->
       exec { "/usr/bin/consul-create-acl /etc/simp/bootstrap/consul/master_token /etc/simp/bootstrap/consul/libkv_token":
         creates => "/etc/simp/bootstrap/consul/libkv_token",
+        require => Service['consul'],
       }
 
     } else {
