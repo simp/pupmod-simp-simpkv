@@ -16,6 +16,8 @@ file { "/usr/bin/consul-create-acl":
   mode   => "a+x",
 	source => "puppet:///modules/libkv/consul/consul-create-acl"
 } ->
+exec { "/usr/bin/consul-create-acl /etc/simp/bootstrap/consul":
+} ->
 exec { "/opt/puppetlabs/bin/puppet cert generate server.dc1.consul":
 	creates => '/etc/puppetlabs/puppet/ssl/private_keys/server.dc1.consul.pem',
 } ->
