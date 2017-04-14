@@ -1,0 +1,16 @@
+lookup_options:
+  libkv::consul::config_hash:
+    merge: hash
+libkv::consul::config_hash:
+  acl_datacenter: "dc1"
+  acl_default_policy: "deny"
+  addresses:
+    http: '127.0.0.1'
+    https: '0.0.0.0'
+  ports:
+    https: 8501
+    http: 8500
+  data_dir: '/opt/consul'
+  node_name: "%{::hostname}"
+  client_addr: '0.0.0.0'
+  ui_dir: /opt/consul/ui
