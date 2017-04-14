@@ -12,8 +12,9 @@ exec { "/usr/bin/uuidgen >/etc/simp/bootstrap/consul/master_token":
         require => File["/etc/simp/bootstrap/consul"],
 } ->
 ## Create real token
-file { "/etc/simp/bootstrap/consul/libkv_token":
-	source => "/etc/simp/bootstrap/consul/master_token",
+file { "/usr/bin/consul-create-acl":
+  mode   => "a+x",
+	source => "puppet:///libkv/consul/consul-create-acl"
 } ->
 exec { "/opt/puppetlabs/bin/puppet cert generate server.dc1.consul":
 	creates => '/etc/puppetlabs/puppet/ssl/private_keys/server.dc1.consul.pem',
