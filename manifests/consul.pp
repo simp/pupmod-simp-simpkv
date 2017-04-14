@@ -17,6 +17,22 @@ class libkv::consul(
   $cert_file_name = undef,
   $config_hash = undef,
 ) {
+  if ($firewall) {
+    $ports = [
+      '8300',
+      '8301',
+      '8302',
+      '8501',
+    ]
+    $ports.each |$port| {
+      iptables::listen::tcp_stateful { "libkv::consul - tcp - ${port}":
+        dports => $port,
+      }
+      iptables::listen::udp { "libkv::consul - udp - ${port}":
+        dports => $port,
+      }
+    }
+  }
   package { "unzip": }
   if ($bootstrap == undef) {
     notify { "consul_bootstrap = ${facts["consul_bootstrap"]}": }
