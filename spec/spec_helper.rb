@@ -204,12 +204,39 @@ end
 def providers()
 [
   {
-	  "name" => "mock",
+	  "name" => "mock with serialize false",
 	  "url" => "mock://",
+          "serialize" => false,
   },
   {
-	  "name" => "consul with daemon",
+	  "name" => "mock with serialize true and mode is unset",
+	  "url" => "mock://",
+          "serialize" => true,
+  },
+  {
+	  "name" => "mock with serialize true and mode is 'native'",
+	  "url" => "mock://",
+          "serialize" => true,
+  },
+  {
+	  "name" => "consul with serialize false and with daemon",
 	  "url" => "consul://172.17.0.1:8500/puppet",
+          "serialize" => false,
+	  "softfail" => false,
+	  "should_error" => false,
+  },
+  {
+	  "name" => "consul with serialize true and mode is unset and with daemon",
+	  "url" => "consul://172.17.0.1:8500/puppet",
+          "serialize" => true,
+	  "softfail" => false,
+	  "should_error" => false,
+  },
+  {
+	  "name" => "consul with serialize true and mode is 'native' and with daemon",
+	  "url" => "consul://172.17.0.1:8500/puppet",
+          "serialize" => true,
+	  "mode" => 'native',
 	  "softfail" => false,
 	  "should_error" => false,
   },

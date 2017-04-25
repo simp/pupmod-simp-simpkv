@@ -14,7 +14,9 @@ describe 'libkv::atomic_get' do
     provider = providerinfo["name"]
     url = providerinfo["url"]
     shared_params = {
-      "url" => url
+      "url" => url,
+      "serialize" => providerinfo["serialize"],
+      "mode" => providerinfo["mode"],
     }
     context "when provider = #{provider}" do
       context "when the key 'test3' exists" do

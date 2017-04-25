@@ -14,7 +14,9 @@ describe 'libkv::put' do
     provider = providerinfo["name"]
     url = providerinfo["url"]
     shared_params = {
-      "url" => url
+      "url" => url,
+      "serialize" => providerinfo["serialize"],
+      "mode" => providerinfo["mode"],
     }
     context "when provider = #{provider}" do
       it 'should throw an exception when "key" is missing' do

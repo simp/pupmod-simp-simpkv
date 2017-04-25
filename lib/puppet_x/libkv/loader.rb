@@ -34,6 +34,13 @@ c = Class.new do
       return hash
   end
   def method_missing(symbol, url, auth, *args, &block)
+    params = args[0]
+    unless (params.key?("serialize"))
+      params["serialize"] = false
+    end
+    unless (params.key?("mode"))
+      params["mode"] = 'puppet'
+    end
     if (auth == nil)
       auth_hash = ""
     else

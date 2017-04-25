@@ -13,7 +13,9 @@ describe 'libkv::atomic_put' do
     provider = providerinfo["name"]
     url = providerinfo["url"]
     shared_params = {
-      "url" => url
+      "url" => url,
+      "serialize" => providerinfo["serialize"],
+      "mode" => providerinfo["mode"],
     }
     context "when provider = #{provider}" do
       def set_value(shared)
