@@ -34,7 +34,7 @@ libkv.load("consul") do
       request = Net::HTTP::Delete.new(params[:path])
     when 'PUT'
       request = Net::HTTP::Put.new(params[:path])
-      request.body = params[:body]
+      request.body = params[:body].to_s
     end
     if (params.key?("headers"))
       params["headers"].each do |key, value|

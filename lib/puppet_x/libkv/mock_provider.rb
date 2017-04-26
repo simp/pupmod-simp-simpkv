@@ -8,6 +8,9 @@ libkv.load("mock") do
   end
   def get(params)
     retval = {}
+    if (params.key?('key') == false)
+        raise "key must be specified"
+    end
     key = params['key'];
     value = @root[key];
     if value.class == Hash
@@ -53,7 +56,7 @@ libkv.load("mock") do
       @root[key] = {
         'sequence' => @sequence,
         'key' => key,
-        'value' => value,
+        'value' => value.to_s,
       }
     end
     retval["result"] = true
@@ -78,7 +81,7 @@ libkv.load("mock") do
         @root[key] = {
           'sequence' => @sequence,
           'key' => key,
-          'value' => value,
+          'value' => value.to_s,
         }
         retval["result"] = true
       else
@@ -106,7 +109,7 @@ libkv.load("mock") do
         retval["result"] = @root[key] = {
           'sequence' => @sequence,
           'key' => key,
-          'value' => value,
+          'value' => value.to_s,
         }
       else
         throw Exception

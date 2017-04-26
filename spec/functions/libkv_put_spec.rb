@@ -4,7 +4,7 @@ require 'spec_helper'
 require 'pry'
 
 valid_characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890/_-+'
-invalid_characters = ";':,./<>?[]\{}|=`~!@#$%^&*()\""
+invalid_characters = ";':,./<>?[]\{}|=`~!@\#$%^&*()\""
 
 describe 'libkv::put' do
   it 'should throw an exception with empty parameters' do
@@ -31,16 +31,34 @@ describe 'libkv::put' do
         result = subject.execute(params)
         expect(result.class).to eql(TrueClass)
       end
-      it 'should set the key "test2" to the value of value and libkv::get should return value' do
-        params = {
-          'key' => '/test2',
-          'value' => 'value2',
-        }.merge(shared_params)
-        subject.execute(params)
-        result = call_function("libkv::get", shared_params.merge({"key" => "/test2"}))
-        expect(result).to eql("value2")
+      datatype_testspec.each do |hash|
+        it "should create an object of type #{hash[:class]} for /put/#{hash[:key]}" do
+          params = {
+             'key' => "/put/" + hash[:key],
+             'value' => hash[:value],
+          }.merge(shared_params)
+          subject.execute(params)
+
+          params = {
+             'key' => "/put/" + hash[:key],
+          }.merge(shared_params)
+          result = call_function("libkv::get", params)
+          expect(result.class).to eql(hash[:class])
+        end
+        it "should create the value '#{hash[:value]}' for /put/#{hash[:key]}" do
+          params = {
+             'key' => "/put/" + hash[:key],
+             'value' => hash[:value],
+          }.merge(shared_params)
+          subject.execute(params)
+
+          params = {
+             'key' => "/put/" + hash[:key],
+          }.merge(shared_params)
+          result = call_function("libkv::get", params)
+          expect(result).to eql(hash[:retval])
+        end
       end
     end
   end
 end
-

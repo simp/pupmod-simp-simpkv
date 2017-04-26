@@ -138,6 +138,7 @@ RSpec.configure do |c|
     elsif defined?(class_name)
       set_hieradata(class_name.gsub(':','_'))
     end
+    `curl -sX DELETE http://172.17.0.1:8500/v1/kv/puppet?recurse`
   end
 
   c.after(:each) do
@@ -153,6 +154,52 @@ Dir.glob("#{RSpec.configuration.module_path}/*").each do |dir|
   rescue
     fail "ERROR: The module '#{dir}' is not installed. Tests cannot continue."
   end
+end
+def datatype_testspec
+  [
+          # Test String
+         {
+           :key => "test_string",
+           :value => "test1",
+           :retval => "test1",
+           :class => String,
+         },
+          # Test Boolean
+         {
+           :key => "test_boolean",
+           :value => true,
+           :retval => "true",
+           :class => String,
+         },
+          # Test Number
+         {
+           :key => "test_number",
+           :value => 255,
+           :retval => '255',
+           :class => String,
+         },
+          # Test Float
+         {
+           :key => "test_float",
+           :value => 2.38490,
+           :retval => '2.3849',
+           :class => String,
+         },
+          # Test Array
+         {
+           :key => "test_array",
+           :value => [ "test3", "test4"],
+           :retval => '["test3", "test4"]',
+           :class => String,
+         },
+          # Test Hash
+         {
+           :key => "test_hash",
+           :value => { "key" => "test", "value" => "test2" },
+           :retval => '{"key"=>"test", "value"=>"test2"}',
+           :class => String,
+         },
+      ]
 end
 def providers()
 [

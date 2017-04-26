@@ -67,6 +67,38 @@ describe 'libkv::atomic_put' do
           expect(result).to eql(nil)
         end
       end
+      datatype_testspec.each do |hash|
+        it "should return an object of type #{hash[:class]} for /atomic_put/#{hash[:key]}" do
+          params = {
+             'key' => "/atomic_put/" + hash[:key],
+          }.merge(shared_params)
+          original = call_function("libkv::atomic_get", params)
+
+          params = {
+             'key' => "/atomic_put/" + hash[:key],
+             'value' => hash[:value],
+             'previous' => original,
+          }.merge(shared_params)
+          subject.execute(params)
+          result = call_function("libkv::atomic_get", params)
+          expect(result["value"].class).to eql(hash[:class])
+        end
+        it "should return '#{hash[:value]}' for /atomic_put/#{hash[:key]}" do
+          params = {
+             'key' => "/atomic_put/" + hash[:key],
+          }.merge(shared_params)
+          original = call_function("libkv::atomic_get", params)
+
+          params = {
+             'key' => "/atomic_put/" + hash[:key],
+             'value' => hash[:value],
+             'previous' => original,
+          }.merge(shared_params)
+          subject.execute(params)
+          result = call_function("libkv::atomic_get", params)
+          expect(result["value"]).to eql(hash[:retval])
+        end
+      end
     end
   end
 end
