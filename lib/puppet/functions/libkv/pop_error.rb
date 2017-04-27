@@ -1,7 +1,7 @@
 # vim: set expandtab ts=2 sw=2:
 #
 # @author Dylan Cochran <dylan.cochran@onyxpoint.com>
-Puppet::Functions.create_function(:'libkv::<%= function %>') do
+Puppet::Functions.create_function(:'libkv::pop_error') do
   # @param parameters [Hash] Hash of all parameters
   # 
   # @param key [String] string of the key to retrieve
@@ -9,46 +9,19 @@ Puppet::Functions.create_function(:'libkv::<%= function %>') do
   # @return [Any] The value in the underlying backing store
   #
   #
-  dispatch :<%= function %> do
+  dispatch :pop_error do
     param 'Hash', :parameters
   end
 
-<% if value[:allow_empty] == true %>
-  dispatch :<%= function + "_empty" %> do
+
+  dispatch :pop_error_empty do
   end
-  def <%= function + "_empty" %>
-     self.<%= function %>({})
+  def pop_error_empty
+     self.pop_error({})
   end
-<% end %>
-<% if value[:signatures] != nil %>
-  <% value[:signatures].each do |key, spec| %>
-    dispatch :<%= function + "_" + key %> do
-    <% if spec["args"] != nil %>
-      <% spec["args"].each do |argument| %>
-        param "<%= argument["type"] %>", :parameters
-      <% end %>
-    <% end %>
-    end
-    def <%= function + "_" + key %>(<%= if spec["args"] != nil
-        array = []
-        spec["args"].each do |argument|
-          array << argument["name"]
-        end
-        array.join(",")
-      
-       end
-     %>)
-     params = {}
-     <% if spec["args"] != nil %>
-      <% spec["args"].each do |argument| %>
-        <%= "params['" + argument["name"] + "'] = " + argument["name"] %>
-      <% end %>
-    <% end %>
-    <%= function%>(params)
-    end
-  <% end %>
-<% end %>
-def <%= function %>(params)
+
+
+def pop_error(params)
     if (closure_scope.class.to_s == 'Puppet::Parser::Scope') 
       catalog = closure_scope.find_global_scope.catalog
     else
@@ -89,7 +62,7 @@ def <%= function %>(params)
       error_msg = "the specified key, '#{params['key']}' does not match regex '#{regex}'"
       unless (regex =~ params['key'])
         if (params["softfail"] == true)
-          retval = <%= value[:softfail] %>
+          retval = ""
           return retval
         else
           raise "the specified key, '#{params['key']}' does not match regex '#{regex}'"
@@ -98,12 +71,12 @@ def <%= function %>(params)
     end
     if (params["softfail"] == true)
       begin
-        retval = libkv.<%= function %>(url, auth, params);
+        retval = libkv.pop_error(url, auth, params);
       rescue
-        retval = <%= value[:softfail] %>
+        retval = ""
       end
     else
-      retval = libkv.<%= function %>(url, auth, params);
+      retval = libkv.pop_error(url, auth, params);
      end
     return retval;
   end

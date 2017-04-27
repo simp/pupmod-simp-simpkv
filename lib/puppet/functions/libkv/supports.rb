@@ -20,6 +20,7 @@ Puppet::Functions.create_function(:'libkv::supports') do
      self.supports({})
   end
 
+
 def supports(params)
     if (closure_scope.class.to_s == 'Puppet::Parser::Scope') 
       catalog = closure_scope.find_global_scope.catalog
@@ -48,20 +49,24 @@ def supports(params)
     else
       url = call_function('lookup', 'libkv::url', { 'default_value' => 'mock://'})
     end
+    params["url"] = url
+    
     if params.key?('auth')
       auth = params['auth']
     else
       auth = call_function('lookup', 'libkv::auth', { 'default_value' => nil })
     end
+    params["auth"] = auth
     if params.key?('key')
-      regex = Regexp.new('^\/[a-zA-Z0-9._\-\/]+$')
+      regex = /^\/[a-zA-Z0-9._\-\/]*$/
+      error_msg = "the specified key, '#{params['key']}' does not match regex '#{regex}'"
       unless (regex =~ params['key'])
-       if (params["softfail"] == true)
-         retval = []
-         return retval
-       else
-       raise "the specified key, '#{params['key']}' does not match regex '#{regex}'"
-       end
+        if (params["softfail"] == true)
+          retval = []
+          return retval
+        else
+          raise "the specified key, '#{params['key']}' does not match regex '#{regex}'"
+        end
       end
     end
     if (params["softfail"] == true)
@@ -72,7 +77,7 @@ def supports(params)
       end
     else
       retval = libkv.supports(url, auth, params);
-    end
+     end
     return retval;
   end
 end

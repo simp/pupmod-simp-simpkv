@@ -14,6 +14,30 @@ Puppet::Functions.create_function(:'libkv::put') do
   end
 
 
+
+  
+    dispatch :put_v1 do
+    
+      
+        param "String", :parameters
+      
+        param "Any", :parameters
+      
+    
+    end
+    def put_v1(key,value)
+     params = {}
+     
+      
+        params['key'] = key
+      
+        params['value'] = value
+      
+    
+    put(params)
+    end
+  
+
 def put(params)
     if (closure_scope.class.to_s == 'Puppet::Parser::Scope') 
       catalog = closure_scope.find_global_scope.catalog
@@ -42,20 +66,24 @@ def put(params)
     else
       url = call_function('lookup', 'libkv::url', { 'default_value' => 'mock://'})
     end
+    params["url"] = url
+    
     if params.key?('auth')
       auth = params['auth']
     else
       auth = call_function('lookup', 'libkv::auth', { 'default_value' => nil })
     end
+    params["auth"] = auth
     if params.key?('key')
-      regex = Regexp.new('^\/[a-zA-Z0-9._\-\/]+$')
+      regex = /^\/[a-zA-Z0-9._\-\/]*$/
+      error_msg = "the specified key, '#{params['key']}' does not match regex '#{regex}'"
       unless (regex =~ params['key'])
-       if (params["softfail"] == true)
-         retval = false
-         return retval
-       else
-       raise "the specified key, '#{params['key']}' does not match regex '#{regex}'"
-       end
+        if (params["softfail"] == true)
+          retval = false
+          return retval
+        else
+          raise "the specified key, '#{params['key']}' does not match regex '#{regex}'"
+        end
       end
     end
     if (params["softfail"] == true)
@@ -66,7 +94,7 @@ def put(params)
       end
     else
       retval = libkv.put(url, auth, params);
-    end
+     end
     return retval;
   end
 end
