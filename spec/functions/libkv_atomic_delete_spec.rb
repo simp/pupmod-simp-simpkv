@@ -15,9 +15,11 @@ describe 'libkv::atomic_delete' do
     url = providerinfo["url"]
     softfail = providerinfo["softfail"]
     should_error = providerinfo["should_error"]
+    auth = providerinfo["auth"]
     shared_params = {
       "url" => url,
       "softfail" => softfail,
+      "auth" => auth,
     }
     context "when provider = #{provider}" do
       def set_value(shared)

@@ -139,6 +139,7 @@ RSpec.configure do |c|
       set_hieradata(class_name.gsub(':','_'))
     end
     `curl -sX DELETE http://172.17.0.1:8500/v1/kv/puppet?recurse`
+    `curl -sX DELETE https://172.17.0.1:8504/v1/kv/puppet?recurse`
   end
 
   c.after(:each) do
@@ -237,6 +238,35 @@ def providers()
 	  "url" => "consul://172.17.0.1:8500/puppet",
           "serialize" => true,
 	  "mode" => 'native',
+	  "softfail" => false,
+	  "should_error" => false,
+  },
+  {
+	  "name" => "consul with ssl and without auth and with daemon",
+	  "url" => "consul+ssl+noverify://172.17.0.1:8501/puppet",
+          "serialize" => true,
+	  "softfail" => false,
+	  "should_error" => false,
+  },
+  {
+	  "name" => "consul with ssl and with server verification and with daemon",
+	  "url" => "consul+ssl+verify://172.17.0.1:8501/puppet",
+          "auth" => {
+              "ca_file" => "/data/test/ca.crt",
+          },
+          "serialize" => true,
+	  "softfail" => false,
+	  "should_error" => false,
+  },
+  {
+	  "name" => "consul with ssl and with server verification and certificate auth and with daemon",
+	  "url" => "consul+ssl+verify://172.17.0.1:8503/puppet",
+          "auth" => {
+              "ca_file" => "/data/test/ca.crt",
+	      "cert_file" => "/data/test/server.crt",
+	      "key_file" => "/data/test/server.key",
+          },
+          "serialize" => true,
 	  "softfail" => false,
 	  "should_error" => false,
   },

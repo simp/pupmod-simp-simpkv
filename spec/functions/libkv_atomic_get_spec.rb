@@ -13,10 +13,12 @@ describe 'libkv::atomic_get' do
   providers.each do |providerinfo|
     provider = providerinfo["name"]
     url = providerinfo["url"]
+    auth = providerinfo["auth"]
     shared_params = {
       "url" => url,
       "serialize" => providerinfo["serialize"],
       "mode" => providerinfo["mode"],
+      "auth" => auth,
     }
     context "when provider = #{provider}" do
       context "when the key 'test3' exists" do

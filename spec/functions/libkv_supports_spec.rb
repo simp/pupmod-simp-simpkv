@@ -13,8 +13,10 @@ describe 'libkv::supports', :type => :puppet_function do
   providers.each do |providerinfo|
     provider = providerinfo["name"]
     url = providerinfo["url"]
+    auth = providerinfo["auth"]
     shared_params = {
-      "url" => url
+      "url" => url,
+      "auth" => auth,
     }
     context "when provider = #{provider}" do
       let(:params) do

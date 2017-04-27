@@ -2,13 +2,52 @@
 Vagrant.configure(2) do |config|
 	ENV['VAGRANT_DEFAULT_PROVIDER'] = 'docker'
 	ENV['VAGRANT_NO_PARALLEL'] = 'yes'
-	config.vm.define "consul" do |config|
-		config.vm.synced_folder ".", "/vagrant", disabled: true
+	config.vm.define "consul-ssl" do |config|
+		config.vm.synced_folder ".", "/vagrant"
 		config.vm.provider "docker" do |d|
 			d.image = "consul"
 			d.has_ssh = false
+			d.env = {
+				"CONSUL_LOCAL_CONFIG" => '{
+					"addresses": {
+						"https":"0.0.0.0"
+					},
+					"ports" : {
+						"https" : 8501
+					},
+					"key_file" : "/vagrant/test/server.key",
+					"cert_file" : "/vagrant/test/server.crt",
+					"ca_file" : "/vagrant/test/ca.crt"
+				}'
+			}
 			d.ports = [
-				"8500:8500",
+                                "8500:8500",
+				"8501:8501",
+			]
+		end
+	end
+	config.vm.define "consul-ssl-auth" do |config|
+		config.vm.synced_folder ".", "/vagrant"
+		config.vm.provider "docker" do |d|
+			d.image = "consul"
+			d.has_ssh = false
+			d.env = {
+				"CONSUL_LOCAL_CONFIG" => '{
+					"addresses": {
+						"https":"0.0.0.0"
+					},
+					"ports" : {
+						"https" : 8501
+					},
+					"key_file" : "/vagrant/test/server.key",
+					"cert_file" : "/vagrant/test/server.crt",
+					"ca_file" : "/vagrant/test/ca.crt",
+                                        "verify_incoming" : true
+				}'
+			}
+			d.ports = [
+                                "8504:8500",
+				"8503:8501",
 			]
 		end
 	end

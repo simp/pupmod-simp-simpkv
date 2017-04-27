@@ -5,11 +5,21 @@ libkv.load("consul") do
   def initialize(url, auth)
     @uri = URI.parse(url)
     @resturi = URI.parse(url)
-    case @uri.scheme
-    when "consul"
-      @resturi.scheme = "http"
-    when "consul+ssl"
-      @resturi.scheme = "https"
+    scheme_split = @uri.scheme.split("+")
+    # defaults
+    @resturi.scheme = "http"
+    @verifyssl = true
+    scheme_split.each do |modifier|
+      case modifier
+      when "ssl"
+        @resturi.scheme = "https"
+      when "nossl"
+        @resturi.scheme = "http"
+      when "verify"
+        @verifyssl = true
+      when "noverify"
+        @verifyssl = false
+      end
     end
     @auth = auth
     @basepath = @uri.path.chomp("/")
@@ -27,6 +37,25 @@ libkv.load("consul") do
       params[:method] = 'GET'
     end
     http = Net::HTTP.new(@uri.host, @uri.port)
+    http.use_ssl = @resturi.scheme == 'https'
+    if (@resturi.scheme == 'https')
+      if (@auth != nil)
+        if (@auth.key?("ca_file"))
+          http.ca_file = @auth["ca_file"]
+        end
+        if (@auth.key?("cert_file"))
+          http.cert = OpenSSL::X509::Certificate.new(File.read(@auth["cert_file"]))
+        end
+        if (@auth.key?("key_file"))
+          http.key = OpenSSL::PKey::RSA.new(File.read(@auth["key_file"]))
+        end
+      end
+      if (@verifyssl == true)
+        http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+      else
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      end
+    end
     case params[:method]
     when 'GET'
       request = Net::HTTP::Get.new(params[:path])
