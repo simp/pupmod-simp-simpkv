@@ -194,7 +194,7 @@ libkv.load("mock") do
   def list(params)
     retval = {}
     unless(params.key?('key'))
-      throw Exception
+      raise "'key' must be specified"
     end
     key = params['key']
     hash = @root.select do |k, v|
@@ -219,14 +219,24 @@ libkv.load("mock") do
   end
   def atomic_list(params)
     retval = {}
+    unless(params.key?('key'))
+      raise "'key' must be specified"
+    end
     key = params['key']
     hash = @root.select do |k, v|
       if (k =~ Regexp.new(key + '/'))
-        retval["result"] = true
+        true
       else
-        retval["result"] = false
+        false
       end
     end
+    nlist = {}
+    hash.each do |k, v|
+      reg = Regexp.new("^" + key + "/")
+      rkey = k.gsub(reg,"")
+      nlist[rkey] = v
+    end
+    retval["result"] = nlist
     if (params['debug'] == true)
       retval
     else

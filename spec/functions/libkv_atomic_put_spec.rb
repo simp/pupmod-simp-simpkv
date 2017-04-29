@@ -72,7 +72,7 @@ describe 'libkv::atomic_put' do
         end
       end
       datatype_testspec.each do |hash|
-        it "should return an object of type #{hash[:class]} for /atomic_put/#{hash[:key]}" do
+        it "should return an object of type #{hash[:nonserial_class]} for /atomic_put/#{hash[:key]}" do
           params = {
              'key' => "/atomic_put/" + hash[:key],
           }.merge(shared_params)
@@ -85,7 +85,7 @@ describe 'libkv::atomic_put' do
           }.merge(shared_params)
           subject.execute(params)
           result = call_function("libkv::atomic_get", params)
-          expect(result["value"].class).to eql(hash[:class])
+          expect(result["value"].class).to eql(hash[:nonserial_class])
         end
         it "should return '#{hash[:value]}' for /atomic_put/#{hash[:key]}" do
           params = {
@@ -101,6 +101,40 @@ describe 'libkv::atomic_put' do
           subject.execute(params)
           result = call_function("libkv::atomic_get", params)
           expect(result["value"]).to eql(hash[:retval])
+        end
+        unless (hash[:class] == "String")
+          it "should create the key '/put/#{hash[:key]}.meta' and contain a type = #{hash[:class]}" do
+            params = {
+              'key' => "/atomic_put/" + hash[:key],
+            }.merge(shared_params)
+            original = call_function("libkv::atomic_get", params)
+
+            params = {
+             'key' => "/atomic_put/" + hash[:key],
+             'value' => hash[:value],
+             'previous' => original,
+            }.merge(shared_params)
+            subject.execute(params)
+
+            params = {
+               'key' => "/atomic_put/" + hash[:key] + ".meta",
+            }.merge(shared_params)
+            result = call_function("libkv::get", params)
+            expect(result).to_not eql(nil)
+            expect(result.class).to eql(String)
+            attempt_to_parse = nil
+            res = nil
+            begin
+              res = JSON.parse(result)
+              attempt_to_parse = true
+            rescue
+              attempt_to_parse = false
+            end
+            expect(attempt_to_parse).to eql(true)
+            expect(res.class).to eql(Hash)
+            expect(res["type"]).to eql(hash[:class].to_s)
+          end
+
         end
       end
     end

@@ -53,9 +53,68 @@ c = Class.new do
       urls[instance] = classes[provider].new(url, auth)
     end
     object = urls[instance];
-    object.send(symbol, *args, &block);
+    case symbol
+    when :put
+      meta = []
+      meta[0] = Hash.new(params)
+      meta[0]["key"] = "#{params['key']}.meta"
+      nvalue = {}
+      nvalue["type"] = puppetype(params["value"])
+      nvalue["format"] = "json"
+      nvalue["mode"] = "puppet"
+      meta[0]["value"] = nvalue.to_json
+      object.send(:put, *meta, &block);
+    when :atomic_put
+      meta = []
+      meta[0] = Hash.new(params)
+      meta[0]["key"] = "#{params['key']}.meta"
+      nvalue = {}
+      nvalue["type"] = puppetype(params["value"])
+      nvalue["format"] = "json"
+      nvalue["mode"] = "puppet"
+      meta[0]["value"] = nvalue.to_json
+      object.send(:put, *meta, &block);
+    end
+    retval = object.send(symbol, *args, &block);
+    case symbol
+    when :list
+	filtered_list = {}
+	retval.each do |entry, value|
+          unless (entry =~ /.*\.meta$/)
+            filtered_list[entry] = value
+          end
+	end
+        return filtered_list
+    when :atomic_list
+	filtered_list = {}
+	retval.each do |entry, value|
+          unless (entry =~ /.*\.meta$/)
+            filtered_list[entry] = value
+          end
+	end
+        return filtered_list
+    else
+       return retval
+    end
   end
-
+  def puppetype(klass)
+    retval = nil
+    case klass.class.to_s
+    when "Fixnum"
+      retval = "Integer"
+    when "Float"
+      retval = "Float"
+    when "Array"
+      retval = "Array"
+    when "Hash"
+      retval = "Hash"
+    when "TrueClass"
+      retval = "Boolean"
+    when "FalseClass"
+      retval = "Boolean"
+    end
+    retval
+  end
 end
 
 # Use the adapter pattern to inject an anonymous

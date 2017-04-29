@@ -55,7 +55,7 @@ end
 #
 # Example:
 #
-# describe 'some::class' do
+# describe 'some::nonserial_class' do
 #   context 'with version 10' do
 #     let(:hieradata){ "#{class_name}_v10" }
 #     ...
@@ -160,45 +160,51 @@ def datatype_testspec
   [
           # Test String
          {
-           :key => "test_string",
+          :key => "test_string",
            :value => "test1",
            :retval => "test1",
-           :class => String,
+           :nonserial_class => String,
+	   :class => "String",
          },
           # Test Boolean
          {
            :key => "test_boolean",
            :value => true,
            :retval => "true",
-           :class => String,
+           :nonserial_class => String,
+	   :class => "Boolean",
          },
           # Test Number
          {
            :key => "test_number",
            :value => 255,
            :retval => '255',
-           :class => String,
+           :nonserial_class => String,
+	   :class => "Integer",
          },
           # Test Float
          {
            :key => "test_float",
            :value => 2.38490,
            :retval => '2.3849',
-           :class => String,
+           :nonserial_class => String,
+	   :class => "Float",
          },
           # Test Array
          {
            :key => "test_array",
            :value => [ "test3", "test4"],
            :retval => '["test3", "test4"]',
-           :class => String,
+           :nonserial_class => String,
+	   :class => "Array",
          },
           # Test Hash
          {
            :key => "test_hash",
            :value => { "key" => "test", "value" => "test2" },
            :retval => '{"key"=>"test", "value"=>"test2"}',
-           :class => String,
+           :nonserial_class => String,
+	   :class => "Hash",
          },
       ]
 end

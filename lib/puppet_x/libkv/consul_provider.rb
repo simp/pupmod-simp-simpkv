@@ -262,32 +262,41 @@ libkv.load("consul") do
     if (key == nil)
       throw Exception
     end
+    retval = {}
     begin
       response = consul_request(path: "/v1/kv" + @basepath + key + "?recurse")
       if (response.class == Net::HTTPOK)
         json = response.body
         value = JSON.parse(json)
       else
-        nil
+        return retval
       end
     rescue
-      nil
+      return retval
     end
-  end
-  def list(params)
-    list = atomic_list(params)
-    retval = {}
-    key = params['key']
+
     last_char = key.slice(key.size - 1,1)
     if (last_char != "/")
       key = key + "/"
     end
     reg = Regexp.new("^" + @basepath.gsub(/\//, "") + key)
-
-    unless (list == nil)
-      list.each do |entry|
+    unless (value == nil)
+      value.each do |entry|
         nkey = entry["Key"].gsub(reg,"")
-        retval[nkey] = Base64.decode64(entry["Value"])
+        retval[nkey] = entry
+        retval[nkey]["value"] = Base64.decode64(entry["Value"])
+        retval[nkey].delete("Value")
+        retval[nkey].delete("Key")
+      end
+    end
+    retval
+  end
+  def list(params)
+    list = atomic_list(params)
+    retval = {}
+    unless (list == nil)
+      list.each do |key, entry|
+        retval[key] = entry["value"]
       end
     end
     retval

@@ -36,7 +36,7 @@ describe 'libkv::put' do
         expect(result.class).to eql(TrueClass)
       end
       datatype_testspec.each do |hash|
-        it "should create an object of type #{hash[:class]} for /put/#{hash[:key]}" do
+        it "should create an object of type #{hash[:nonserial_class]} for /put/#{hash[:key]}" do
           params = {
              'key' => "/put/" + hash[:key],
              'value' => hash[:value],
@@ -47,7 +47,7 @@ describe 'libkv::put' do
              'key' => "/put/" + hash[:key],
           }.merge(shared_params)
           result = call_function("libkv::get", params)
-          expect(result.class).to eql(hash[:class])
+          expect(result.class).to eql(hash[:nonserial_class])
         end
         it "should create the value '#{hash[:value]}' for /put/#{hash[:key]}" do
           params = {
@@ -61,6 +61,34 @@ describe 'libkv::put' do
           }.merge(shared_params)
           result = call_function("libkv::get", params)
           expect(result).to eql(hash[:retval])
+        end
+        unless (hash[:class] == "String")
+          it "should create the key '/put/#{hash[:key]}.meta' and contain a type = #{hash[:class]}" do
+            params = {
+             'key' => "/put/" + hash[:key],
+             'value' => hash[:value],
+            }.merge(shared_params)
+            subject.execute(params)
+
+            params = {
+               'key' => "/put/" + hash[:key] + ".meta",
+            }.merge(shared_params)
+            result = call_function("libkv::get", params)
+            expect(result).to_not eql(nil)
+            expect(result.class).to eql(String)
+            attempt_to_parse = nil
+            res = nil
+            begin
+              res = JSON.parse(result)
+              attempt_to_parse = true
+            rescue
+              attempt_to_parse = false
+            end
+            expect(attempt_to_parse).to eql(true)
+            expect(res.class).to eql(Hash)
+            expect(res["type"]).to eql(hash[:class].to_s)
+          end
+
         end
       end
     end

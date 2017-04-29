@@ -33,7 +33,7 @@ describe 'libkv::get' do
       end
 
       datatype_testspec.each do |hash|
-        it "should return an object of type #{hash[:class]} for /get/#{hash[:key]}" do
+        it "should return an object of type #{hash[:nonserial_class]} for /get/#{hash[:key]}" do
           params = {
              'key' => "/get/" + hash[:key],
              'value' => hash[:value],
@@ -44,7 +44,7 @@ describe 'libkv::get' do
              'key' => "/get/" + hash[:key],
           }.merge(shared_params)
           result = subject.execute(params)
-          expect(result.class).to eql(hash[:class])
+          expect(result.class).to eql(hash[:nonserial_class])
         end
         it "should return '#{hash[:value]}' for /get/#{hash[:key]}" do
           params = {
