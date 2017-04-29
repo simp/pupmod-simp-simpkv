@@ -1,3 +1,11 @@
-* Mon Jan 1 1970 First Last <email@domain.com> - 0.0.1
-- FIXME: something you did
-- FIXME: something else you did
+* Sat Apr 29 2017 Dylan Cochran <dylan.cochran@onyxpoint.com> - 0.2.0
+- (SIMP-2978) Fix readme generation
+- (SIMP-3019) Add ssl/tls support to consul backend
+- (SIMP-2962) Add consul_members fact
+- (SIMP-3097) Add 'serialize' and 'mode' parameters to all libkv functions
+- (SIMP-3102) Flesh out spec tests
+- (SIMP-2964) Add generic 'libkv::auth' parameter
+
+
+* Fri Jan 6 2017 Dylan Cochran <dylan.cochran@onyxpoint.com> - 0.1.0
+- Initial release
