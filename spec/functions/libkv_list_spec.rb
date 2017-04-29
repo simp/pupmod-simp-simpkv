@@ -13,9 +13,11 @@ describe 'libkv::list' do
     provider = providerinfo["name"]
     url = providerinfo["url"]
     auth = providerinfo["auth"]
+    serialize = providerinfo["serialize"]
     shared_params = {
       "url" => url,
       "auth" => auth,
+      "serialize" => serialize,
     }
     context "when provider = #{provider}" do
       context "when the key doesn't exist" do
@@ -105,6 +107,44 @@ describe 'libkv::list' do
           size = result.size;
           expect(contains).to eql(true)
           expect(size).to eql(2)
+        end
+      end
+      datatype_testspec.each do |hash|
+       if (providerinfo["serialize"] == true)
+         klass = hash[:class]
+       else
+         klass = hash[:nonserial_class]
+       end
+       if (providerinfo["serialize"] == true)
+         expected_retval = hash[:value]
+       else
+         expected_retval = hash[:nonserial_retval]
+       end
+        it "should return an object of type #{klass} for /list/#{hash[:key]}" do
+          params = {
+             'key' => "/list/" + hash[:key] + "/value",
+             'value' => hash[:value],
+          }.merge(shared_params)
+          call_function("libkv::put", params)
+
+          params = {
+             'key' => "/list/" + hash[:key],
+          }.merge(shared_params)
+          result = subject.execute(params)
+          expect(result["value"].class.to_s).to eql(klass)
+        end
+        it "should return '#{hash[:value]}' for /list/#{hash[:key]}" do
+          params = {
+             'key' => "/list/" + hash[:key] + "/value",
+             'value' => hash[:value],
+          }.merge(shared_params)
+          call_function("libkv::put", params)
+
+          params = {
+             'key' => "/list/" + hash[:key],
+          }.merge(shared_params)
+          result = subject.execute(params)
+          expect(result["value"]).to eql(expected_retval)
         end
       end
     end

@@ -162,49 +162,55 @@ def datatype_testspec
          {
           :key => "test_string",
            :value => "test1",
-           :retval => "test1",
-           :nonserial_class => String,
+           :nonserial_retval => "test1",
+           :nonserial_class => "String",
 	   :class => "String",
+	   :puppet_type => "String",
          },
           # Test Boolean
          {
            :key => "test_boolean",
            :value => true,
-           :retval => "true",
-           :nonserial_class => String,
-	   :class => "Boolean",
+           :nonserial_retval => "true",
+           :nonserial_class => "String",
+	   :class => "TrueClass",
+	   :puppet_type => "Boolean",
          },
           # Test Number
          {
            :key => "test_number",
            :value => 255,
-           :retval => '255',
-           :nonserial_class => String,
-	   :class => "Integer",
+           :nonserial_retval => '255',
+           :nonserial_class => "String",
+	   :class => "Fixnum",
+	   :puppet_type => "Integer",
          },
           # Test Float
          {
            :key => "test_float",
            :value => 2.38490,
-           :retval => '2.3849',
-           :nonserial_class => String,
+           :nonserial_retval => '2.3849',
+           :nonserial_class => "String",
 	   :class => "Float",
+	   :puppet_type => "Float",
          },
           # Test Array
          {
            :key => "test_array",
            :value => [ "test3", "test4"],
-           :retval => '["test3", "test4"]',
-           :nonserial_class => String,
+           :nonserial_retval => '["test3", "test4"]',
+           :nonserial_class => "String",
 	   :class => "Array",
+	   :puppet_type => "Array",
          },
           # Test Hash
          {
            :key => "test_hash",
            :value => { "key" => "test", "value" => "test2" },
-           :retval => '{"key"=>"test", "value"=>"test2"}',
-           :nonserial_class => String,
+           :nonserial_retval => '{"key"=>"test", "value"=>"test2"}',
+           :nonserial_class => "String",
 	   :class => "Hash",
+	   :puppet_type => "Hash",
          },
       ]
 end
@@ -220,11 +226,12 @@ def providers()
 	  "url" => "mock://",
           "serialize" => true,
   },
-  {
-	  "name" => "mock with serialize true and mode is 'native'",
-	  "url" => "mock://",
-          "serialize" => true,
-  },
+  # {
+	  # "name" => "mock with serialize true and mode is 'native'",
+	  # "url" => "mock://",
+  #         "serialize" => true,
+	  # "mode" => 'native',
+  # },
   {
 	  "name" => "consul with serialize false and with daemon",
 	  "url" => "consul://172.17.0.1:8500/puppet",
@@ -239,14 +246,14 @@ def providers()
 	  "softfail" => false,
 	  "should_error" => false,
   },
-  {
-	  "name" => "consul with serialize true and mode is 'native' and with daemon",
-	  "url" => "consul://172.17.0.1:8500/puppet",
-          "serialize" => true,
-	  "mode" => 'native',
-	  "softfail" => false,
-	  "should_error" => false,
-  },
+#  {
+	  # "name" => "consul with serialize true and mode is 'native' and with daemon",
+	  # "url" => "consul://172.17.0.1:8500/puppet",
+          # "serialize" => true,
+	  # "mode" => 'native',
+	  # "softfail" => false,
+	  # "should_error" => false,
+  # },
   {
 	  "name" => "consul with ssl and without auth and with daemon",
 	  "url" => "consul+ssl+noverify://172.17.0.1:8501/puppet",

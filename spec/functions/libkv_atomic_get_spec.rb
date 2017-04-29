@@ -88,7 +88,17 @@ describe 'libkv::atomic_get' do
         end
       end
       datatype_testspec.each do |hash|
-        it "should return an object of type #{hash[:nonserial_class]} for /atomic_get/#{hash[:key]}" do
+       if (providerinfo["serialize"] == true)
+         klass = hash[:class]
+       else
+         klass = hash[:nonserial_class]
+       end
+       if (providerinfo["serialize"] == true)
+         expected_retval = hash[:value]
+       else
+         expected_retval = hash[:nonserial_retval]
+       end
+        it "should return an object of type #{klass} for /atomic_get/#{hash[:key]}" do
           params = {
              'key' => "/atomic_get/" + hash[:key],
              'value' => hash[:value],
@@ -99,7 +109,7 @@ describe 'libkv::atomic_get' do
              'key' => "/atomic_get/" + hash[:key],
           }.merge(shared_params)
           result = subject.execute(params)
-          expect(result["value"].class).to eql(hash[:nonserial_class])
+          expect(result["value"].class.to_s).to eql(klass)
         end
         it "should return '#{hash[:value]}' for /atomic_get/#{hash[:key]}" do
           params = {
@@ -112,7 +122,7 @@ describe 'libkv::atomic_get' do
              'key' => "/atomic_get/" + hash[:key],
           }.merge(shared_params)
           result = subject.execute(params)
-          expect(result["value"]).to eql(hash[:retval])
+          expect(result["value"]).to eql(expected_retval)
         end
       end
 
