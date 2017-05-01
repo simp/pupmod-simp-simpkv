@@ -23,21 +23,117 @@ c = Class.new do
   attr_accessor :classes
   attr_accessor :urls
   attr_accessor :default_url
-  
+
   def load(name, &block)
     @classes[name] = Class.new(&block)
   end
   def parseurl(url)
-      hash = {}
-      colonsplit = url.split(":");
-      hash['provider'] = colonsplit[0].split("+")[0];
-      return hash
+    hash = {}
+    colonsplit = url.split(":");
+    hash['provider'] = colonsplit[0].split("+")[0];
+    return hash
+  end
+  def symbol_table()
+    {
+      :params => {
+        'key' => "KeySpecification",
+        'previous' => "Hash",
+        'url' => "String",
+        'auth' => "Hash",
+        'value' => "",
+      },
+      :get => {
+        'key' => "required",
+      },
+      :put => {
+        'key' => "required",
+        'value' => "required",
+      },
+      :delete => {
+        'key' => "required",
+      },
+      :exists => {
+        'key' => "required",
+      },
+      :list => {
+        'key' => "required",
+      },
+      :deletetree => {
+        'key' => "required",
+      },
+      :atomic_create => {
+        'key' => "required",
+        'value' => "required",
+      },
+      :atomic_delete => {
+        'key' => "required",
+        'previous' => "required",
+      },
+      :atomic_get => {
+        'key' => "required",
+      },
+      :atomic_put => {
+        'key' => "required",
+        'value' => "required",
+        'previous' => "required",
+      },
+      :atomic_list => {
+        'key' => "required",
+      },
+    }
+  end
+  def sanitize_input(symbol, params)
+     if (params.class.to_s != "Hash")
+       raise "parameter 0 needs to be a Hash, found #{params.class.to_s}"
+     end
+     table = symbol_table
+     if (table.key?(symbol))
+       function_parameters = table[symbol]
+       function_parameters.each do |name, status|
+         found = params.key?(name)
+         case status
+         when "required"
+            if (found == false)
+              raise "parameter: #{name} not found"
+            end
+         end
+         if (found == true)
+           definition = table[:params][name]
+           case definition
+           when ""
+             if (params[name] == nil)
+               raise "parameter #{name} should not be nil"
+             end
+           when "KeySpecification"
+             unless (params[name].class.to_s == "String")
+               raise "parameter #{name} should be String, found #{params[name].class.to_s}"
+             end
+           else
+             if (params['dd'] == true)
+binding.pry
+end
+             unless (params[name].class.to_s == definition)
+               raise "parameter #{name} should be #{definition}, found #{params[name].class.to_s}"
+             end
+           end
+         end
+       end
+     end
   end
   def method_missing(symbol, url, auth, *args, &block)
-    params = args[0]
+    sanitize_input(symbol, args[0])
+    # For safety make a new hash. This doesn't prevent side effects
+    # but reduces them somewhat
+    params = args[0].dup
+    nargs = [ params ]
+      if (params['dd'] == true)
+        binding.pry
+      end
+
     unless (params.key?("serialize"))
-      params["serialize"] = false
+      params["serialize"] = true
     end
+    serialize = params["serialize"]
     unless (params.key?("mode"))
       params["mode"] = 'puppet'
     end
@@ -55,50 +151,123 @@ c = Class.new do
     object = urls[instance];
     case symbol
     when :put
-      meta = []
-      meta[0] = Hash.new(params)
-      meta[0]["key"] = "#{params['key']}.meta"
-      nvalue = {}
-      nvalue["type"] = puppetype(params["value"])
-      nvalue["format"] = "json"
-      nvalue["mode"] = "puppet"
-      meta[0]["value"] = nvalue.to_json
-      object.send(:put, *meta, &block);
+      if (serialize == true)
+        meta = get_metadata(params, object)
+        unless (meta["type"] == "String")
+          # JSON objects need to be real objects, or else the parser blows up. So wrap in a hash
+          encapsulation = { "value" => params["value"] }
+          params["value"] = encapsulation.to_json
+        end
+      end
+      retval = object.send(symbol, *nargs, &block);
     when :atomic_put
-      meta = []
-      meta[0] = Hash.new(params)
-      meta[0]["key"] = "#{params['key']}.meta"
-      nvalue = {}
-      nvalue["type"] = puppetype(params["value"])
-      nvalue["format"] = "json"
-      nvalue["mode"] = "puppet"
-      meta[0]["value"] = nvalue.to_json
-      object.send(:put, *meta, &block);
-    end
-    retval = object.send(symbol, *args, &block);
-    case symbol
-    when :list
-	filtered_list = {}
-	retval.each do |entry, value|
-          unless (entry =~ /.*\.meta$/)
-            filtered_list[entry] = value
-          end
-	end
-        return filtered_list
-    when :atomic_list
-	filtered_list = {}
-	retval.each do |entry, value|
-          unless (entry =~ /.*\.meta$/)
-            filtered_list[entry] = value
-          end
-	end
-        return filtered_list
+      if (serialize == true)
+        meta = get_metadata(params, object)
+        unless (meta["type"] == "String")
+          # JSON objects need to be real objects, or else the parser blows up. So wrap in a hash
+          encapsulation = { "value" => params["value"] }
+          params["value"] = encapsulation.to_json
+        end
+      end
+      retval = object.send(symbol, *nargs, &block);
     else
-       return retval
+      retval = object.send(symbol, *nargs, &block);
+    end
+
+    case symbol
+    when :get
+      if (serialize == true and params["key"] !~ /.*\.meta$/)
+        metadata = get_metadata(params, object);
+        return unpack(metadata,retval)
+      else
+        return retval
+      end
+    when :atomic_get
+      if (serialize == true and params["key"] !~ /.*\.meta$/)
+        metadata = get_metadata(params, object);
+        if (retval.key?("value"))
+          value = unpack(metadata,retval["value"])
+          retval["value"] = value
+        end
+        return retval
+      else
+        return retval
+      end
+    when :list
+      filtered_list = {}
+      retval.each do |entry, value|
+        unless (entry =~ /.*\.meta$/)
+          if (serialize == true)
+            metadata = get_metadata(params.merge({ "key" => "#{params['key']}/#{entry}" }), object)
+            filtered_list[entry] = unpack(metadata, value)
+          else
+            filtered_list[entry] = value
+          end
+        end
+      end
+      return filtered_list
+    when :atomic_list
+      filtered_list = {}
+      retval.each do |entry, value|
+        unless (entry =~ /.*\.meta$/)
+          if (serialize == true)
+            metadata = get_metadata(params.merge({ "key" => "#{params['key']}/#{entry}" }), object)
+            value["value"] = unpack(metadata, value["value"])
+            filtered_list[entry] = value
+          else
+            filtered_list[entry] = value
+          end
+        end
+      end
+      return filtered_list
+    else
+      return retval
     end
   end
+  def get_metadata(params, object)
+      meta = []
+      meta[0] = params.dup
+      meta[0]["key"] = "#{params['key']}.meta"
+      # XXX FIXME: Make this atomic
+      if (object.send(:exists, *meta))
+        metadata = object.send(:get, *meta)
+        retval = JSON.parse(metadata)
+      else
+        retval = {}
+        retval["format"] = "json"
+        retval["mode"] = "puppet"
+        if (params.key?("value"))
+          retval["type"] = puppetype(params["value"])
+          meta[0]["value"] = retval.to_json
+          object.send(:put, *meta);
+        end
+      end
+      return retval
+  end
+  def pack(meta, value)
+  end
+  def unpack(meta, value)
+    retval = value
+    case meta["mode"]
+    when "puppet"
+      unless (meta["type"] == "String")
+        case meta["format"]
+        when "json"
+          unless value == nil
+            object = JSON.parse(value)
+            retval = object["value"]
+          end
+        else
+          raise "Unknown format: #{meta["format"]}"
+        end
+      end
+    else
+      raise "Unknown mode: #{meta["mode"]}"
+    end
+    return retval
+  end
   def puppetype(klass)
-    retval = nil
+    retval = klass.class.to_s
     case klass.class.to_s
     when "Fixnum"
       retval = "Integer"
