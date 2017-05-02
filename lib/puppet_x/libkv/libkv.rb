@@ -192,7 +192,11 @@ def method_missing(symbol, url, auth, *args, &block)
     retval.each do |entry, value|
       unless (entry =~ /.*\.meta$/)
         if (serialize == true)
-          metadata = get_metadata(params.merge({ "key" => "#{params['key']}/#{entry}" }), object)
+          unless (params['key'] == '/')
+            metadata = get_metadata(params.merge({ "key" => "#{params['key']}/#{entry}" }), object)
+          else
+            metadata = get_metadata(params.merge({ "key" => "/#{entry}" }), object)
+          end
           filtered_list[entry] = unpack(metadata, value)
         else
           filtered_list[entry] = value
@@ -205,7 +209,11 @@ def method_missing(symbol, url, auth, *args, &block)
     retval.each do |entry, value|
       unless (entry =~ /.*\.meta$/)
         if (serialize == true)
-          metadata = get_metadata(params.merge({ "key" => "#{params['key']}/#{entry}" }), object)
+          unless (params['key'] == '/')
+            metadata = get_metadata(params.merge({ "key" => "#{params['key']}/#{entry}" }), object)
+          else
+            metadata = get_metadata(params.merge({ "key" => "/#{entry}" }), object)
+          end
           value["value"] = unpack(metadata, value["value"])
           filtered_list[entry] = value
         else
