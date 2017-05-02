@@ -164,6 +164,12 @@ def method_missing(symbol, url, auth, *args, &block)
       params["value"] = pack(meta, params["value"])
     end
     retval = object.send(symbol, *nargs, &block);
+  when :atomic_create
+    if (serialize == true)
+      meta = get_metadata(params, object)
+      params["value"] = pack(meta, params["value"])
+    end
+    retval = object.send(symbol, *nargs, &block);
   else
     retval = object.send(symbol, *nargs, &block);
   end

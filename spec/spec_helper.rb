@@ -139,7 +139,7 @@ RSpec.configure do |c|
       set_hieradata(class_name.gsub(':','_'))
     end
     `curl -sX DELETE http://172.17.0.1:8500/v1/kv/puppet?recurse`
-    `curl -sX DELETE https://172.17.0.1:8504/v1/kv/puppet?recurse`
+    `curl -sX DELETE http://172.17.0.1:8504/v1/kv/puppet?recurse`
   end
 
   c.after(:each) do

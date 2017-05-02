@@ -181,7 +181,10 @@ libkv.load("consul") do
       throw Exception
     end
   end
-
+  def atomic_create(params)
+    empty = empty_value()
+    atomic_put(params.merge({ 'previous' => empty}))
+  end
   def atomic_put(params)
     key = params['key']
     value = params['value']
@@ -318,7 +321,7 @@ libkv.load("consul") do
     end
 
   end
-  def empty_value(params)
+  def empty_value(params = {})
     {
       "ModifyIndex" => 0,
       "value" => nil

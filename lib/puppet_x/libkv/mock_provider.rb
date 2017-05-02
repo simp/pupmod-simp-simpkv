@@ -95,31 +95,8 @@ libkv.load("mock") do
     end
   end
   def atomic_create(params)
-    retval = {}
-    key = params['key'];
-    if (key == nil)
-      throw Exception
-    end
-    value = params['value'];
-    previous = self.empty_value();
-    @mutex.synchronize do
-      previous_entry = atomic_get({'key' => key})
-      if (previous_entry['sequence'] == previous['sequence'])
-        @sequence += 1;
-        retval["result"] = @root[key] = {
-          'sequence' => @sequence,
-          'key' => key,
-          'value' => value.to_s,
-        }
-      else
-        throw Exception
-      end
-    end
-    if (params['debug'] == true)
-      retval
-    else
-      retval["result"]
-    end
+    empty = empty_value()
+    atomic_put(params.merge({ 'previous' => empty}))
   end
 
   def delete(params)
