@@ -248,6 +248,8 @@ def get_metadata(params, object)
       retval["type"] = puppetype(params["value"])
       meta[0]["value"] = retval.to_json
       object.send(:put, *meta);
+    else
+      retval["type"] = "String"
     end
   end
   return retval
