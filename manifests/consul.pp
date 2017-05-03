@@ -34,26 +34,21 @@ class libkv::consul(
     }
   }
   package { "unzip": }
-  if ($bootstrap == undef) {
-    notify { "consul_bootstrap = ${facts["consul_bootstrap"]}": }
+  notify { "consul_bootstrap = ${facts["consul_bootstrap"]}": }
+  if ($bootstrap == true) {
+    $_bootstrap_hash = { "bootstrap_expect" => 1 }
+  } else {
     if ($facts["consul_bootstrap"] == "true") {
       $_bootstrap_hash = { "bootstrap_expect" => 1 }
-     ## Create real token
-     file { "/usr/bin/consul-create-acl":
+      ## Create real token
+      file { "/usr/bin/consul-create-acl":
         mode   => "a+x",
-	source => "puppet:///modules/libkv/consul/consul-create-acl"
+        source => "puppet:///modules/libkv/consul/consul-create-acl"
       } ->
       exec { "/usr/bin/consul-create-acl /etc/simp/bootstrap/consul/master_token /etc/simp/bootstrap/consul/libkv_token":
         creates => "/etc/simp/bootstrap/consul/libkv_token",
         require => Service['consul'],
       }
-
-    } else {
-      $_bootstrap_hash = {}
-    }
-  } else {
-    if ($bootstrap == true) {
-      $_bootstrap_hash = { "bootstrap_expect" => 1 }
     } else {
       $_bootstrap_hash = {}
     }
@@ -95,24 +90,24 @@ class libkv::consul(
     $_token_hash = {}
   }
   if ($use_puppet_pki == true) {
-     if ($bootstrap == false) {
+    if ($bootstrap == false) {
       file { "/etc/simp":
-	ensure => directory,
+        ensure => directory,
       }
     }
     file { "/etc/simp/consul":
-     ensure => directory,
+      ensure => directory,
     }
     if ($server == true) {
       $_cert_file_name = '/etc/simp/bootstrap/consul/server.dc1.consul.cert.pem'
       $_private_file_name = '/etc/simp/bootstrap/consul/server.dc1.consul.private.pem'
       $_ca_file_name = '/etc/simp/bootstrap/consul/ca.pem'
       if ($dont_copy_files == false) {
-      file { "/etc/simp/bootstrap/":
-	ensure => directory,
-      }
-      file { "/etc/simp/bootstrap/consul":
-  	ensure => directory,
+        file { "/etc/simp/bootstrap/":
+          ensure => directory,
+        }
+        file { "/etc/simp/bootstrap/consul":
+          ensure => directory,
         }
         file { $_cert_file_name:
           content => file($_cert_file_name)
@@ -149,12 +144,12 @@ class libkv::consul(
     }
     if ($bootstrap == false) {
       $_cert_hash = {
-      "cert_file"              => '/etc/simp/consul/cert.pem',
-      "ca_file"                => '/etc/simp/consul/ca.pem',
-      "key_file"               => '/etc/simp/consul/key.pem',
-      "verify_outgoing"        => true,
-      "verify_incoming"        => true,
-      "verify_server_hsotname" => true,
+        "cert_file"              => '/etc/simp/consul/cert.pem',
+        "ca_file"                => '/etc/simp/consul/ca.pem',
+        "key_file"               => '/etc/simp/consul/key.pem',
+        "verify_outgoing"        => true,
+        "verify_incoming"        => true,
+        "verify_server_hsotname" => true,
       }
     } else {
       $_cert_hash = {}
