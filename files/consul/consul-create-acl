@@ -1,0 +1,11 @@
+#!/bin/sh
+TOKEN=$(cat $1)
+OUTPUTFILE=$2
+# Give consul some time to attempt a join, then realize it's bootstrapping
+# a new cluster
+sleep 10
+curl     --request PUT     --data '{
+  "Name": "libkv-default-acl",
+  "Type": "client",
+  "Rules": "{\"key\":{\"puppet/\":{\"policy\":\"write\"}},\"operator\":\"read\"}"
+}' -q http://localhost:8500/v1/acl/create?token="${TOKEN}" | cut -d '"' -f 4 >"${OUTPUTFILE}"

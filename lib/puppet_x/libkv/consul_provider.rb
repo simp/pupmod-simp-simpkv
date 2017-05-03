@@ -134,11 +134,11 @@ libkv.load("consul") do
     value = params['value']
 
     if (key == nil)
-      throw Exception
+      raise "Put requires 'key' to be specified"
     end
 
     if (value == nil)
-      throw Exception
+      raise "Put requires 'value' to be specified"
     end
     response = consul_request(path: "/v1/kv" + @basepath + key, method: 'PUT', body: value)
     if (debug == true)
