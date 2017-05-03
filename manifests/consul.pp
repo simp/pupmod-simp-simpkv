@@ -34,7 +34,8 @@ class libkv::consul(
     }
   }
   package { "unzip": }
-  notify { "consul_bootstrap = ${facts["consul_bootstrap"]}": }
+  $type - type($facts['consul_bootstrap'])
+  notify { "consul_bootstrap = ${type}": }
   if ($bootstrap == true) {
     $_bootstrap_hash = { "bootstrap_expect" => 1 }
   } else {
