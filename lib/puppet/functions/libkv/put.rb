@@ -74,18 +74,6 @@ def put(params)
       auth = call_function('lookup', 'libkv::auth', { 'default_value' => nil })
     end
     params["auth"] = auth
-    if params.key?('key')
-      regex = /^\/[a-zA-Z0-9._\-\/]*$/
-      error_msg = "the specified key, '#{params['key']}' does not match regex '#{regex}'"
-      unless (regex =~ params['key'])
-        if (params["softfail"] == true)
-          retval = false
-          return retval
-        else
-          raise "the specified key, '#{params['key']}' does not match regex '#{regex}'"
-        end
-      end
-    end
     if (params["softfail"] == true)
       begin
         retval = libkv.put(url, auth, params);

@@ -5,7 +5,7 @@ require 'spec_helper'
 valid_characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890/_-+'
 invalid_characters = ";':,./<>?[]\{}|=`~!@\#$%^&*()\""
 
-describe 'libkv::put' do
+describe 'libkv::atomic_create' do
   it 'should throw an exception with empty parameters' do
     is_expected.to run.with_params({}).and_raise_error(Exception);
   end
