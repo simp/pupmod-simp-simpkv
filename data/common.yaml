@@ -1,6 +1,7 @@
 lookup_options:
   libkv::consul::config_hash:
     merge: hash
+libkv::consul::puppet_cert_path: '/etc/puppetlabs/puppet/ssl'
 libkv::consul::config_hash:
   acl_datacenter: "dc1"
   acl_default_policy: "deny"
