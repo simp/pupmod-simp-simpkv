@@ -1,3 +1,14 @@
+* Sat Jul 10 2017 Dylan Cochran <dylan.cochran@onyxpoint.com> - 0.3.0
+- (SIMP-2961) Add automatic cluster creation for consul.
+- (SIMP-3130) metadata needs to default to 'String'.
+- (SIMP-3129) atomic_create needs to create metadata
+- (SIMP-3127) libkv can't list / since metadata update
+- (SIMP-3122) Move the libkv wrapper outside the loader
+- (SIMP-3125) Move key regex match into libkv wrapper
+- (SIMP-3110) Use <key>.meta to convert a value to the correct type
+- (SIMP-3060) Fix travisci tests
+- (SIMP-3109) Create a <key>.meta key to store type
+
 * Sat Apr 29 2017 Dylan Cochran <dylan.cochran@onyxpoint.com> - 0.2.0
 - (SIMP-2978) Fix readme generation
 - (SIMP-3019) Add ssl/tls support to consul backend
