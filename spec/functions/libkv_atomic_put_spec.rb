@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby -S rspec
 # vim: set expandtab ts=2 sw=2:
 require 'spec_helper'
-require 'pry'
 
 valid_characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890/_-+'
 invalid_characters = ";':,./<>?[]\{}|=`~!@#$%^&*()\""
@@ -56,8 +55,8 @@ describe 'libkv::atomic_put' do
             'key' => '/test/atomic_put/test4'
           }.merge(shared_params)
           call_function("libkv::put", params.merge({'key' => '/test/atomic_put/test5', 'value' => 'value5'}))
-          random = call_function("libkv::get", params.merge({'key' => '/test/atomic_put/test5'}))
-          result = subject.execute(params.merge({'previous' => random, 'value' => 'value4'}))
+          random = call_function("libkv::atomic_get", params.merge({'key' => '/test/atomic_put/test5'}))
+          result = subject.execute(params.merge( { 'previous' => random, 'value' => 'value4'}))
           expect(result).to eql(false)
         end
         it 'should not set the key to value' do
@@ -65,14 +64,24 @@ describe 'libkv::atomic_put' do
             'key' => '/test/atomic_put/test6'
           }.merge(shared_params)
           call_function("libkv::put", params.merge({'key' => '/test/atomic_put/test5', 'value' => 'value5'}))
-          random = call_function("libkv::get", params.merge({'key' => '/test/atomic_put/test5'}))
+          random = call_function("libkv::atomic_get", params.merge({'key' => '/test/atomic_put/test5'}))
           subject.execute(params.merge({'previous' => random, 'value' => 'value6'}))
           result = call_function("libkv::get", params)
           expect(result).to eql(nil)
         end
       end
       datatype_testspec.each do |hash|
-        it "should return an object of type #{hash[:class]} for /atomic_put/#{hash[:key]}" do
+       if (providerinfo["serialize"] == true)
+         klass = hash[:class]
+       else
+         klass = hash[:nonserial_class]
+       end
+       if (providerinfo["serialize"] == true)
+         expected_retval = hash[:value]
+       else
+         expected_retval = hash[:nonserial_retval]
+       end
+        it "should return an object of type #{klass} for /atomic_put/#{hash[:key]}" do
           params = {
              'key' => "/atomic_put/" + hash[:key],
           }.merge(shared_params)
@@ -85,9 +94,9 @@ describe 'libkv::atomic_put' do
           }.merge(shared_params)
           subject.execute(params)
           result = call_function("libkv::atomic_get", params)
-          expect(result["value"].class).to eql(hash[:class])
+          expect(result["value"].class.to_s).to eql(klass)
         end
-        it "should return '#{hash[:value]}' for /atomic_put/#{hash[:key]}" do
+        it "should return '#{expected_retval}' for /atomic_put/#{hash[:key]}" do
           params = {
              'key' => "/atomic_put/" + hash[:key],
           }.merge(shared_params)
@@ -100,7 +109,42 @@ describe 'libkv::atomic_put' do
           }.merge(shared_params)
           subject.execute(params)
           result = call_function("libkv::atomic_get", params)
-          expect(result["value"]).to eql(hash[:retval])
+          expect(result["value"]).to eql(expected_retval)
+        end
+        unless (hash[:class] == "String")
+          if (providerinfo["serialize"] == true)
+            it "should create the key '/atomic_put/#{hash[:key]}.meta' and contain a type = #{hash[:puppet_type]}" do
+              params = {
+                'key' => "/atomic_put/" + hash[:key],
+              }.merge(shared_params)
+              original = call_function("libkv::atomic_get", params)
+
+              params = {
+               'key' => "/atomic_put/" + hash[:key],
+               'value' => hash[:value],
+               'previous' => original,
+              }.merge(shared_params)
+              subject.execute(params)
+
+              params = {
+               'key' => "/atomic_put/" + hash[:key] + ".meta",
+              }.merge(shared_params)
+              result = call_function("libkv::get", params)
+              expect(result).to_not eql(nil)
+              expect(result.class).to eql(String)
+              attempt_to_parse = nil
+              res = nil
+              begin
+                res = JSON.parse(result)
+                attempt_to_parse = true
+              rescue
+                attempt_to_parse = false
+              end
+              expect(attempt_to_parse).to eql(true)
+              expect(res.class).to eql(Hash)
+              expect(res["type"]).to eql(hash[:puppet_type].to_s)
+            end
+          end
         end
       end
     end

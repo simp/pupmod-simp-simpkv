@@ -5,7 +5,7 @@ require 'spec_helper'
 valid_characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890/_-+'
 invalid_characters = ";':,./<>?[]\{}|=`~!@#$%^&*()\""
 
-describe 'libkv::list' do
+describe 'libkv::atomic_list' do
   it 'should throw an exception with empty parameters' do
     is_expected.to run.with_params({}).and_raise_error(Exception);
   end
@@ -73,7 +73,6 @@ describe 'libkv::list' do
           set_value(params.merge({'key' => '/test11/fruits/banana', 'value' => 'value11'}))
           set_value(params.merge({'key' => '/test11/meats/beef', 'value' => 'value11'}))
           set_value(params.merge({'key' => '/test11/meats/pork', 'value' => 'value11'}))
-
           result = subject.execute(params);
           contains = result.key?("apple") and result.key?("banana");
           expect(contains).to eql(true)
@@ -131,7 +130,7 @@ describe 'libkv::list' do
              'key' => "/list/" + hash[:key],
           }.merge(shared_params)
           result = subject.execute(params)
-          expect(result["value"].class.to_s).to eql(klass)
+          expect(result["value"]["value"].class.to_s).to eql(klass)
         end
         it "should return '#{hash[:value]}' for /list/#{hash[:key]}" do
           params = {
@@ -144,7 +143,7 @@ describe 'libkv::list' do
              'key' => "/list/" + hash[:key],
           }.merge(shared_params)
           result = subject.execute(params)
-          expect(result["value"]).to eql(expected_retval)
+          expect(result["value"]["value"]).to eql(expected_retval)
         end
       end
     end

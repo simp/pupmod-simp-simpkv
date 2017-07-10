@@ -1,6 +1,7 @@
 # vim: set expandtab ts=2 sw=2:
 require 'net/http'
 require 'uri'
+require 'base64'
 libkv.load("consul") do
   def initialize(url, auth)
     @uri = URI.parse(url)
@@ -133,11 +134,11 @@ libkv.load("consul") do
     value = params['value']
 
     if (key == nil)
-      throw Exception
+      raise "Put requires 'key' to be specified"
     end
 
     if (value == nil)
-      throw Exception
+      raise "Put requires 'value' to be specified"
     end
     response = consul_request(path: "/v1/kv" + @basepath + key, method: 'PUT', body: value)
     if (debug == true)
@@ -180,7 +181,10 @@ libkv.load("consul") do
       throw Exception
     end
   end
-
+  def atomic_create(params)
+    empty = empty_value()
+    atomic_put(params.merge({ 'previous' => empty}))
+  end
   def atomic_put(params)
     key = params['key']
     value = params['value']
@@ -262,32 +266,41 @@ libkv.load("consul") do
     if (key == nil)
       throw Exception
     end
+    retval = {}
     begin
       response = consul_request(path: "/v1/kv" + @basepath + key + "?recurse")
       if (response.class == Net::HTTPOK)
         json = response.body
         value = JSON.parse(json)
       else
-        nil
+        return retval
       end
     rescue
-      nil
+      return retval
     end
-  end
-  def list(params)
-    list = atomic_list(params)
-    retval = {}
-    key = params['key']
+
     last_char = key.slice(key.size - 1,1)
     if (last_char != "/")
       key = key + "/"
     end
     reg = Regexp.new("^" + @basepath.gsub(/\//, "") + key)
-
-    unless (list == nil)
-      list.each do |entry|
+    unless (value == nil)
+      value.each do |entry|
         nkey = entry["Key"].gsub(reg,"")
-        retval[nkey] = Base64.decode64(entry["Value"])
+        retval[nkey] = entry
+        retval[nkey]["value"] = Base64.decode64(entry["Value"])
+        retval[nkey].delete("Value")
+        retval[nkey].delete("Key")
+      end
+    end
+    retval
+  end
+  def list(params)
+    list = atomic_list(params)
+    retval = {}
+    unless (list == nil)
+      list.each do |key, entry|
+        retval[key] = entry["value"]
       end
     end
     retval
@@ -308,7 +321,7 @@ libkv.load("consul") do
     end
 
   end
-  def empty_value(params)
+  def empty_value(params = {})
     {
       "ModifyIndex" => 0,
       "value" => nil

@@ -7,14 +7,18 @@
 # S6.0.0  4.7  2.1.9
 ---
 language: ruby
-sudo: false
+sudo: true
 cache: bundler
+services:
+  - docker
+  - vagrant
 before_script:
+  - ./prep_ci.sh
   - bundle
 bundler_args: --without development system_tests
 before_install: rm Gemfile.lock || true
 script:
-  - bundle exec rake test
+  - docker run -e LOCAL_USER_ID=1000 -it --rm -v $(pwd):/data:Z simpproject/centos:6-ruby21 bundle exec rake spec
 notifications:
   email: false
 rvm:

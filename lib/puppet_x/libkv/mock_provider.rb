@@ -95,31 +95,8 @@ libkv.load("mock") do
     end
   end
   def atomic_create(params)
-    retval = {}
-    key = params['key'];
-    if (key == nil)
-      throw Exception
-    end
-    value = params['value'];
-    previous = self.empty_value();
-    @mutex.synchronize do
-      previous_entry = atomic_get({'key' => key})
-      if (previous_entry['sequence'] == previous['sequence'])
-        @sequence += 1;
-        retval["result"] = @root[key] = {
-          'sequence' => @sequence,
-          'key' => key,
-          'value' => value.to_s,
-        }
-      else
-        throw Exception
-      end
-    end
-    if (params['debug'] == true)
-      retval
-    else
-      retval["result"]
-    end
+    empty = empty_value()
+    atomic_put(params.merge({ 'previous' => empty}))
   end
 
   def delete(params)
@@ -194,7 +171,7 @@ libkv.load("mock") do
   def list(params)
     retval = {}
     unless(params.key?('key'))
-      throw Exception
+      raise "'key' must be specified"
     end
     key = params['key']
     hash = @root.select do |k, v|
@@ -219,14 +196,24 @@ libkv.load("mock") do
   end
   def atomic_list(params)
     retval = {}
+    unless(params.key?('key'))
+      raise "'key' must be specified"
+    end
     key = params['key']
     hash = @root.select do |k, v|
       if (k =~ Regexp.new(key + '/'))
-        retval["result"] = true
+        true
       else
-        retval["result"] = false
+        false
       end
     end
+    nlist = {}
+    hash.each do |k, v|
+      reg = Regexp.new("^" + key + "/")
+      rkey = k.gsub(reg,"")
+      nlist[rkey] = v
+    end
+    retval["result"] = nlist
     if (params['debug'] == true)
       retval
     else
