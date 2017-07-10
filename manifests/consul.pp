@@ -12,6 +12,7 @@ class libkv::consul(
   $serverhost = undef,
   $advertise = undef,
   $datacenter = undef,
+  $puppet_cert_path,
   $ca_file_name = undef,
   $private_file_name = undef,
   $cert_file_name = undef,
@@ -142,9 +143,9 @@ class libkv::consul(
         }
       }
     } else {
-      $_cert_file_name_source = "/etc/puppetlabs/puppet/ssl/certs/${::clientcert}.pem"
-      $_ca_file_name_source = '/etc/puppetlabs/puppet/ssl/certs/ca.pem'
-      $_private_file_name_source = "/etc/puppetlabs/puppet/ssl/private_keys/${::clientcert}.pem"
+      $_cert_file_name_source = "${puppet_cert_path}/certs/${::clientcert}.pem"
+      $_ca_file_name_source = "${puppet_cert_path}/certs/ca.pem"
+      $_private_file_name_source = "${puppet_cert_path}/private_keys/${::clientcert}.pem"
       file { '/etc/simp/consul/cert.pem':
         source => $_cert_file_name_source
       }

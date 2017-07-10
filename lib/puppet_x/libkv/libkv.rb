@@ -105,7 +105,7 @@ def sanitize_input(symbol, params)
           unless (params[name].class.to_s == "String")
             raise "parameter #{name} should be String, found #{params[name].class.to_s}"
           end
-          regex = /^\/[a-zA-Z0-9._\-\/]*$/
+          regex = /^\/[a-zA-Z0-9._:\-\/]*$/
           error_msg = "the value of '#{name}': '#{params[name]}' does not match regex '#{regex}'"
           unless (regex =~ params[name])
             raise error_msg
