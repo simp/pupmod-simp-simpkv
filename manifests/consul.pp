@@ -5,7 +5,7 @@
 #
 class libkv::consul(
   $server = false,
-  $version = '0.8.0',
+  $version = '0.8.5',
   $use_puppet_pki = true,
   $bootstrap = false,
   $dont_copy_files = false,
