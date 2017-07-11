@@ -288,7 +288,11 @@ libkv.load("consul") do
       value.each do |entry|
         nkey = entry["Key"].gsub(reg,"")
         retval[nkey] = entry
-        retval[nkey]["value"] = Base64.decode64(entry["Value"])
+        unless (entry["Value"] == nil)
+          retval[nkey]["value"] = Base64.decode64(entry["Value"])
+        else
+          retval[nkey]["value"] = nil
+        end
         retval[nkey].delete("Value")
         retval[nkey].delete("Key")
       end

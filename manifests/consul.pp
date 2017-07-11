@@ -55,7 +55,7 @@ class libkv::consul(
 	],
       }
       exec { "/usr/bin/consul-create-acl -t agent_token /etc/simp/bootstrap/consul/master_token /etc/simp/bootstrap/consul/agent_token":
-        creates => "/etc/simp/bootstrap/consul/libkv_token",
+        creates => "/etc/simp/bootstrap/consul/agent_token",
         require => [
 		Service['consul'],
 		File["/usr/bin/consul-create-acl"],
@@ -182,5 +182,8 @@ class libkv::consul(
   class { '::consul':
     config_hash          => $merged_hash,
     version => $version,
+  }
+  file { "/usr/bin/consul":
+    target => "/usr/local/bin/consul",
   }
 }

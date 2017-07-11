@@ -1,3 +1,7 @@
+* Tue Jul 11 2017 Dylan Cochran <dylan.cochran@onyxpoint.com> - 0.3.2
+- (SIMP-3407) Fix idempoency on acl token generation
+- (SIMP-3403) Spurious 'undefined method unpack'
+
 * Mon Jul 10 2017 Dylan Cochran <dylan.cochran@onyxpoint.com> - 0.3.1
 - (SIMP-3360) Use module data for certificate paths
 - (SIMP-3087) Add libkv::lookup hierav5 backend function

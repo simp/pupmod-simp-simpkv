@@ -1,12 +1,24 @@
 #!/bin/sh
-TOKEN=$(cat $1)
-OUTPUTFILE=$2
 # Give consul some time to attempt a join, then realize it's bootstrapping
 # a new cluster
 sleep 10
+
+while getopts ":t:" o; do
+    case "${o}" in
+        t)
+            TYPE=${OPTARG}
+            ;;
+    esac
+done
+
+shift $((OPTIND-1))
+TOKEN=$(cat $1)
+OUTPUTFILE=$2
+
 if [ "${TYPE}" = "" ] ; then
   TYPE="libkv"
 fi
+
 case "${TYPE}" in
 	libkv)
 		POLICY='{
