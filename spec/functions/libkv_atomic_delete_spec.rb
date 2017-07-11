@@ -86,6 +86,17 @@ describe 'libkv::atomic_delete' do
           result = call_function("libkv::atomic_get", params)
           expect(result).to eql(call_function("libkv::empty_value", params))
         end
+        it 'should return true and the metadata key should be deleted' do
+          params = {
+            'key' => '/test/atomic_delete/test6'
+          }.merge(shared_params)
+          call_function("libkv::put", params.merge({'value' => 'value5'}))
+          previous = call_function("libkv::atomic_get", params.merge({}))
+          subject.execute(params.merge({'previous' => previous}))
+          metadata_key = "#{params['key']}.meta"
+          result = call_function("libkv::atomic_get", params.merge({"key" => metadata_key}))
+          expect(result).to eql(call_function("libkv::empty_value", params))
+        end
       end
     end
   end

@@ -138,8 +138,8 @@ RSpec.configure do |c|
     elsif defined?(class_name)
       set_hieradata(class_name.gsub(':','_'))
     end
-    `curl -sX DELETE http://172.17.0.1:8500/v1/kv/puppet?recurse`
-    `curl -sX DELETE http://172.17.0.1:8504/v1/kv/puppet?recurse`
+    `curl -sX DELETE http://172.17.0.1:10500/v1/kv/puppet?recurse`
+    `curl -sX DELETE http://172.17.0.1:10504/v1/kv/puppet?recurse`
   end
 
   c.after(:each) do
@@ -215,6 +215,7 @@ def datatype_testspec
       ]
 end
 def providers()
+	path=File.dirname(File.dirname(__FILE__))
 [
   {
 	  "name" => "mock with serialize false",
@@ -234,14 +235,14 @@ def providers()
   # },
   {
 	  "name" => "consul with serialize false and with daemon",
-	  "url" => "consul://172.17.0.1:8500/puppet",
+	  "url" => "consul://172.17.0.1:10500/puppet",
           "serialize" => false,
 	  "softfail" => false,
 	  "should_error" => false,
   },
   {
 	  "name" => "consul with serialize true and mode is unset and with daemon",
-	  "url" => "consul://172.17.0.1:8500/puppet",
+	  "url" => "consul://172.17.0.1:10500/puppet",
           "serialize" => true,
 	  "softfail" => false,
 	  "should_error" => false,
@@ -256,16 +257,16 @@ def providers()
   # },
   {
 	  "name" => "consul with ssl and without auth and with daemon",
-	  "url" => "consul+ssl+noverify://172.17.0.1:8501/puppet",
+	  "url" => "consul+ssl+noverify://172.17.0.1:10501/puppet",
           "serialize" => true,
 	  "softfail" => false,
 	  "should_error" => false,
   },
   {
 	  "name" => "consul with ssl and with server verification and with daemon",
-	  "url" => "consul+ssl+verify://172.17.0.1:8501/puppet",
+	  "url" => "consul+ssl+verify://172.17.0.1:10501/puppet",
           "auth" => {
-              "ca_file" => "/data/test/ca.crt",
+              "ca_file" => "#{path}/test/ca.crt",
           },
           "serialize" => true,
 	  "softfail" => false,
@@ -273,11 +274,11 @@ def providers()
   },
   {
 	  "name" => "consul with ssl and with server verification and certificate auth and with daemon",
-	  "url" => "consul+ssl+verify://172.17.0.1:8503/puppet",
+	  "url" => "consul+ssl+verify://172.17.0.1:10503/puppet",
           "auth" => {
-              "ca_file" => "/data/test/ca.crt",
-	      "cert_file" => "/data/test/server.crt",
-	      "key_file" => "/data/test/server.key",
+              "ca_file" => "#{path}/test/ca.crt",
+	      "cert_file" => "#{path}/test/server.crt",
+	      "key_file" => "#{path}/test/server.key",
           },
           "serialize" => true,
 	  "softfail" => false,

@@ -130,7 +130,8 @@ def method_missing(symbol, url, auth, *args, &block)
   # if (params['dd'] == true)
   #   binding.pry
   # end
-
+ 
+  # Pre-provider mangling
   unless (params.key?("serialize"))
     params["serialize"] = true
   end
@@ -174,7 +175,15 @@ def method_missing(symbol, url, auth, *args, &block)
     retval = object.send(symbol, *nargs, &block);
   end
 
+
+  # Post provider mangling
   case symbol
+  when :atomic_delete
+    delete_metadata(params, object)
+    return retval
+  when :delete
+    delete_metadata(params, object)
+    return retval
   when :get
     if (serialize == true and params["key"] !~ /.*\.meta$/)
       metadata = get_metadata(params, object);
@@ -232,6 +241,16 @@ def method_missing(symbol, url, auth, *args, &block)
     return retval
   end
 end
+def delete_metadata(params, object)
+  meta = []
+  meta[0] = params.dup
+  meta[0]["key"] = "#{params['key']}.meta"
+  begin
+  metadata = object.send(:delete, *meta)
+  rescue
+  end
+end
+  
 def get_metadata(params, object)
   meta = []
   meta[0] = params.dup

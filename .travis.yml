@@ -8,17 +8,15 @@
 ---
 language: ruby
 sudo: true
-cache: bundler
 services:
   - docker
   - vagrant
 before_script:
   - ./prep_ci.sh
-  - bundle
 bundler_args: --without development system_tests
 before_install: rm Gemfile.lock || true
 script:
-  - docker run -e LOCAL_USER_ID=1000 -it --rm -v $(pwd):/data:Z simpproject/centos:6-ruby21 bundle exec rake spec
+  - bundle exec rake spec
 notifications:
   email: false
 rvm:
@@ -28,17 +26,10 @@ env:
     - STRICT_VARIABLES=yes
     - TRUSTED_NODE_DATA=yes
   matrix:
+    - PUPPET_VERSION="~> 4.10.2"
+    - PUPPET_VERSION="~> 5.0.0"
+    - PUPPET_VERSION="~> 4.9.4"
+    - PUPPET_VERSION="~> 4.8.2"
     - PUPPET_VERSION="~> 4.7.0"
-    - PUPPET_VERSION="~> 4.5.0"
-    - PUPPET_VERSION="~> 3.8.0"
-    - PUPPET_VERSION="~> 4.4.0"
-    - PUPPET_VERSION="~> 4.3.0"
-    - PUPPET_VERSION="~> 3.8.0" FUTURE_PARSER=yes
 matrix:
   fast_finish: true
-  allow_failures:
-    - env: PUPPET_VERSION="~> 4.5.0"
-    - env: PUPPET_VERSION="~> 3.8.0"
-    - env: PUPPET_VERSION="~> 4.4.0"
-    - env: PUPPET_VERSION="~> 4.3.0"
-    - env: PUPPET_VERSION="~> 3.8.0" FUTURE_PARSER=yes

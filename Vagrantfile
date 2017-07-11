@@ -21,8 +21,8 @@ Vagrant.configure(2) do |config|
 				}'
 			}
 			d.ports = [
-                                "8500:8500",
-				"8501:8501",
+                                "10500:8500",
+				"10501:8501",
 			]
 		end
 	end
@@ -46,8 +46,8 @@ Vagrant.configure(2) do |config|
 				}'
 			}
 			d.ports = [
-                                "8504:8500",
-				"8503:8501",
+                                "10504:8500",
+				"10503:8501",
 			]
 		end
 	end
@@ -57,7 +57,7 @@ Vagrant.configure(2) do |config|
 			d.image = "elcolio/etcd"
 			d.has_ssh = false
 			d.ports = [
-				"2379:2379",
+				"10379:2379",
 			]
 		end
 	end

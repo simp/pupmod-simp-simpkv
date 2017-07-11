@@ -28,29 +28,27 @@ puppet-metadata:
 unit-test-ruby-2.1:
   stage: test
   tags:
-    - docker
+    - beaker
   image: ruby:2.1
+  before_script:
+    - vagrant up
+    - bundle install --path=vendor --no-binstubs
   script:
-    - bundle install
     - bundle exec rake spec
-unit-test-ruby-2.2:
-  stage: test
-  tags:
-    - docker
-  image: ruby:2.2
-  allow_failure: true
-  script:
-    - bundle install
-    - bundle exec rake spec
+  after_script:
+    - vagrant destroy -f
 unit-test-ruby-2.3:
   stage: test
   tags:
-    - docker
+    - beaker
   image: ruby:2.3
-  allow_failure: true
+  before_script:
+    - vagrant up
+    - bundle install --path=vendor --no-binstubs
   script:
-    - bundle install
     - bundle exec rake spec
+  after_script:
+    - vagrant destroy -f
 acceptance-test:
   stage: test
   tags:
