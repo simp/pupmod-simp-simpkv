@@ -39,6 +39,7 @@ Puppet::Functions.create_function(:'libkv::put') do
   
 
 def put(params)
+    nparams = params.dup
     if (closure_scope.class.to_s == 'Puppet::Parser::Scope') 
       catalog = closure_scope.find_global_scope.catalog
     else
@@ -61,27 +62,27 @@ def put(params)
       end
     end
     libkv = find_libkv
-    if params.key?('url')
-      url = params['url']
+    if nparams.key?('url')
+      url = nparams['url']
     else
       url = call_function('lookup', 'libkv::url', { 'default_value' => 'mock://'})
     end
-    params["url"] = url
+    nparams["url"] = url
     
-    if params.key?('auth')
-      auth = params['auth']
+    if nparams.key?('auth')
+      auth = nparams['auth']
     else
       auth = call_function('lookup', 'libkv::auth', { 'default_value' => nil })
     end
-    params["auth"] = auth
-    if (params["softfail"] == true)
+    nparams["auth"] = auth
+    if (nparams["softfail"] == true)
       begin
-        retval = libkv.put(url, auth, params);
+        retval = libkv.put(url, auth, nparams);
       rescue
         retval = false
       end
     else
-      retval = libkv.put(url, auth, params);
+      retval = libkv.put(url, auth, nparams);
      end
     return retval;
   end
