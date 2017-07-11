@@ -215,6 +215,7 @@ def datatype_testspec
       ]
 end
 def providers()
+	path=File.dirname(File.dirname(__FILE__))
 [
   {
 	  "name" => "mock with serialize false",
@@ -265,7 +266,7 @@ def providers()
 	  "name" => "consul with ssl and with server verification and with daemon",
 	  "url" => "consul+ssl+verify://172.17.0.1:8501/puppet",
           "auth" => {
-              "ca_file" => "/data/test/ca.crt",
+              "ca_file" => "#{path}/test/ca.crt",
           },
           "serialize" => true,
 	  "softfail" => false,
@@ -275,9 +276,9 @@ def providers()
 	  "name" => "consul with ssl and with server verification and certificate auth and with daemon",
 	  "url" => "consul+ssl+verify://172.17.0.1:8503/puppet",
           "auth" => {
-              "ca_file" => "/data/test/ca.crt",
-	      "cert_file" => "/data/test/server.crt",
-	      "key_file" => "/data/test/server.key",
+              "ca_file" => "#{path}/test/ca.crt",
+	      "cert_file" => "#{path}/test/server.crt",
+	      "key_file" => "#{path}/test/server.key",
           },
           "serialize" => true,
 	  "softfail" => false,
