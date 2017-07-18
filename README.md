@@ -51,7 +51,17 @@ $hosts.each |$host, $ip | {
 }
 ```
 
-Each key specified must match the regex /^\/[a-zA-Z0-9._:\-\/]*$/; additionally, '/./' and '/../' are disallowed in all providers as key components.
+Each key specified *must* contain only the following characters:
+* a-z
+* A-Z
+* 0-9
+* .
+* _
+* :
+* -
+* /
+
+Additionally, '/./' and '/../' are disallowed in all providers as key components. The key name also *must* begin with '/'
 
 When any libkv function is called, it will first call `lookup()` and attempt to find a value for libkv::url from hiera. This url specifies the provider name, the host, the port, and the path in the underlying store. For example:
 ```yaml
