@@ -256,6 +256,13 @@ def providers()
 	  # "should_error" => false,
   # },
   {
+	  "name" => "consul with ssl and without auth and with daemon and multiple path segments",
+	  "url" => "consul+ssl+noverify://172.17.0.1:10501/puppet/default/",
+          "serialize" => true,
+	  "softfail" => false,
+	  "should_error" => false,
+  },
+  {
 	  "name" => "consul with ssl and without auth and with daemon",
 	  "url" => "consul+ssl+noverify://172.17.0.1:10501/puppet",
           "serialize" => true,

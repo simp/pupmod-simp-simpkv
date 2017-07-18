@@ -283,7 +283,7 @@ libkv.load("consul") do
     if (last_char != "/")
       key = key + "/"
     end
-    reg = Regexp.new("^" + @basepath.gsub(/\//, "") + key)
+    reg = Regexp.new("^" + @basepath.gsub(/^\//, "") + key)
     unless (value == nil)
       value.each do |entry|
         nkey = entry["Key"].gsub(reg,"")
