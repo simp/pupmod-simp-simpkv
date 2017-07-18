@@ -10,6 +10,8 @@ class libkv::consul(
   $bootstrap = false,
   $dont_copy_files = false,
   $serverhost = undef,
+  $http_listen = '127.0.0.1',
+  $https_listen = '0.0.0.0',
   $advertise = undef,
   $datacenter = undef,
   $puppet_cert_path,
@@ -203,10 +205,14 @@ class libkv::consul(
   # Use softfail to get around issues if the service isn't up
   $hash = lookup('consul::config_hash', { "default_value" => {} })
   $class_hash =     {
-    'server'           => $server,
-    'node_name'        => $::hostname,
-    'retry_join'       => [ $_serverhost ],
-    'advertise_addr'   => $_advertise,
+    'server'         => $server,
+    'node_name'      => $::hostname,
+    'retry_join'     => [ $_serverhost ],
+    'advertise_addr' => $_advertise,
+    'addresses'      => {
+      'http'         => $http_listen,
+      'https'        => $https_listen,
+    },
   }
   $merged_hash = $hash + $class_hash + $_datacenter + $config_hash + $_key_hash + $_token_hash + $_bootstrap_hash + $_cert_hash
   class { '::consul':
