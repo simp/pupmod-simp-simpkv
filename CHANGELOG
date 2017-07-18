@@ -1,3 +1,6 @@
+* Tue Jul 18 2017 Dylan Cochran <dylan.cochran@onyxpoint.com> - 0.4.1
+- Always copy over consul-acl, and update metadata
+
 * Tue Jul 18 2017 Dylan Cochran <dylan.cochran@onyxpoint.com> - 0.4.0
 - (SIMP-3275) libkv auto-config uses the root acl
 
