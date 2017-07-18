@@ -68,7 +68,7 @@ libkv::url: 'etcd://127.0.0.1:2380/puppet/%{environment}/'
 libkv::url: 'consul://127.0.0.1:8500/puppet/%{trusted.extensions.pp_department}/%{environment}'
 ```
 
-Additionally libkv uses lookup to store authentication information. This information can range from ssl client certificates, access tokens, or usernames and passwords. The options are provider specific, as are the authentication options available.
+Additionally libkv uses lookup to store authentication information. This information can range from ssl client certificates, access tokens, or usernames and passwords. It is exposed as a hash named libkv::auth, and will be merged by default. The keys in the auth token are passed as is to the provider, and can vary between providers. Please read the documentation on configuring 'libkv::auth' for each provider
 
 libkv currently supports the following providers:
 
