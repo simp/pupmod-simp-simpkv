@@ -110,6 +110,10 @@ def sanitize_input(symbol, params)
           unless (regex =~ params[name])
             raise error_msg
           end
+          dot_regex = /\/\.\.*\//
+          if (dot_regex =~ params[name])
+            raise "the value of '#{name}': '#{params[name]}' contains ./ or ../, which is invalid in a key name"
+          end
 
         else
           unless (params[name].class.to_s == definition)
@@ -130,7 +134,7 @@ def method_missing(symbol, url, auth, *args, &block)
   # if (params['dd'] == true)
   #   binding.pry
   # end
- 
+
   # Pre-provider mangling
   unless (params.key?("serialize"))
     params["serialize"] = true
@@ -246,11 +250,11 @@ def delete_metadata(params, object)
   meta[0] = params.dup
   meta[0]["key"] = "#{params['key']}.meta"
   begin
-  metadata = object.send(:delete, *meta)
+    metadata = object.send(:delete, *meta)
   rescue
   end
 end
-  
+
 def get_metadata(params, object)
   meta = []
   meta[0] = params.dup

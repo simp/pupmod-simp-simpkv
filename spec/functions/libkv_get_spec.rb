@@ -30,7 +30,23 @@ describe 'libkv::get' do
         result = subject.execute(params)
         expect(result).to eql(nil)
       end
+      it "should throw an exception if the key contains '..' as a component" do
+          params = {
+             'key' => "/get/directory1/test",
+             'value' => "directory1",
+          }.merge(shared_params)
+          call_function("libkv::put", params)
+          params = {
+             'key' => "/get/directory2/test",
+             'value' => "directory2",
+          }.merge(shared_params)
+          call_function("libkv::put", params)
 
+          params = {
+             'key' => "/get/directory1/../directory2/test",
+          }.merge(shared_params)
+        is_expected.to run.with_params(params).and_raise_error(Exception);
+      end
       datatype_testspec.each do |hash|
        if (providerinfo["serialize"] == true)
          klass = hash[:class]
