@@ -36,6 +36,14 @@ class libkv::consul(
     }
   }
   package { "unzip": }
+  file { "/usr/bin/consul-acl":
+    mode   => "a+x",
+    source => "puppet:///modules/libkv/consul/consul-acl"
+  }
+  file { "/usr/bin/consul-create-acl":
+    mode   => "a+x",
+    source => "puppet:///modules/libkv/consul/consul-create-acl"
+  }
   if ($bootstrap == true) {
     $_bootstrap_hash = { "bootstrap_expect" => 1 }
   } else {
@@ -44,26 +52,18 @@ class libkv::consul(
     if ($facts["consul_bootstrap"] == "true") {
       $_bootstrap_hash = { "bootstrap_expect" => 1 }
       ## Create real token
-      file { "/usr/bin/consul-acl":
-        mode   => "a+x",
-        source => "puppet:///modules/libkv/consul/consul-acl"
-      } ->
-      file { "/usr/bin/consul-create-acl":
-        mode   => "a+x",
-        source => "puppet:///modules/libkv/consul/consul-create-acl"
-      } ->
       exec { "/usr/bin/consul-create-acl -t libkv /etc/simp/bootstrap/consul/master_token /etc/simp/bootstrap/consul/libkv_token":
         creates => "/etc/simp/bootstrap/consul/libkv_token",
         require => [
           Service['consul'],
-          File["/usr/bin/consul-create-acl"],
+          File["/usr/bin/consul-acl"],
         ],
       }
       exec { "/usr/bin/consul-create-acl -t agent_token /etc/simp/bootstrap/consul/master_token /etc/simp/bootstrap/consul/agent_token":
         creates => "/etc/simp/bootstrap/consul/agent_token",
         require => [
           Service['consul'],
-          File["/usr/bin/consul-create-acl"],
+          File["/usr/bin/consul-acl"],
         ],
       }
     } else {
