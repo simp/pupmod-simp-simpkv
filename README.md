@@ -41,7 +41,7 @@ libkv is an abstract library that allows puppet to access a distributed key valu
 For example, you can use the following to store hostnames, and then read all the known hostnames from consul and generate a hosts file:
 
 ```puppet
-libkv::put("/hosts/${fqdn}", $::ipaddress)
+libkv::put("/hosts/${::clientcert}", $::ipaddress)
 
 $hosts = libkv::list("/hosts")
 $hosts.each |$host, $ip | {
