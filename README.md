@@ -38,6 +38,8 @@
 
 libkv is an abstract library that allows puppet to access a distributed key value store, like consul or etcd. This library implements all the basic key/value primitives, get, put, list, delete. It also exposes any 'check and set' functionality the underlying store supports. This allows building of safe atomic operations, to build complex distributed systems. This library supports loading 'provider' modules that exist in other modules, and provides a first class api.
 
+Each key specified must match the regex /^\/[a-zA-Z0-9._:\-\/]*$/; additionally, '/./' and '/../' are disallowed in all providers as key components.
+
 When any libkv function is called, it will first call `lookup()` and attempt to find a value for libkv::url from hiera. This url specifies the provider name, the host, the port, and the path in the underlying store. For example:
 ```yaml
 libkv::url: 'consul://127.0.0.1:8500/puppet'
@@ -47,7 +49,7 @@ libkv::url: 'etcd://127.0.0.1:2380/puppet/%{environment}/'
 libkv::url: 'consul://127.0.0.1:8500/puppet/%{trusted.extensions.pp_department}/%{environment}'
 ```
 
-Additionally libkv uses lookup to store authentication information. This information can range from ssl client certificates, access tokens, or usernames and passwords. The options are provider specific, so it's best
+Additionally libkv uses lookup to store authentication information. This information can range from ssl client certificates, access tokens, or usernames and passwords. The options are provider specific, as are the authentication options available.
 
 libkv currently supports the following providers:
 
