@@ -38,6 +38,19 @@
 
 libkv is an abstract library that allows puppet to access a distributed key value store, like consul or etcd. This library implements all the basic key/value primitives, get, put, list, delete. It also exposes any 'check and set' functionality the underlying store supports. This allows building of safe atomic operations, to build complex distributed systems. This library supports loading 'provider' modules that exist in other modules, and provides a first class api.
 
+For example, you can use the following to store hostnames, and then read all the known hostnames from consul and generate a hosts file:
+
+```puppet
+libkv::put("/hosts/${fqdn}", $::ipaddress)
+
+$hosts = libkv::list("/hosts")
+$hosts.each |$host, $ip | {
+  host { $host:
+    ip => $ip,
+  }
+}
+```
+
 Each key specified must match the regex /^\/[a-zA-Z0-9._:\-\/]*$/; additionally, '/./' and '/../' are disallowed in all providers as key components.
 
 When any libkv function is called, it will first call `lookup()` and attempt to find a value for libkv::url from hiera. This url specifies the provider name, the host, the port, and the path in the underlying store. For example:
