@@ -55,11 +55,7 @@ Each key specified *must* contain only the following characters:
 * a-z
 * A-Z
 * 0-9
-* .
-* _
-* :
-* -
-* /
+* The following special characters: ._:-/
 
 Additionally, '/./' and '/../' are disallowed in all providers as key components. The key name also *must* begin with '/'
 
