@@ -17,6 +17,7 @@ class libkv::consul(
   $private_file_name = undef,
   $cert_file_name = undef,
   $config_hash = undef,
+  $agent_token = undef,
 ) {
   if ($firewall) {
     $ports = [
@@ -43,6 +44,10 @@ class libkv::consul(
     if ($facts["consul_bootstrap"] == "true") {
       $_bootstrap_hash = { "bootstrap_expect" => 1 }
       ## Create real token
+      file { "/usr/bin/consul-acl":
+        mode   => "a+x",
+        source => "puppet:///modules/libkv/consul/consul-acl"
+      } ->
       file { "/usr/bin/consul-create-acl":
         mode   => "a+x",
         source => "puppet:///modules/libkv/consul/consul-create-acl"
@@ -50,16 +55,16 @@ class libkv::consul(
       exec { "/usr/bin/consul-create-acl -t libkv /etc/simp/bootstrap/consul/master_token /etc/simp/bootstrap/consul/libkv_token":
         creates => "/etc/simp/bootstrap/consul/libkv_token",
         require => [
-		Service['consul'],
-		File["/usr/bin/consul-create-acl"],
-	],
+          Service['consul'],
+          File["/usr/bin/consul-create-acl"],
+        ],
       }
       exec { "/usr/bin/consul-create-acl -t agent_token /etc/simp/bootstrap/consul/master_token /etc/simp/bootstrap/consul/agent_token":
         creates => "/etc/simp/bootstrap/consul/agent_token",
         require => [
-		Service['consul'],
-		File["/usr/bin/consul-create-acl"],
-	],
+          Service['consul'],
+          File["/usr/bin/consul-create-acl"],
+        ],
       }
     } else {
       $_bootstrap_hash = {}
@@ -91,22 +96,47 @@ class libkv::consul(
   } else {
     $_key_hash = {}
   }
+  if ($agent_token == undef) {
   $master_token_path = '/etc/simp/bootstrap/consul/master_token'
   $master_token = file($master_token_path, "/dev/null")
-  if ($master_token != undef) {
-    $_token_hash = { 
-    "acl_master_token" => $master_token.chomp,
-    "acl_token"        => $master_token.chomp,
+  if ($server == true) {
+    if ($master_token != undef) {
+      $_token_hash = { 
+      "acl_master_token" => $master_token.chomp,
+      "acl_token"        => $master_token.chomp,
+      }
+    } else {
+      $_token_hash = {}
     }
   } else {
-    $_token_hash = {}
+    $_agent_token = libkv::get({"softfail" => true, "key" => "/simp/libkv/consul/acls/${::clientcert}-${::hostname}"})
+    if ($_agent_token != undef) {
+      $_token_hash = { 
+      "acl_token"        => $_agent_token.chomp,
+      }
+    } else {
+      $try_agent_token = generate("/usr/bin/consul-acl", "-t", "agent",  "gen", "${::clientcert}", "${::hostname}").chomp
+      if ($try_agent_token != "") {
+        $result = libkv::put({"softfail" => true, "key" => "/simp/libkv/consul/acls/${::clientcert}-${::hostname}", "value" => $try_agent_token.chomp})
+        $_token_hash = {
+          "acl_token" => $try_agent_token.chomp,
+        }
+      } else {
+        $_token_hash = {}
+      }
+    }
+  }
+  } else {
+    $_token_hash = {
+      "acl_token" => $agent_token,
+    }
   }
   if ($use_puppet_pki == true) {
     if ($bootstrap == false) {
       if (!defined(File['/etc/simp'])) {
-      file { "/etc/simp":
-        ensure => directory,
-      }
+        file { "/etc/simp":
+          ensure => directory,
+        }
       }
     }
     file { "/etc/simp/consul":

@@ -30,8 +30,8 @@ case "${TYPE}" in
 	agent)
 		POLICY='{
   "Name": "agent-acl",
-  "Taype": "client",
-  "Rules": "{\"key\":{\"\":{\"policy\":\"write\"}, \"puppet/\":{\"policy\":\"deny\"}},\"operator\":\"read\"}"
+  "Type": "client",
+  "Rules": "{\"key\":{\"\":{\"policy\":\"write\"}, \"puppet/\":{\"policy\":\"deny\"}},\"operator\":\"read\", \"node\":{\"\":{\"policy\":\"write\"}}, \"agent\":{\"policy\":\"write\"}, \"event\":{ \"\":{\"policy\":\"read\"}} }"
 }'
 		;;
 esac
