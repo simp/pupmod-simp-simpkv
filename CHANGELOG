@@ -1,3 +1,6 @@
+* Tue Jul 18 2017 Dylan Cochran <dylan.cochran@onyxpoint.com> - 0.4.0
+- (SIMP-3275) libkv auto-config uses the root acl
+
 * Tue Jul 11 2017 Dylan Cochran <dylan.cochran@onyxpoint.com> - 0.3.3
 - (SIMP-3406) Fix docker containers for travisci
 - (SIMP-3128) Delete .meta keys
