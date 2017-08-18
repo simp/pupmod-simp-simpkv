@@ -221,7 +221,7 @@ class libkv::consul(
       'https'        => $https_listen,
     },
   }
-  $merged_hash = $hash + $class_hash + $_datacenter + $config_hash + $_key_hash + $_token_hash + $_bootstrap_hash + $_cert_hash
+  $merged_hash = $hash + $class_hash + $_datacenter + $config_hash + $_key_hash + $_token_hash + $_bootstrap_hash + $_cert_hash + $_uidir
   class { '::consul':
     config_hash          => $merged_hash,
     version => $version,
