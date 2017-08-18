@@ -204,10 +204,13 @@ class libkv::consul(
   # Attempt to store bootstrap info into consul directly via libkv.
   # Use softfail to get around issues if the service isn't up
   $hash = lookup('consul::config_hash', { "default_value" => {} })
-  if (SemVer.new($version) >= SemVer.new('0.9.0')) {
-    $_uidir = {}
+  if (SemVer.new($version) >= SemVer.new('0.7.0')) {
+    $_uidir = {
+      'ui' => true
+    }
   } else {
     $_uidir = {
+      'ui'     => true,
       'ui_dir' => '/opt/consul/ui'
     }
   }
