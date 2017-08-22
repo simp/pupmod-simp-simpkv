@@ -50,7 +50,6 @@ class libkv::consul(
     $_bootstrap_hash = { "bootstrap_expect" => 1 }
   } else {
     $type = type($facts['consul_bootstrap'])
-    notify { "consul_bootstrap = ${type}": }
     if ($facts["consul_bootstrap"] == "true") {
       $_bootstrap_hash = { "bootstrap_expect" => 1 }
       ## Create real token
