@@ -27,8 +27,22 @@ function libkv::lookup(
 				}
 
 			}
-			if (libkv::exists({ "url" => $_url, "key" => $_key})) {
-				libkv::get({ "url"      => $_url, "key" =>  $_key})
+			if (has_key($options, "softfail")) {
+				$_opts = {
+					"softfail" => $options["softfail"]
+				}
+			} else {
+				$_opts = {
+					"softfail" => true
+				}
+			}
+			if (libkv::exists($_opts + { "url" => $_url, "key" => $_key})) {
+				$ret = libkv::get($_opts + { "url"      => $_url, "key" =>  $_key})
+				if ($ret == undef) {
+					$context.not_found
+				} else {
+					$ret
+				}
 			} else {
 				$context.not_found
 			}

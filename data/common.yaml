@@ -11,4 +11,3 @@ libkv::consul::config_hash:
   data_dir: '/opt/consul'
   node_name: "%{::hostname}"
   client_addr: '0.0.0.0'
-  ui_dir: /opt/consul/ui

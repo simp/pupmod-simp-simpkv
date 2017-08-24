@@ -50,7 +50,6 @@ class libkv::consul(
     $_bootstrap_hash = { "bootstrap_expect" => 1 }
   } else {
     $type = type($facts['consul_bootstrap'])
-    notify { "consul_bootstrap = ${type}": }
     if ($facts["consul_bootstrap"] == "true") {
       $_bootstrap_hash = { "bootstrap_expect" => 1 }
       ## Create real token
@@ -204,6 +203,16 @@ class libkv::consul(
   # Attempt to store bootstrap info into consul directly via libkv.
   # Use softfail to get around issues if the service isn't up
   $hash = lookup('consul::config_hash', { "default_value" => {} })
+  if (SemVer.new($version) >= SemVer.new('0.7.0')) {
+    $_uidir = {
+      'ui' => true
+    }
+  } else {
+    $_uidir = {
+      'ui'     => true,
+      'ui_dir' => '/opt/consul/ui'
+    }
+  }
   $class_hash =     {
     'server'         => $server,
     'node_name'      => $::hostname,
@@ -214,7 +223,7 @@ class libkv::consul(
       'https'        => $https_listen,
     },
   }
-  $merged_hash = $hash + $class_hash + $_datacenter + $config_hash + $_key_hash + $_token_hash + $_bootstrap_hash + $_cert_hash
+  $merged_hash = $hash + $class_hash + $_datacenter + $config_hash + $_key_hash + $_token_hash + $_bootstrap_hash + $_cert_hash + $_uidir
   class { '::consul':
     config_hash          => $merged_hash,
     version => $version,

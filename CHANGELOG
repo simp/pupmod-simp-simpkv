@@ -1,3 +1,7 @@
+* Thu Aug 24 2017 Dylan Cochran <dylan.cochran@onyxpoint.com> - 0.4.3
+- (SIMP-3623) libkv::lookup_key backend should turn softfail on by default
+- Add fix for 0.9.x consul installations
+
 * Tue Jul 18 2017 Dylan Cochran <dylan.cochran@onyxpoint.com> - 0.4.2
 - (SIMP-3001) Prevent '.' and '..' from being used in keys
 - (SIMP-3446) Add parameters to reconfigure http and https listen
