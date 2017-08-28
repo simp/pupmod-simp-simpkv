@@ -5,7 +5,7 @@ Vagrant.configure(2) do |config|
 	config.vm.define "consul-ssl" do |config|
 		config.vm.synced_folder ".", "/vagrant"
 		config.vm.provider "docker" do |d|
-			d.image = "consul"
+			d.image = "consul:0.9.2"
 			d.has_ssh = false
 			d.env = {
 				"CONSUL_LOCAL_CONFIG" => '{
@@ -29,7 +29,7 @@ Vagrant.configure(2) do |config|
 	config.vm.define "consul-ssl-auth" do |config|
 		config.vm.synced_folder ".", "/vagrant"
 		config.vm.provider "docker" do |d|
-			d.image = "consul"
+			d.image = "consul:0.9.2"
 			d.has_ssh = false
 			d.env = {
 				"CONSUL_LOCAL_CONFIG" => '{

@@ -15,13 +15,13 @@ exec { "/opt/puppetlabs/bin/puppet cert generate server.dc1.consul":
 	creates => '/etc/puppetlabs/puppet/ssl/private_keys/server.dc1.consul.pem',
 } ->
 file { "/etc/simp/bootstrap/consul/server.dc1.consul.private.pem":
-source => '/etc/puppetlabs/puppet/ssl/private_keys/server.dc1.consul.pem',
+  source => '/etc/puppetlabs/puppet/ssl/private_keys/server.dc1.consul.pem',
 } ->
 file { "/etc/simp/bootstrap/consul/server.dc1.consul.cert.pem":
-source => '/etc/puppetlabs/puppet/ssl/certs/server.dc1.consul.pem',
+  source => '/etc/puppetlabs/puppet/ssl/certs/server.dc1.consul.pem',
 } ->
 file { "/etc/simp/bootstrap/consul/ca.pem":
-source => '/etc/puppetlabs/puppet/ssl/ca/ca_crt.pem',
+  source => '/etc/puppetlabs/puppet/ssl/ca/ca_crt.pem',
 } -> 
 class { "libkv::consul":
 	dont_copy_files => true,
