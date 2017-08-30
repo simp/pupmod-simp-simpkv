@@ -1,11 +1,11 @@
 HOSTS:
-  el7:
+  el7server:
     roles:
       - server
     platform:   el-7-x86_64
     box:        centos/7
     hypervisor: vagrant
-  # el6:
+  # el6server:
   #   roles:
   #     - default
   #     - server
