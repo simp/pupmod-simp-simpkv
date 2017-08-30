@@ -1,6 +1,4 @@
-file { "/etc/simp":
-  ensure => directory,
-}
+ensure_resource('file', '/etc/simp', {'ensure' => 'directory'})
 file { "/etc/simp/bootstrap/":
   ensure => directory,
 }
