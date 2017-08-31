@@ -5,7 +5,7 @@
 #
 class libkv::consul(
   
-  Variant[Boolean,Enum['simp']] $enable_firewall   = simplib::lookup('simp_options::firewall', { 'default_value'    => false }),
+  Variant[Boolean,Enum['simp']] $firewall   = simplib::lookup('simp_options::firewall', { 'default_value'    => false }),
                                 $server            = false,
                                 $version           = '0.8.5',
                                 $use_puppet_pki    = true,
