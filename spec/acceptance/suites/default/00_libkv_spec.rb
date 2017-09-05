@@ -199,7 +199,7 @@ libkv::consul::advertise: "%{::ipaddress_eth1}"
         end
       end
 
-      agents = hosts_with_role(hosts, "#{platform}agent")
+      agents = hosts_with_name(hosts, "#{platform}agent")
       agents.each do |agent|
         on(agent, "puppet config set trusted_server_facts true")
 
@@ -210,7 +210,7 @@ libkv::consul::advertise: "%{::ipaddress_eth1}"
           end
 
           it 'should be idempotent' do
-            on(el7agent, "sudo /opt/puppetlabs/bin/puppet agent -t --server #{platform}server", :catch_changes => true)
+            on(agent, "sudo /opt/puppetlabs/bin/puppet agent -t --server #{platform}server", :catch_changes => true)
           end
 
           it 'should not return consul kv for puppet' do
