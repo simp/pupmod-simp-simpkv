@@ -81,6 +81,20 @@ describe 'libkv::atomic_put' do
        else
          expected_retval = hash[:nonserial_retval]
        end
+       it "should return true of type #{klass} for /atomic_put/#{hash[:key]} when previous is correct" do
+         params = {
+             'key' => "/atomic_put/" + hash[:key],
+         }.merge(shared_params)
+         original = call_function("libkv::atomic_get", params)
+
+         params = {
+             'key' => "/atomic_put/" + hash[:key],
+             'value' => hash[:value],
+             'previous' => original,
+         }.merge(shared_params)
+         result = subject.execute(params)
+         expect(result.to_s).to eql("true")
+       end
         it "should return an object of type #{klass} for /atomic_put/#{hash[:key]}" do
           params = {
              'key' => "/atomic_put/" + hash[:key],

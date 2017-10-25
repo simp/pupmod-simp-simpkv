@@ -201,9 +201,10 @@ libkv.load("consul") do
       throw Exception
     end
     previndex=previous["ModifyIndex"]
-    response = consul_request(path: "/v1/kv" + @basepath + key + "?cas=" + previndex.to_s, method: 'PUT', body: value)
+    path = "/v1/kv" + @basepath + key + "?cas=" + previndex.to_s
+    response = consul_request(path: path, method: 'PUT', body: value)
     if (response.class == Net::HTTPOK)
-      if (response.body == "true\n")
+      if (response.body =~ /true/)
         true
       else
         false
@@ -227,7 +228,7 @@ libkv.load("consul") do
     previndex=previous["ModifyIndex"]
     response = consul_request(path: "/v1/kv" + @basepath + key + "?cas=" + previndex.to_s, method: 'DELETE')
     if (response.class == Net::HTTPOK)
-      if (response.body == "true\n")
+      if (response.body =~ /true/)
         true
       else
         false
@@ -244,7 +245,7 @@ libkv.load("consul") do
     # Get the value of key first. This is the only way to tell if we try to delete a key 
     response = consul_request(path: "/v1/kv" + @basepath + key, method: 'DELETE')
     if (response.class == Net::HTTPOK)
-      if (response.body == "true\n")
+      if (response.body =~ /true/)
         true
       else
         false
