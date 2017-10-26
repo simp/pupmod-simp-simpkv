@@ -1,14 +1,15 @@
 {
   "name": "simp-libkv",
-  "version": "0.5.0",
+  "version": "1.0.0",
   "author": "simp",
-  "summary": "",
+  "summary": "LibKV providers",
   "license": "Apache-2.0",
-  "source": "",
-  "project_page": "",
-  "issues_url": "",
+  "source": "https://github.com/simp/pupmod-simp-libkv",
+  "project_page": "https://github.com/simp/pupmod-simp-libkv",
+  "issues_url": "https://simp-project.atlassian.net",
   "tags": [
-    "simp"
+    "simp",
+    "libkv"
   ],
   "dependencies": [
     {
