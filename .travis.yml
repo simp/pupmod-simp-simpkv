@@ -46,6 +46,11 @@ jobs:
     - stage: spec
       rvm: 2.1.9
       env: STRICT_VARIABLES=yes TRUSTED_NODE_DATA=yes PUPPET_VERSION="~> 5.0"
+      services:
+        - docker
+        - vagrant
+      before_script:
+        - ./prep_ci.sh
       script:
         - bundle exec rake spec
 
@@ -63,18 +68,33 @@ jobs:
     - stage: spec
       rvm: 2.1.9
       env: STRICT_VARIABLES=yes TRUSTED_NODE_DATA=yes PUPPET_VERSION="~> 4.9.2"
+      services:
+        - docker
+        - vagrant
+      before_script:
+        - ./prep_ci.sh
       script:
         - bundle exec rake spec
 
     - stage: spec
       rvm: 2.1.9
       env: STRICT_VARIABLES=yes TRUSTED_NODE_DATA=yes PUPPET_VERSION="~> 4.8.2"
+      services:
+        - docker
+        - vagrant
+      before_script:
+        - ./prep_ci.sh
       script:
         - bundle exec rake spec
 
     - stage: spec
       rvm: 2.1.9
       env: STRICT_VARIABLES=yes TRUSTED_NODE_DATA=yes PUPPET_VERSION="~> 4.7.0"
+      services:
+        - docker
+        - vagrant
+      before_script:
+        - ./prep_ci.sh
       script:
         - bundle exec rake spec
 
