@@ -1,1 +1,0 @@
-libkv::consul::puppet_cert_path: '/var/puppet/ssl'
