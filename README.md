@@ -25,6 +25,7 @@
     * [libkv::watch](#watch)
     * [libkv::watchtree](#watchtree)
     * [libkv::newlock](#newlock)
+
 5. [Development - Guide for contributing to the module](#development)
     * [Acceptance Tests - Beaker env variables](#acceptance-tests)
 
@@ -124,13 +125,22 @@ $ bundle exec rake spec
 ## Function reference
 
 <h3><a id="get">libkv::get</a></h3>
-Connects to the backend and retrieves the data stored at **key**	
+
+Connects to the backend and retrieves the data stored at **key**
+
+
+
+
+
 `Any $data = libkv::get(String key)`
+
 
 *Returns:*
 Any
 
-*Usage:*		
+*Usage:*
+
+
 <pre lang="ruby">
  $database_server = libkv::get("/database/${::fqdn}")
  class { "wordpress":
@@ -139,38 +149,80 @@ Any
 </pre>
 
 
-<h3><a id="put">libkv::put</a></h3>	
-Sets the data at `key` to the specified `value`	
+
+
+
+
+<h3><a id="put">libkv::put</a></h3>
+
+Sets the data at `key` to the specified `value`
+
+
+
+
+
 `Boolean $suceeeded = libkv::put(String key, Any value)`
+
 
 *Returns:*
 Boolean
 
-*Usage:*		
+*Usage:*
+
+
 <pre lang="ruby">
 libkv::put("/hosts/${::fqdn}", "${::ipaddress}")
 </pre>
 
+
+
+
+
+
 <h3><a id="delete">libkv::delete</a></h3>
-Deletes the specified `key`. Must be a single key	
+
+Deletes the specified `key`. Must be a single key
+
+
+
+
+
 `Boolean $suceeeded = libkv::delete(String key)`
 
+
 *Returns:*
 Boolean
 
-*Usage:*		
+*Usage:*
+
+
 <pre lang="ruby">
 $response = libkv::delete("/hosts/${::fqdn}")
+
 </pre>
 
+
+
+
+
+
 <h3><a id="exists">libkv::exists</a></h3>
-Returns true if `key` exists	
+
+Returns true if `key` exists
+
+
+
+
+
 `Boolean $exists = libkv::exists(String key)`
+
 
 *Returns:*
 Boolean
 
-*Usage:*		
+*Usage:*
+
+
 <pre lang="ruby">
  if (libkv::exists("/hosts/${::fqdn}") == true) {
  	notify { "/hosts/${::fqdn} exists": }
@@ -178,14 +230,27 @@ Boolean
 </pre>
 
 
+
+
+
+
 <h3><a id="list">libkv::list</a></h3>
-Lists all keys in the folder named `key`	
+
+Lists all keys in the folder named `key`
+
+
+
+
+
 `Hash $list = libkv::list(String key)`
+
 
 *Returns:*
 Hash
 
-*Usage:*		
+*Usage:*
+
+
 <pre lang="ruby">
  $list = libkv::list('/hosts')
  $list.each |String $host, String $ip| {
@@ -196,27 +261,54 @@ Hash
 </pre>
 
 
+
+
+
+
 <h3><a id="deletetree">libkv::deletetree</a></h3>
-Deletes the whole folder named `key`. This action is inherently unsafe.	
+
+Deletes the whole folder named `key`. This action is inherently unsafe.
+
+
+
+
+
 `Boolean $succeeded = libkv::deletetree(String key)`
+
 
 *Returns:*
 Boolean
 
-*Usage:*		
+*Usage:*
+
+
 <pre lang="ruby">
 $response = libkv::deletetree("/hosts")
+
 </pre>
 
 
+
+
+
+
 <h3><a id="atomic_create">libkv::atomic_create</a></h3>
-Store `value` in `key`, but only if key does not exist already, and do so atomically	
+
+Store `value` in `key`, but only if key does not exist already, and do so atomically
+
+
+
+
+
 `Boolean $suceeeded = libkv::atomic_create(String key, Any value)`
+
 
 *Returns:*
 Boolean
 
-*Usage:*		
+*Usage:*
+
+
 <pre lang="ruby">
  $id = rand(0,2048)
  $result = libkv::atomic_create("/serverids/${::fqdn}", $id)
@@ -228,41 +320,84 @@ Boolean
  notify("the server id of ${serverid} is indempotent!") 
 </pre>
 
+
+
+
+
+
 <h3><a id="atomic_delete">libkv::atomic_delete</a></h3>
-Delete `key`, but only if key still matches the value of `previous`	
+
+Delete `key`, but only if key still matches the value of `previous`
+
+
+
+
+
 `Boolean $suceeded = libkv::atomic_delete(String key, Hash previous)`
+
 
 *Returns:*
 Boolean
 
-*Usage:*		
+*Usage:*
+
+
 <pre lang="ruby">
  $previous = libkv::atomic_get("/env/${::fqdn}")
  $result = libkv::atomic_delete("/env/${::fqdn}", $previous)
+ 
 </pre>
 
 
+
+
+
+
 <h3><a id="atomic_get">libkv::atomic_get</a></h3>
-Get the value of key, but return it in a hash suitable for use with other atomic functions	
+
+Get the value of key, but return it in a hash suitable for use with other atomic functions
+
+
+
+
+
 `Hash $previous = libkv::atomic_get(String key)`
+
 
 *Returns:*
 Hash
 
-*Usage:*		
+*Usage:*
+
+
 <pre lang="ruby">
  $previous = libkv::atomic_get("/env/${::fqdn}")
  notify { "previous value is ${previous["value"]}": }
+ 
 </pre>
 
+
+
+
+
+
 <h3><a id="atomic_put">libkv::atomic_put</a></h3>
-Set `key` to `value`, but only if the key is still set to `previous`	
+
+Set `key` to `value`, but only if the key is still set to `previous`
+
+
+
+
+
 `Boolean $suceeeded = libkv::atomic_put(String key, Any value, Hash previous)`
+
 
 *Returns:*
 Boolean
 
-*Usage:*		
+*Usage:*
+
+
 <pre lang="ruby">
  $newvalue = 'new'
  $previous = libkv::atomic_get("/env/${::fqdn}")
@@ -273,17 +408,31 @@ Boolean
  	$real = libkv::get("/env/${::fqdn}")
  }
  notify { "I updated to $real atomically!": }
+ 
 </pre>
 
 
+
+
+
+
 <h3><a id="atomic_list">libkv::atomic_list</a></h3>
-List all keys in folder `key`, but return them in a format suitable for other atomic functions	
+
+List all keys in folder `key`, but return them in a format suitable for other atomic functions
+
+
+
+
+
 `Hash $list = libkv::atomic_list(String key)`
+
 
 *Returns:*
 Hash
 
-*Usage:*		
+*Usage:*
+
+
 <pre lang="ruby">
 # Add a host resource for everything under /hosts
 
@@ -306,39 +455,67 @@ Hash
 </pre>
 
 
+
+
+
+
 <h3><a id="empty_value">libkv::empty_value</a></h3>
-Return an hash suitable for other atomic functions, that represents an empty value	
+
+Return an hash suitable for other atomic functions, that represents an empty value
+
+
 `Hash $empty_value = libkv::empty_value()`
+
 
 *Returns:*
 Hash
 
-*Usage:*		
+*Usage:*
+
+
 <pre lang="ruby">
  $empty = libkv::empty()
  $result = libkv::atomic_get("/some/key")
  if ($result == $empty) {
  	notify { "/some/key doesn't exist": }
  }
+ 
 </pre>
 
 
+
+
+
+
 <h3><a id="info">libkv::info</a></h3>
-Return a hash of informtion on the underlying provider. Provider specific	
+
+Return a hash of informtion on the underlying provider. Provider specific
+
+
 `Hash $provider_information = libkv::info()`
+
 
 *Returns:*
 Hash
 
-*Usage:*		
+*Usage:*
+
+
 <pre lang="ruby">
  $info = libkv::info()
  notify { "libkv connection is: ${info}": }
+ 
 </pre>
 
 
+
+
+
+
 <h3><a id="supports">libkv::supports</a></h3>
-Return an array of all supported functions	
+
+Return an array of all supported functions
+
 
 `Array $supported_functions = libkv::supports()`
 
@@ -346,7 +523,9 @@ Return an array of all supported functions
 *Returns:*
 Array
 
-*Usage:*		
+*Usage:*
+
+
 <pre lang="ruby">
  $supports = libkv::supports()
  if ($supports in 'atomic_get') {
@@ -354,33 +533,58 @@ Array
  } else {
  	libkv::get('/some/key')
  }
+ 
 </pre>
 
+
+
+
+
+
 <h3><a id="pop_error">libkv::pop_error</a></h3>
-Return the error message for the last call	
+
+Return the error message for the last call
 
 
 <h3><a id="provider">libkv::provider</a></h3>
-Return the name of the current provider	
+
+Return the name of the current provider
+
+
 `String $provider_name = libkv::provider()`
+
 
 *Returns:*
 String
 
-*Usage:*		
+*Usage:*
+
+
 <pre lang="ruby">
  $provider = libkv::provider()
  notify { "libkv connection is: ${provider}": }
+ 
 </pre>
 
 
+
+
+
+
 <h3><a id="watch">libkv::watch</a></h3>
-	
+
+
+
 
 <h3><a id="watchtree">libkv::watchtree</a></h3>
 
 
+
+
 <h3><a id="newlock">libkv::newlock</a></h3>
+
+
+
 
 
 ## Development
