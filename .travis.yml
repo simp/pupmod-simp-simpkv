@@ -41,7 +41,6 @@ jobs:
         - bundle exec rake check:test_file
         - bundle exec rake pkg:check_version
         - bundle exec rake metadata_lint
-        - bundle exec rake compare_latest_tag
 
     - stage: spec
       rvm: 2.1.9
