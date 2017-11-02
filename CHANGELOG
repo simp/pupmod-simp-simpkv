@@ -1,3 +1,8 @@
+* Thu Oct 26 2017 Nick Markowski <nicholas.markowski@onyxpoint.com> - 0.5.0
+- (SIMP-3923) Moved libkv::consul to pupmod-simp-simp_consul
+- Updated README
+- Updated travis with CI credentials
+
 * Wed Oct 25 2017 Dylan Cochran <dylan.cochran@onyxpoint.com> - 0.5.0
 - (SIMP-3445) Add acceptance test for consul configuration and bootstrap
 - (SIMP-3629) libkv::atomic_put returns false for a successful put on consul >0.9.0
