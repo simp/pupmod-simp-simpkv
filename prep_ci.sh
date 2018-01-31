@@ -1,4 +1,5 @@
 #!/bin/sh
+
 docker pull consul
 docker run -d -p "10500:8500" -p "10501:8501" -v "$(pwd):/vagrant" -e CONSUL_LOCAL_CONFIG='{ "addresses": { "https":"0.0.0.0" }, "ports" : { "https" : 8501 }, "key_file" : "/vagrant/test/server.key", "cert_file" : "/vagrant/test/server.crt", "ca_file" : "/vagrant/test/ca.crt"}' consul:0.8.5
 docker run -d -p "10504:8500" -p "10503:8501" -v "$(pwd):/vagrant" -e CONSUL_LOCAL_CONFIG='{ "addresses": { "https":"0.0.0.0" }, "ports" : { "https" : 8501 }, "key_file" : "/vagrant/test/server.key", "cert_file" : "/vagrant/test/server.crt", "ca_file" : "/vagrant/test/ca.crt", "verify_incoming": true}' consul:0.8.5
