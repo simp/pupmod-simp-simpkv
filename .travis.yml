@@ -1,35 +1,123 @@
-#  PE/SIMP versions
-#  app    pup  ruby
-# 2015.2  4.3  2.1.7
-# 2015.3  4.3  2.1.8
-# 2016.1  4.4  2.1.9
-# 2016.2  4.5  2.1.9
-# S6.0.0  4.7  2.1.9
+# The testing matrix considers ruby/puppet versions supported by SIMP and PE:
+# ------------------------------------------------------------------------------
+#  release    pup   ruby      eol
+# PE 2016.4   4.7   2.1.9  TBD (LTS)
+# PE 2016.5   4.8   2.1.9  2017-10-31
+# SIMP6.0.0   4.8   2.1.9  TBD
+# PE 2017.1   4.9   2.1.9  2017-10-31
+# PE 2017.2   4.10  2.1.9  TBD
 ---
 language: ruby
-sudo: true
-services:
-  - docker
-  - vagrant
-before_script:
-  - ./prep_ci.sh
-bundler_args: --without development system_tests
-before_install: rm Gemfile.lock || true
-script:
-  - bundle exec rake spec
+cache: bundler
+sudo: false
+
+bundler_args: --without development system_tests --path .vendor
+
 notifications:
   email: false
-rvm:
-  - 2.1.9
-env:
-  global:
-    - STRICT_VARIABLES=yes
-    - TRUSTED_NODE_DATA=yes
-  matrix:
-    - PUPPET_VERSION="~> 4.10.2"
-    - PUPPET_VERSION="~> 5.0.0"
-    - PUPPET_VERSION="~> 4.9.4"
-    - PUPPET_VERSION="~> 4.8.2"
-    - PUPPET_VERSION="~> 4.7.0"
-matrix:
-  fast_finish: true
+
+addons:
+  apt:
+    packages:
+      - rpm
+
+before_install:
+  - rm -f Gemfile.lock
+
+jobs:
+  allow_failures:
+    - env: STRICT_VARIABLES=yes TRUSTED_NODE_DATA=yes PUPPET_VERSION="~> 5.0"
+
+  include:
+    - stage: check
+      rvm: 2.1.9
+      services:
+        - docker
+        - vagrant
+      before_script:
+        - ./prep_ci.sh
+      script:
+        - bundle exec rake check:dot_underscore
+        - bundle exec rake check:test_file
+        - bundle exec rake pkg:check_version
+        - bundle exec rake metadata_lint
+
+    - stage: spec
+      rvm: 2.1.9
+      env: STRICT_VARIABLES=yes TRUSTED_NODE_DATA=yes PUPPET_VERSION="~> 5.0"
+      services:
+        - docker
+        - vagrant
+      before_script:
+        - ./prep_ci.sh
+      script:
+        - bundle exec rake spec
+
+    - stage: spec
+      rvm: 2.1.9
+      env: STRICT_VARIABLES=yes TRUSTED_NODE_DATA=yes PUPPET_VERSION="~> 4.10.0"
+      services:
+        - docker
+        - vagrant
+      before_script:
+        - ./prep_ci.sh
+      script:
+        - bundle exec rake spec
+
+    - stage: spec
+      rvm: 2.1.9
+      env: STRICT_VARIABLES=yes TRUSTED_NODE_DATA=yes PUPPET_VERSION="~> 4.9.2"
+      services:
+        - docker
+        - vagrant
+      before_script:
+        - ./prep_ci.sh
+      script:
+        - bundle exec rake spec
+
+    - stage: spec
+      rvm: 2.1.9
+      env: STRICT_VARIABLES=yes TRUSTED_NODE_DATA=yes PUPPET_VERSION="~> 4.8.2"
+      services:
+        - docker
+        - vagrant
+      before_script:
+        - ./prep_ci.sh
+      script:
+        - bundle exec rake spec
+
+    - stage: spec
+      rvm: 2.1.9
+      env: STRICT_VARIABLES=yes TRUSTED_NODE_DATA=yes PUPPET_VERSION="~> 4.7.0"
+      services:
+        - docker
+        - vagrant
+      before_script:
+        - ./prep_ci.sh
+      script:
+        - bundle exec rake spec
+
+    # This needs to be last since we have an acceptance test
+    - stage: deploy
+      rvm: 2.1.9
+      script:
+        - true
+      before_deploy:
+        - "export PUPMOD_METADATA_VERSION=`ruby -r json -e \"puts JSON.parse(File.read('metadata.json')).fetch('version')\"`"
+        - '[[ $TRAVIS_TAG =~ ^simp-${PUPMOD_METADATA_VERSION}$|^${PUPMOD_METADATA_VERSION}$ ]]'
+      deploy:
+        - provider: releases
+          api_key:
+            secure: "i+u85G01GnlkMxA7lu9l/qiUPXufobrEplZ8D0zCxOW6ZnqbfAOFPyNSbCwywnqw0lSdmm4Pxj7ZQFQhkoAKAaIW1B9T/I4Zj+C4YBO43/VnM9DTiJVxD4zXIddTnFAHr7gkXIV/87YVPehk+9qrP9LnkUlVABNw4UfIphsrKKYcpiUCUCC+ckr8triMzkHQIPPQzwlFVkxn8GCgWAxSIvqxaSP6xPV2rXj8WHlIt2wQzdvK0LTJscrQN4dwcVTkm/76JIzgj6YmAbcnRZ7PFwuPraMKqMmzEk9JRNn4dPJXGzRWL+uUj+O3EuncqdcvglDDcDGRWxQMpSFL3r00jgF0vL6xvK6nFtEJZIAIQGCDvWLY6+AkHQ1LnbIGDh0JJjRm5OXj3J5k6F9byHGGt//lyjk2XkT4Ps+npwBjIJPu5bZ7yRw650NCt+5yTzq/aJcomiY88P2T7xU/wCVeiTZbCvMqrIL+BFbEGpKOFG709oT5rIS9q85DnF/D/7kwJvm2pGviKua50IhIG4/Z/tED0Wyprvc+G3c6KTpQkGpKkKJU5rG+DSGF1L52c13XLdW1me3jeaDbWMahWAFNjPd8jfF8EE7sO0bupQMxK6UAg/1qdLZ+h3Rxgo1t+v0Y9YjWKpVXOTJV/b2t2WipNa+UKK7LjB+ljpkiLjyGs3o="
+          skip_cleanup: true
+          on:
+            tags: true
+            condition: '($SKIP_FORGE_PUBLISH != true)'
+        - provider: puppetforge
+          user: simp
+          password:
+            secure: "JJzYG4y54kvOS6utZpBKlUxRTKjjjeAViPD7/r8NKxvOhpPwXpWra7s9PuSka2EXL++5kDjeT7yIQa9vLSGW7FUwjC+mnpPuCvSP9vW8iTw18vrMjOfGMCJXS9IlOaZRL8vN+8BZ1tOxId8pwlakhrOVIHp9z7lew5Aa1rgH7aSaGFjPYe1lmdTlb1kodUJZJGwuToKBQJHchbcHq08tmaSx06Z7HcuG/Ali/y94o9m1IMeXyjXnV+GHcxFGCK60nQWNQB2DXZgQfl13/Eg3G5z1Xty8rPmW+zXSbqcDqpJtiqz3r9pcPb1tdvSLxz5OgVunLBWDBwUbHAL1RhldUIV1tV3Gm0HGhndrA5tWtNCE271mC7zp7c5CeX8YcAuxl4Fv87Zpit6MATsdweWTsYLxixBuorMdpa/H5zqHbxo8uc4frkaro4904474XSLXh3DwLzpUuNnUR7RXo37U07DimZWf4S1gr6MYHOutbZHHcTNV+BXo25heKgbL+0Ou72nQsEmoNVEm4LF0a4kRiG6EfwHWizXLCNlsEoZDZq+eyfmx/mOkpiXICYVorf5uPPnPL+GEwJ9Z0HRD0RYuqdgsfc6CxSUfkpwZtrdJZUzLB5osOWuqArj+J8E0WQ2dfNBHmydezaex2Se4tyELumM53utS5qW/N008Er4grCk="
+          on:
+            tags: true
+            rvm: 2.1.9
+            condition: '($SKIP_FORGE_PUBLISH != true)'

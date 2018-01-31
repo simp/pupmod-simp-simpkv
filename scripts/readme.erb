@@ -1,15 +1,10 @@
-**FIXME**: Ensure the badges are correct and complete, then remove this message!
-
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html) [![Build Status](https://travis-ci.org/simp/pupmod-simp-libkv.svg)](https://travis-ci.org/simp/pupmod-simp-libkv) [![SIMP compatibility](https://img.shields.io/badge/SIMP%20compatibility-6.*-orange.svg)](https://img.shields.io/badge/SIMP%20compatibility-6.*-orange.svg)
 
 #### Table of Contents
 
 1. [Description](#description)
-2. [Setup - The basics of getting started with libkv](#setup)
-    * [What libkv affects](#what-libkv-affects)
-    * [Setup requirements](#setup-requirements)
-    * [Beginning with libkv](#beginning-with-libkv)
-3. [Usage - Configuration options and additional functionality](#usage)
+2. [Usage - Configuration options and additional functionality](#usage)
+3. [Testing](#testing)
 4. [Function Reference](#function-reference)
 <% data["functions"].each do |key, value| %>    * [libkv::<%= key %>](#<%= key %>)
 <% end %>
@@ -18,9 +13,43 @@
 
 ## Description
 
-libkv is an abstract library that allows puppet to access a distributed key value store, like consul or etcd. This library implements all the basic key/value primitives, get, put, list, delete. It also exposes any 'check and set' functionality the underlying store supports. This allows building of safe atomic operations, to build complex distributed systems. This library supports loading 'provider' modules that exist in other modules, and provides a first class api.
+libkv is an abstract library that allows puppet to access a distributed key
+value store, like consul or etcd. This library implements all the basic
+key/value primitives, get, put, list, delete. It also exposes any 'check and
+set' functionality the underlying store supports. This allows building of safe
+atomic operations, to build complex distributed systems. This library supports
+loading 'provider' modules that exist in other modules, and provides a first
+class api.
 
-For example, you can use the following to store hostnames, and then read all the known hostnames from consul and generate a hosts file:
+libkv uses lookup to store authentication information. This information can
+range from ssl client certificates, access tokens, or usernames and passwords.
+It is exposed as a hash named libkv::auth, and will be merged by default. The
+keys in the auth token are passed as is to the provider, and can vary between
+providers. Please read the documentation on configuring 'libkv::auth' for each
+provider
+
+libkv currently supports the following providers:
+
+* `mock` - Useful for testing, as it provides a kv store that is destroyed
+           after each catalog compilation
+* `consul` - Allows connectivity to an existing consul service
+
+With the intention to support the following:
+* `etcd` - Allows connectivity to an existing etcd service
+* `simp6-legacy` - Implements the SIMP 6 legacy file storage api. 
+* `file` - Implements a non-ha flat file storage api.
+
+This module is a component of the [System Integrity Management
+Platform](https://github.com/NationalSecurityAgency/SIMP), a
+compliance-management framework built on Puppet.
+
+If you find any issues, they may be submitted to our [bug
+tracker](https://simp-project.atlassian.net/).
+
+## Usage
+
+As an example, you can use the following to store hostnames, and then read all
+the known hostnames from consul and generate a hosts file:
 
 ```puppet
 libkv::put("/hosts/${::clientcert}", $::ipaddress)
@@ -37,11 +66,15 @@ Each key specified *must* contain only the following characters:
 * a-z
 * A-Z
 * 0-9
-* The following special characters: ._:-/
+* The following special characters: `._:-/`
 
-Additionally, '/./' and '/../' are disallowed in all providers as key components. The key name also *must* begin with '/'
+Additionally, `/./` and `/../` are disallowed in all providers as key
+components. The key name also *must* begin with `/`
 
-When any libkv function is called, it will first call `lookup()` and attempt to find a value for libkv::url from hiera. This url specifies the provider name, the host, the port, and the path in the underlying store. For example:
+When any libkv function is called, it will first call `lookup()` and attempt to
+find a value for libkv::url from hiera. This url specifies the provider name,
+the host, the port, and the path in the underlying store. For example:
+
 ```yaml
 libkv::url: 'consul://127.0.0.1:8500/puppet'
 libkv::url: 'consul+ssl://1.2.3.4:8501/puppet'
@@ -50,75 +83,32 @@ libkv::url: 'etcd://127.0.0.1:2380/puppet/%{environment}/'
 libkv::url: 'consul://127.0.0.1:8500/puppet/%{trusted.extensions.pp_department}/%{environment}'
 ```
 
-Additionally libkv uses lookup to store authentication information. This information can range from ssl client certificates, access tokens, or usernames and passwords. It is exposed as a hash named libkv::auth, and will be merged by default. The keys in the auth token are passed as is to the provider, and can vary between providers. Please read the documentation on configuring 'libkv::auth' for each provider
+## Testing
 
-libkv currently supports the following providers:
+Manual and automated tests require a shim to kick off Consul inside of Docker,
+before running.  Travis is programmed to run the shim.  To do so manually,
+first ensure you have [set up Docker](http://simp.readthedocs.io/en/latest/getting_started_guide/ISO_Build/Environment_Preparation.html#set-up-docker) properly.
 
-* `mock` - useful for testing, as it provides a kv store that is destroyed after each catalog compilation
-* `consul` - Allows connectivity to an existing consul service
+Next, run the shim:
 
-With the intention to support the following:
-* `etcd` - Allows connectivity to an existing etcd service
-* `simp6-legacy` - Implements the SIMP 6 legacy file storage api. 
-* `file` - Implements a non-ha flat file storage api.
+```bash
+$ ./prep_ci.sh
+```
 
-This module is a component of the [System Integrity Management
-Platform](https://github.com/NationalSecurityAgency/SIMP), a
-compliance-management framework built on Puppet.
+**NOTE**: There is a bug which will not allow the containers to deploy if
+selinux is enforcing.  Set to permissive or disabled.
 
-If you find any issues, they may be submitted to our [bug
-tracker](https://simp-project.atlassian.net/).
+Run the unit tests:
 
-## Setup
-
-### What libkv affects
-
-**FIXME:** Ensure the *What libkv affects* section is correct and complete, then remove this message!
-
-If it's obvious what your module touches, you can skip this section. For
-example, folks can probably figure out that your mysql_instance module affects
-their MySQL instances.
-
-If there's more that they should know about, though, this is the place to
-mention:
-
- * A list of files, packages, services, or operations that the module will
-   alter, impact, or execute.
- * Dependencies that your module automatically installs.
- * Warnings or other important notices.
-
-### Setup Requirements **OPTIONAL**
-
-**FIXME:** Ensure the *Setup Requirements* section is correct and complete, then remove this message!
-
-If your module requires anything extra before setting up (pluginsync enabled,
-etc.), mention it here.
-
-If your most recent release breaks compatibility or requires particular steps
-for upgrading, you might want to include an additional "Upgrading" section
-here.
-
-### Beginning with libkv
-
-**FIXME:** Ensure the *Beginning with libkv* section is correct and complete, then remove this message!
-
-The very basic steps needed for a user to get the module up and running. This
-can include setup steps, if necessary, or it can be an example of the most
-basic use of the module.
-
-## Usage
-
-**FIXME:** Ensure the *Usage* section is correct and complete, then remove this message!
-
-This section is where you describe how to customize, configure, and do the
-fancy stuff with your module here. It's especially helpful if you include usage
-examples and code samples for doing things with your module.
+```bash
+$ bundle exec rake spec
+```
 
 ## Function reference
 <% data["functions"].each do |key, value| %>
 <h3><a id="<%= key %>">libkv::<%= key %></a></h3>
-	
-<%= value[:description] %>	
+
+<%= value[:description] %>
 <% unless value[:reserved] == true %>
 <% if value[:allow_empty] == true %>
 `<%= value[:retval] %> <%= "$#{value[:examplereturn]}" %> = libkv::<%= key %>()`
@@ -138,7 +128,7 @@ examples and code samples for doing things with your module.
 *Returns:*
 <%= value[:retval] %>
 <% if value.key?(:examples) %>
-*Usage:*		
+*Usage:*
 <% value[:examples].each do |example|%>
 
 <pre lang="ruby">
@@ -150,8 +140,6 @@ examples and code samples for doing things with your module.
 
 <% end %>
 <% end %>
-
-
 
 ## Development
 
