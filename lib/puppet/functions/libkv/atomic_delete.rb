@@ -1,46 +1,38 @@
-# vim: set expandtab ts=2 sw=2:
+# Delete `key`, but only if key still matches the value of `previous`
 #
-# @author Dylan Cochran <dylan.cochran@onyxpoint.com>
+# @author https://github.com/simp/pupmod-simp-libkv/graphs/contributors
+#
 Puppet::Functions.create_function(:'libkv::atomic_delete') do
+
   # @param parameters [Hash] Hash of all parameters
-  # 
-  # @param key [String] string of the key to retrieve
   #
-  # @return [Any] The value in the underlying backing store
-  #
+  # @return [Boolean] Whether the backend delete operation succeeded
   #
   dispatch :atomic_delete do
     param 'Hash', :parameters
   end
 
+  # @param key The key to delete
+  # @param previous The value in the underlying backing store
+  #
+  # @return [Boolean] Whether the backend delete operation succeeded
+  #
+  dispatch :atomic_delete_v1 do
+    param 'String', :key
+    param 'Hash', :previous
+  end
 
+  def atomic_delete_v1(key, previous)
+    params = {}
+    params['key'] = key
+    params['previous'] = previous
 
-  
-    dispatch :atomic_delete_v1 do
-    
-      
-        param "String", :parameters
-      
-        param "Hash", :parameters
-      
-    
-    end
-    def atomic_delete_v1(key,previous)
-     params = {}
-     
-      
-        params['key'] = key
-      
-        params['previous'] = previous
-      
-    
     atomic_delete(params)
-    end
-  
+  end
 
-def atomic_delete(params)
+  def atomic_delete(params)
     nparams = params.dup
-    if (closure_scope.class.to_s == 'Puppet::Parser::Scope') 
+    if (closure_scope.class.to_s == 'Puppet::Parser::Scope')
       catalog = closure_scope.find_global_scope.catalog
     else
       if ($__LIBKV_CATALOG == nil)
@@ -68,7 +60,7 @@ def atomic_delete(params)
       url = call_function('lookup', 'libkv::url', { 'default_value' => 'mock://'})
     end
     nparams["url"] = url
-    
+
     if nparams.key?('auth')
       auth = nparams['auth']
     else
@@ -83,8 +75,9 @@ def atomic_delete(params)
       end
     else
       retval = libkv.atomic_delete(url, auth, nparams);
-     end
+    end
     return retval;
   end
 end
 
+# vim: set expandtab ts=2 sw=2:

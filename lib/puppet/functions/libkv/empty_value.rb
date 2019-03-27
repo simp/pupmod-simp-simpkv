@@ -1,29 +1,29 @@
-# vim: set expandtab ts=2 sw=2:
+# Return an hash suitable for other atomic functions, that represents an empty value
 #
-# @author Dylan Cochran <dylan.cochran@onyxpoint.com>
+# @author https://github.com/simp/pupmod-simp-libkv/graphs/contributors
+#
 Puppet::Functions.create_function(:'libkv::empty_value') do
+
   # @param parameters [Hash] Hash of all parameters
-  # 
-  # @param key [String] string of the key to retrieve
   #
-  # @return [Any] The value in the underlying backing store
-  #
+  # @return [Hash] Empty hash representing an empty value
   #
   dispatch :empty_value do
     param 'Hash', :parameters
   end
 
-
+  # @return [Hash] Empty hash representing an empty value
+  #
   dispatch :empty_value_empty do
   end
+
   def empty_value_empty
      self.empty_value({})
   end
 
-
-def empty_value(params)
+  def empty_value(params)
     nparams = params.dup
-    if (closure_scope.class.to_s == 'Puppet::Parser::Scope') 
+    if (closure_scope.class.to_s == 'Puppet::Parser::Scope')
       catalog = closure_scope.find_global_scope.catalog
     else
       if ($__LIBKV_CATALOG == nil)
@@ -51,7 +51,7 @@ def empty_value(params)
       url = call_function('lookup', 'libkv::url', { 'default_value' => 'mock://'})
     end
     nparams["url"] = url
-    
+
     if nparams.key?('auth')
       auth = nparams['auth']
     else
@@ -66,8 +66,9 @@ def empty_value(params)
       end
     else
       retval = libkv.empty_value(url, auth, nparams);
-     end
+    end
     return retval;
   end
 end
 
+# vim: set expandtab ts=2 sw=2:

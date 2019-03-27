@@ -1,46 +1,38 @@
-# vim: set expandtab ts=2 sw=2:
+# Store `value` in `key` atomically, but only if key does not already exist
 #
-# @author Dylan Cochran <dylan.cochran@onyxpoint.com>
+# @author https://github.com/simp/pupmod-simp-libkv/graphs/contributors
+#
 Puppet::Functions.create_function(:'libkv::atomic_create') do
+
   # @param parameters [Hash] Hash of all parameters
-  # 
-  # @param key [String] string of the key to retrieve
   #
-  # @return [Any] The value in the underlying backing store
-  #
+  # @return [Boolean] Whether the backend create operation succeeded
   #
   dispatch :atomic_create do
     param 'Hash', :parameters
   end
 
+  # @param key The key to be created
+  # @param value The value of the key
+  #
+  # @return [Boolean] Whether the backend create operation succeeded
+  #
+  dispatch :atomic_create_v1 do
+    param 'String', :key
+    param 'Any', :value
+  end
 
+  def atomic_create_v1(key, value)
+    params = {}
+    params['key'] = key
+    params['value'] = value
 
-  
-    dispatch :atomic_create_v1 do
-    
-      
-        param "String", :parameters
-      
-        param "Any", :parameters
-      
-    
-    end
-    def atomic_create_v1(key,value)
-     params = {}
-     
-      
-        params['key'] = key
-      
-        params['value'] = value
-      
-    
     atomic_create(params)
-    end
-  
+  end
 
-def atomic_create(params)
+  def atomic_create(params)
     nparams = params.dup
-    if (closure_scope.class.to_s == 'Puppet::Parser::Scope') 
+    if (closure_scope.class.to_s == 'Puppet::Parser::Scope')
       catalog = closure_scope.find_global_scope.catalog
     else
       if ($__LIBKV_CATALOG == nil)
@@ -68,7 +60,7 @@ def atomic_create(params)
       url = call_function('lookup', 'libkv::url', { 'default_value' => 'mock://'})
     end
     nparams["url"] = url
-    
+
     if nparams.key?('auth')
       auth = nparams['auth']
     else
@@ -83,8 +75,9 @@ def atomic_create(params)
       end
     else
       retval = libkv.atomic_create(url, auth, nparams);
-     end
+    end
     return retval;
   end
 end
 
+# vim: set expandtab ts=2 sw=2:

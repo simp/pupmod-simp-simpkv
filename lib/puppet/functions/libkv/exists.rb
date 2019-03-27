@@ -1,42 +1,35 @@
-# vim: set expandtab ts=2 sw=2:
+# Returns true if `key` exists
 #
-# @author Dylan Cochran <dylan.cochran@onyxpoint.com>
+# @author https://github.com/simp/pupmod-simp-libkv/graphs/contributors
+#
 Puppet::Functions.create_function(:'libkv::exists') do
+
   # @param parameters [Hash] Hash of all parameters
-  # 
-  # @param key [String] string of the key to retrieve
   #
-  # @return [Any] The value in the underlying backing store
-  #
+  # @return [Boolean] Whether the `key` exists in the backend
   #
   dispatch :exists do
     param 'Hash', :parameters
   end
 
+  # @param key The key to check
+  #
+  # @return [Boolean] Whether the `key` exists in the backend
+  #
+  dispatch :exists_v1 do
+    param 'String', :key
+  end
 
+  def exists_v1(key)
+    params = {}
+    params['key'] = key
 
-  
-    dispatch :exists_v1 do
-    
-      
-        param "String", :parameters
-      
-    
-    end
-    def exists_v1(key)
-     params = {}
-     
-      
-        params['key'] = key
-      
-    
     exists(params)
-    end
-  
+  end
 
-def exists(params)
+  def exists(params)
     nparams = params.dup
-    if (closure_scope.class.to_s == 'Puppet::Parser::Scope') 
+    if (closure_scope.class.to_s == 'Puppet::Parser::Scope')
       catalog = closure_scope.find_global_scope.catalog
     else
       if ($__LIBKV_CATALOG == nil)
@@ -64,7 +57,7 @@ def exists(params)
       url = call_function('lookup', 'libkv::url', { 'default_value' => 'mock://'})
     end
     nparams["url"] = url
-    
+
     if nparams.key?('auth')
       auth = nparams['auth']
     else
@@ -79,8 +72,9 @@ def exists(params)
       end
     else
       retval = libkv.exists(url, auth, nparams);
-     end
+    end
     return retval;
   end
 end
 
+# vim: set expandtab ts=2 sw=2:

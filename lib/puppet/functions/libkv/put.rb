@@ -1,46 +1,38 @@
-# vim: set expandtab ts=2 sw=2:
+# Sets the data at `key` to the specified `value`
 #
-# @author Dylan Cochran <dylan.cochran@onyxpoint.com>
+# @author https://github.com/simp/pupmod-simp-libkv/graphs/contributors
+#
 Puppet::Functions.create_function(:'libkv::put') do
+
   # @param parameters [Hash] Hash of all parameters
-  # 
-  # @param key [String] string of the key to retrieve
   #
-  # @return [Any] The value in the underlying backing store
-  #
+  # @return [Boolean] Whether the backend set operation succeeded
   #
   dispatch :put do
     param 'Hash', :parameters
   end
 
+  # @param key The key to be set
+  # @param value The value of the key
+  #
+  # @return [Boolean] Whether the backend set operation succeeded
+  #
+  dispatch :put_v1 do
+    param 'String', :key
+    param 'Any', :value
+  end
 
+  def put_v1(key, value)
+    params = {}
+    params['key'] = key
+    params['value'] = value
 
-  
-    dispatch :put_v1 do
-    
-      
-        param "String", :parameters
-      
-        param "Any", :parameters
-      
-    
-    end
-    def put_v1(key,value)
-     params = {}
-     
-      
-        params['key'] = key
-      
-        params['value'] = value
-      
-    
     put(params)
-    end
-  
+  end
 
-def put(params)
+  def put(params)
     nparams = params.dup
-    if (closure_scope.class.to_s == 'Puppet::Parser::Scope') 
+    if (closure_scope.class.to_s == 'Puppet::Parser::Scope')
       catalog = closure_scope.find_global_scope.catalog
     else
       if ($__LIBKV_CATALOG == nil)
@@ -68,7 +60,7 @@ def put(params)
       url = call_function('lookup', 'libkv::url', { 'default_value' => 'mock://'})
     end
     nparams["url"] = url
-    
+
     if nparams.key?('auth')
       auth = nparams['auth']
     else
@@ -83,8 +75,9 @@ def put(params)
       end
     else
       retval = libkv.put(url, auth, nparams);
-     end
+    end
     return retval;
   end
 end
 
+# vim: set expandtab ts=2 sw=2:

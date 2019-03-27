@@ -5,6 +5,6 @@ fixtures:
     iptables: "https://github.com/simp/pupmod-simp-iptables.git"
     simplib:  "https://github.com/simp/pupmod-simp-simplib.git"
     consul:   "https://github.com/simp/puppet-consul.git"
-    archive:  "https://github.com/voxpupuli/puppet-archive.git"
+    archive:  "https://github.com/simp/puppet-archive.git"
   symlinks:
     libkv: "#{source_dir}"

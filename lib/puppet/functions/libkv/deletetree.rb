@@ -1,42 +1,35 @@
-# vim: set expandtab ts=2 sw=2:
+# Deletes the whole folder named `key`. This action is inherently unsafe.
 #
-# @author Dylan Cochran <dylan.cochran@onyxpoint.com>
+# @author https://github.com/simp/pupmod-simp-libkv/graphs/contributors
+#
 Puppet::Functions.create_function(:'libkv::deletetree') do
+
   # @param parameters [Hash] Hash of all parameters
-  # 
-  # @param key [String] string of the key to retrieve
   #
-  # @return [Any] The value in the underlying backing store
-  #
+  # @return [Boolean] Whether the backend folder deletion operation succeeded
   #
   dispatch :deletetree do
     param 'Hash', :parameters
   end
 
+  # @param key The folder to delete
+  #
+  # @return [Boolean] Whether the backend folder deletion operation succeeded
+  #
+  dispatch :deletetree_v1 do
+    param 'String', :key
+  end
 
+  def deletetree_v1(key)
+    params = {}
+    params['key'] = key
 
-  
-    dispatch :deletetree_v1 do
-    
-      
-        param "String", :parameters
-      
-    
-    end
-    def deletetree_v1(key)
-     params = {}
-     
-      
-        params['key'] = key
-      
-    
     deletetree(params)
-    end
-  
+  end
 
-def deletetree(params)
+  def deletetree(params)
     nparams = params.dup
-    if (closure_scope.class.to_s == 'Puppet::Parser::Scope') 
+    if (closure_scope.class.to_s == 'Puppet::Parser::Scope')
       catalog = closure_scope.find_global_scope.catalog
     else
       if ($__LIBKV_CATALOG == nil)
@@ -64,7 +57,7 @@ def deletetree(params)
       url = call_function('lookup', 'libkv::url', { 'default_value' => 'mock://'})
     end
     nparams["url"] = url
-    
+
     if nparams.key?('auth')
       auth = nparams['auth']
     else
@@ -79,8 +72,9 @@ def deletetree(params)
       end
     else
       retval = libkv.deletetree(url, auth, nparams);
-     end
+    end
     return retval;
   end
 end
 
+# vim: set expandtab ts=2 sw=2:

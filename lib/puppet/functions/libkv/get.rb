@@ -1,42 +1,35 @@
-# vim: set expandtab ts=2 sw=2:
+# Connects to the backend and retrieves the data stored at **key**
 #
-# @author Dylan Cochran <dylan.cochran@onyxpoint.com>
+# @author https://github.com/simp/pupmod-simp-libkv/graphs/contributors
+#
 Puppet::Functions.create_function(:'libkv::get') do
+
   # @param parameters [Hash] Hash of all parameters
-  # 
-  # @param key [String] string of the key to retrieve
   #
   # @return [Any] The value in the underlying backing store
-  #
   #
   dispatch :get do
     param 'Hash', :parameters
   end
 
+  # @param key The key to get
+  #
+  # @return [Any] The value in the underlying backing store
+  #
+  dispatch :get_v1 do
+    param 'String', :key
+  end
 
+  def get_v1(key)
+    params = {}
+    params['key'] = key
 
-  
-    dispatch :get_v1 do
-    
-      
-        param "String", :parameters
-      
-    
-    end
-    def get_v1(key)
-     params = {}
-     
-      
-        params['key'] = key
-      
-    
     get(params)
-    end
-  
+  end
 
-def get(params)
+  def get(params)
     nparams = params.dup
-    if (closure_scope.class.to_s == 'Puppet::Parser::Scope') 
+    if (closure_scope.class.to_s == 'Puppet::Parser::Scope')
       catalog = closure_scope.find_global_scope.catalog
     else
       if ($__LIBKV_CATALOG == nil)
@@ -64,7 +57,7 @@ def get(params)
       url = call_function('lookup', 'libkv::url', { 'default_value' => 'mock://'})
     end
     nparams["url"] = url
-    
+
     if nparams.key?('auth')
       auth = nparams['auth']
     else
@@ -79,8 +72,9 @@ def get(params)
       end
     else
       retval = libkv.get(url, auth, nparams);
-     end
+    end
     return retval;
   end
 end
 
+# vim: set expandtab ts=2 sw=2:

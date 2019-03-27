@@ -1,42 +1,35 @@
-# vim: set expandtab ts=2 sw=2:
+# List all keys in folder `key`, but return them in a format suitable for other atomic functions
 #
-# @author Dylan Cochran <dylan.cochran@onyxpoint.com>
+# @author https://github.com/simp/pupmod-simp-libkv/graphs/contributors
+#
 Puppet::Functions.create_function(:'libkv::atomic_list') do
+
   # @param parameters [Hash] Hash of all parameters
-  # 
-  # @param key [String] string of the key to retrieve
   #
-  # @return [Any] The value in the underlying backing store
-  #
+  # @return [Hash] Hash of key/value pairs
   #
   dispatch :atomic_list do
     param 'Hash', :parameters
   end
 
+  # @param key The folder to list
+  #
+  # @return [Hash] Hash of key/value pairs
+  #
+  dispatch :atomic_list_v1 do
+    param 'String', :key
+  end
 
+  def atomic_list_v1(key)
+    params = {}
+    params['key'] = key
 
-  
-    dispatch :atomic_list_v1 do
-    
-      
-        param "String", :parameters
-      
-    
-    end
-    def atomic_list_v1(key)
-     params = {}
-     
-      
-        params['key'] = key
-      
-    
     atomic_list(params)
-    end
-  
+  end
 
-def atomic_list(params)
+  def atomic_list(params)
     nparams = params.dup
-    if (closure_scope.class.to_s == 'Puppet::Parser::Scope') 
+    if (closure_scope.class.to_s == 'Puppet::Parser::Scope')
       catalog = closure_scope.find_global_scope.catalog
     else
       if ($__LIBKV_CATALOG == nil)
@@ -64,7 +57,7 @@ def atomic_list(params)
       url = call_function('lookup', 'libkv::url', { 'default_value' => 'mock://'})
     end
     nparams["url"] = url
-    
+
     if nparams.key?('auth')
       auth = nparams['auth']
     else
@@ -79,8 +72,9 @@ def atomic_list(params)
       end
     else
       retval = libkv.atomic_list(url, auth, nparams);
-     end
+    end
     return retval;
   end
 end
 
+# vim: set expandtab ts=2 sw=2:

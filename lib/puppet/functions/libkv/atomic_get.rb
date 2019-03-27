@@ -1,42 +1,35 @@
-# vim: set expandtab ts=2 sw=2:
+# Get the value of key, but return it in a hash suitable for use with other atomic functions
 #
-# @author Dylan Cochran <dylan.cochran@onyxpoint.com>
+# @author https://github.com/simp/pupmod-simp-libkv/graphs/contributors
+#
 Puppet::Functions.create_function(:'libkv::atomic_get') do
+
   # @param parameters [Hash] Hash of all parameters
-  # 
-  # @param key [String] string of the key to retrieve
   #
-  # @return [Any] The value in the underlying backing store
-  #
+  # @return [Hash] Hash containing the value in the underlying backing store
   #
   dispatch :atomic_get do
     param 'Hash', :parameters
   end
 
+  # @param key The key whose value is to be retreived
+  #
+  # @return [Hash] Hash containing the value in the underlying backing store
+  #
+  dispatch :atomic_get_v1 do
+    param 'String', :key
+  end
 
+  def atomic_get_v1(key)
+    params = {}
+    params['key'] = key
 
-  
-    dispatch :atomic_get_v1 do
-    
-      
-        param "String", :parameters
-      
-    
-    end
-    def atomic_get_v1(key)
-     params = {}
-     
-      
-        params['key'] = key
-      
-    
     atomic_get(params)
-    end
-  
+  end
 
-def atomic_get(params)
+  def atomic_get(params)
     nparams = params.dup
-    if (closure_scope.class.to_s == 'Puppet::Parser::Scope') 
+    if (closure_scope.class.to_s == 'Puppet::Parser::Scope')
       catalog = closure_scope.find_global_scope.catalog
     else
       if ($__LIBKV_CATALOG == nil)
@@ -64,7 +57,7 @@ def atomic_get(params)
       url = call_function('lookup', 'libkv::url', { 'default_value' => 'mock://'})
     end
     nparams["url"] = url
-    
+
     if nparams.key?('auth')
       auth = nparams['auth']
     else
@@ -79,8 +72,9 @@ def atomic_get(params)
       end
     else
       retval = libkv.atomic_get(url, auth, nparams);
-     end
+    end
     return retval;
   end
 end
 
+# vim: set expandtab ts=2 sw=2:

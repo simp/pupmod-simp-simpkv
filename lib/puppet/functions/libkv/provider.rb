@@ -1,29 +1,29 @@
-# vim: set expandtab ts=2 sw=2:
+# Return the name of the current provider
 #
-# @author Dylan Cochran <dylan.cochran@onyxpoint.com>
+# @author https://github.com/simp/pupmod-simp-libkv/graphs/contributors
+#
 Puppet::Functions.create_function(:'libkv::provider') do
+
   # @param parameters [Hash] Hash of all parameters
-  # 
-  # @param key [String] string of the key to retrieve
   #
-  # @return [Any] The value in the underlying backing store
-  #
+  # @return [String] Provider name
   #
   dispatch :provider do
     param 'Hash', :parameters
   end
 
-
+  # @return [String] Provider name
+  #
   dispatch :provider_empty do
   end
+
   def provider_empty
      self.provider({})
   end
 
-
-def provider(params)
+  def provider(params)
     nparams = params.dup
-    if (closure_scope.class.to_s == 'Puppet::Parser::Scope') 
+    if (closure_scope.class.to_s == 'Puppet::Parser::Scope')
       catalog = closure_scope.find_global_scope.catalog
     else
       if ($__LIBKV_CATALOG == nil)
@@ -51,7 +51,7 @@ def provider(params)
       url = call_function('lookup', 'libkv::url', { 'default_value' => 'mock://'})
     end
     nparams["url"] = url
-    
+
     if nparams.key?('auth')
       auth = nparams['auth']
     else
@@ -66,8 +66,9 @@ def provider(params)
       end
     else
       retval = libkv.provider(url, auth, nparams);
-     end
+    end
     return retval;
   end
 end
 
+# vim: set expandtab ts=2 sw=2:

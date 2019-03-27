@@ -1,56 +1,70 @@
-# vim: set expandtab ts=2 sw=2:
+# <%= value[:description] %>
 #
-# @author Dylan Cochran <dylan.cochran@onyxpoint.com>
+# @author https://github.com/simp/pupmod-simp-libkv/graphs/contributors
+#
 Puppet::Functions.create_function(:'libkv::<%= function %>') do
+
   # @param parameters [Hash] Hash of all parameters
-  # 
-  # @param key [String] string of the key to retrieve
   #
-  # @return [Any] The value in the underlying backing store
-  #
+  # @return [<%= value[:retval][:type] %>] <%= value[:retval][:description] %>
   #
   dispatch :<%= function %> do
     param 'Hash', :parameters
   end
+<% if value[:allow_empty] -%>
 
-<% if value[:allow_empty] == true %>
+  # @return [<%= value[:retval][:type] %>] <%= value[:retval][:description] %>
+  #
   dispatch :<%= function + "_empty" %> do
   end
+
   def <%= function + "_empty" %>
      self.<%= function %>({})
   end
-<% end %>
-<% if value[:signatures] != nil %>
-  <% value[:signatures].each do |key, spec| %>
-    dispatch :<%= function + "_" + key %> do
-    <% if spec["args"] != nil %>
-      <% spec["args"].each do |argument| %>
-        param "<%= argument["type"] %>", :parameters
-      <% end %>
-    <% end %>
-    end
-    def <%= function + "_" + key %>(<%= if spec["args"] != nil
-        array = []
-        spec["args"].each do |argument|
-          array << argument["name"]
-        end
-        array.join(",")
-      
-       end
-     %>)
-     params = {}
-     <% if spec["args"] != nil %>
-      <% spec["args"].each do |argument| %>
-        <%= "params['" + argument["name"] + "'] = " + argument["name"] %>
-      <% end %>
-    <% end %>
+<% end -%>
+<% unless value[:signatures].nil? -%>
+<%   value[:signatures].each do |key, spec| -%>
+
+<%     unless spec[:args].nil? -%>
+<%       spec[:args].each do |argument| -%>
+  # @param <%= argument[:name] %> <%=argument[:description] %>
+<%       end -%>
+<%     end -%>
+  #
+  # @return [<%= value[:retval][:type] %>] <%= value[:retval][:description] %>
+  #
+  dispatch :<%= function + "_" + key %> do
+<%     unless spec[:args].nil? -%>
+<%       spec[:args].each do |argument| -%>
+    param '<%= argument[:type] %>', :<%= argument[:name] %>
+<%       end -%>
+<%     end -%>
+  end
+
+<%     unless spec[:args].nil?
+#FIXME should be able to do this in a map operation
+          array = []
+          spec[:args].each do |argument|
+            array << argument[:name]
+          end
+          args = array.join(', ')
+       end -%>
+  def <%= function + "_" + key %>(<%= args -%>)
+    params = {}
+<%     unless spec[:args].nil? -%>
+<%       spec[:args].each do |argument| -%>
+    <%= "params['" + argument[:name] + "'] = " + argument[:name] %>
+<%       end -%>
+<%     end -%>
+
     <%= function%>(params)
-    end
-  <% end %>
-<% end %>
-def <%= function %>(params)
+  end
+<%   end -%>
+<% end -%>
+
+  def <%= function %>(params)
     nparams = params.dup
-    if (closure_scope.class.to_s == 'Puppet::Parser::Scope') 
+    if (closure_scope.class.to_s == 'Puppet::Parser::Scope')
       catalog = closure_scope.find_global_scope.catalog
     else
       if ($__LIBKV_CATALOG == nil)
@@ -78,7 +92,7 @@ def <%= function %>(params)
       url = call_function('lookup', 'libkv::url', { 'default_value' => 'mock://'})
     end
     nparams["url"] = url
-    
+
     if nparams.key?('auth')
       auth = nparams['auth']
     else
@@ -93,8 +107,9 @@ def <%= function %>(params)
       end
     else
       retval = libkv.<%= function %>(url, auth, nparams);
-     end
+    end
     return retval;
   end
 end
 
+# vim: set expandtab ts=2 sw=2:

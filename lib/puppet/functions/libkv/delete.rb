@@ -1,42 +1,35 @@
-# vim: set expandtab ts=2 sw=2:
+# Deletes the specified `key`. Must be a single key
 #
-# @author Dylan Cochran <dylan.cochran@onyxpoint.com>
+# @author https://github.com/simp/pupmod-simp-libkv/graphs/contributors
+#
 Puppet::Functions.create_function(:'libkv::delete') do
+
   # @param parameters [Hash] Hash of all parameters
-  # 
-  # @param key [String] string of the key to retrieve
   #
-  # @return [Any] The value in the underlying backing store
-  #
+  # @return [Boolean] Whether the backend operation succeeded
   #
   dispatch :delete do
     param 'Hash', :parameters
   end
 
+  # @param key The key to be deleted
+  #
+  # @return [Boolean] Whether the backend operation succeeded
+  #
+  dispatch :delete_v1 do
+    param 'String', :key
+  end
 
+  def delete_v1(key)
+    params = {}
+    params['key'] = key
 
-  
-    dispatch :delete_v1 do
-    
-      
-        param "String", :parameters
-      
-    
-    end
-    def delete_v1(key)
-     params = {}
-     
-      
-        params['key'] = key
-      
-    
     delete(params)
-    end
-  
+  end
 
-def delete(params)
+  def delete(params)
     nparams = params.dup
-    if (closure_scope.class.to_s == 'Puppet::Parser::Scope') 
+    if (closure_scope.class.to_s == 'Puppet::Parser::Scope')
       catalog = closure_scope.find_global_scope.catalog
     else
       if ($__LIBKV_CATALOG == nil)
@@ -64,7 +57,7 @@ def delete(params)
       url = call_function('lookup', 'libkv::url', { 'default_value' => 'mock://'})
     end
     nparams["url"] = url
-    
+
     if nparams.key?('auth')
       auth = nparams['auth']
     else
@@ -79,8 +72,9 @@ def delete(params)
       end
     else
       retval = libkv.delete(url, auth, nparams);
-     end
+    end
     return retval;
   end
 end
 
+# vim: set expandtab ts=2 sw=2:
