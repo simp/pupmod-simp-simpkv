@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'libkv::validate_key' do
+describe 'libkv::support::key::validate' do
 
   context 'valid keys' do
     [

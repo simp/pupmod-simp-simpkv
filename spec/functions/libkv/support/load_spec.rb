@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'libkv::add_libkv' do
+describe 'libkv::support::load' do
 
   it 'should add libkv accessors to catalog instance at global scope when none exists' do
     is_expected.to run.with_params()

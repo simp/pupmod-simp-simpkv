@@ -14,7 +14,8 @@
 * [Terminology](#terminology)
 * [Usage](#usage)
   * [Single Backend Example](#single-backend-example)
-  * [Multiple Backend Example](#multiple-backend-example)
+  * [Multiple Backends Example](#multiple-backends-example)
+  * [Binary Value Example](#binary-value-example)
   * [libkv Configuration Reference](#libkv-configuration-reference)
 * [File Store and Plugin](#file-store-and-plugin)
 * [Limitations](#limitations)
@@ -106,9 +107,9 @@ To create a hosts file using the list of stored host information:
 
 ```puppet
 $hosts = libkv::list('hosts')
-$hosts.each |$host, $ip | {
+$hosts.each |$host, $info | {
   host { $host:
-    ip => $ip,
+    ip => $info['value'],
   }
 }
 ```
@@ -165,9 +166,9 @@ To create a hosts file using the list of stored host information:
 ```puppet
 $libkv_options = 'Class[Mymodule::Myclass]'
 $hosts = libkv::list('hosts', $libkv_options)
-$hosts.each |$host, $ip | {
+$hosts.each |$host, $info | {
   host { $host:
-    ip => $ip,
+    ip => $info['value'],
   }
 }
 ```
@@ -245,6 +246,30 @@ The search within the default hierarchy is simple:
     `mymodule::mydefine`.
 
 * Finally, if no match is found, default to a backend named `default`.
+
+### Binary Value Example
+
+libkv is able to store and retrieve binary values, provided the Puppet code
+uses the appropriate functions/types for binary data.  Here is an example
+of such Puppet code:
+
+```puppet
+# Load in the binary content from a file.  Returns a Binary Puppet type.
+$original_binary_content = binary_file('/path/to/keytabs/app.keytab')
+
+# Set a key/value pair with the binary content
+libkv::put('app/keytab', $original_binary_content)
+
+# Retrieve a binary value from a key/value store and set a Binary variable
+$retrieved_result = libkv::get('app/keytab')
+$retrieved_binary_content = Binary.new($retrieved_result['value'], '%r')
+
+# Persist binary data to another file
+file { '/different/path/to/keytabs/app.keytab':
+  content => $retrieved_binary_content
+}
+
+```
 
 
 ### libkv Configuration Reference

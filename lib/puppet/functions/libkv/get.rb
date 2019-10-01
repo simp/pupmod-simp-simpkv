@@ -5,7 +5,17 @@
 #
 Puppet::Functions.create_function(:'libkv::get') do
 
-  # @param key The key to retrieve
+  # @param key The key to retrieve. Must conform to the following:
+  #
+  #   * Key must contain only the following characters:
+  #
+  #     * a-z
+  #     * A-Z
+  #     * 0-9
+  #     * The following special characters: `._:-/`
+  #
+  #   * Key may not contain '/./' or '/../' sequences.
+  #
   # @param options Hash that specifies global libkv options and/or the specific
   #   backend to use (with or without backend-specific configuration).
   #   Will be merged with `libkv::options`.
@@ -86,17 +96,17 @@ Puppet::Functions.create_function(:'libkv::get') do
 
   def get(key, options={})
     # key validation difficult to do via a type alias, so validate via function
-    call_function('libkv::validate_key', key)
+    call_function('libkv::support::key::validate', key)
 
-    # add libkv 'extension' to the catalog instance as needed
-    call_function('libkv::add_libkv')
+    # load libkv and add libkv 'extension' to the catalog instance as needed
+    call_function('libkv::support::load')
 
     # determine backend configuration using options, `libkv::options`,
     # and the list of backends for which plugins have been loaded
     begin
-      resource = options.has_key?('resource') ?  options['resource'] : 'unknown'
+      resource = options.has_key?('resource') ?  options['resource'] : '__libkv_unknown__'
       catalog = closure_scope.find_global_scope.catalog
-      merged_options = call_function( 'libkv::get_backend_config', options,
+      merged_options = call_function( 'libkv::support::config::merge', options,
         catalog.libkv.backends, resource)
     rescue ArgumentError => e
       msg = "libkv Configuration Error for libkv::get with key='#{key}': #{e.message}"

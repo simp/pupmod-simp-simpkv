@@ -9,7 +9,7 @@
 #
 # @author https://github.com/simp/pupmod-simp-libkv/graphs/contributors
 #
-Puppet::Functions.create_function(:'libkv::get_backend_config') do
+Puppet::Functions.create_function(:'libkv::support::config::merge') do
 
   # @param options Hash that specifies libkv backend options to be merged with
   #   `libkv::options`.
@@ -29,17 +29,17 @@ Puppet::Functions.create_function(:'libkv::get_backend_config') do
   #
   # @raise [ArgumentError] if merged configuration fails validation
   #
-  # @see libkv::validate_backend_config
+  # @see libkv::support::config::validate
   #
-  dispatch :get_backend_config do
+  dispatch :merge do
     param 'Hash',      :options
     param 'Array',     :backends
     param 'String[1]', :resource_info
   end
 
-  def get_backend_config(options, backends, resource_info)
+  def merge(options, backends, resource_info)
     merged_options = merge_options(options, resource_info)
-    call_function('libkv::validate_backend_config', merged_options, backends)
+    call_function('libkv::support::config::validate', merged_options, backends)
     return merged_options
   end
 

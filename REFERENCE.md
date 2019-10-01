@@ -14,7 +14,7 @@
 * [`libkv::list`](#libkvlist): Returns a list of all keys in a folder.
 * [`libkv::put`](#libkvput): Sets the data at `key` to the specified `value` in the configured backend. Optionally sets metadata along with the `value`.
 * [`libkv::validate_backend_config`](#libkvvalidate_backend_config): Validate backend configuration
-* [`libkv::validate_key`](#libkvvalidate_key): Validates key conforms to the libkv key specification  * libkv key specification   * Key must contain only the following characters:     * a-
+* [`libkv::validate_key`](#libkvvalidate_key): Validates key conforms to the libkv key specification  * libkv key specification    * Key must contain only the following characters:      * 
 
 ## Functions
 
@@ -56,7 +56,16 @@ Raises:
 
 Data type: `String[1]`
 
-The key to be removed
+The key to remove. Must conform to the following:
+
+* Key must contain only the following characters:
+
+  * a-z
+  * A-Z
+  * 0-9
+  * The following special characters: `._:-/`
+
+* Key may not contain '/./' or '/../' sequences.
 
 ##### `options`
 
@@ -138,7 +147,16 @@ Raises:
 
 Data type: `String[1]`
 
-The key folder to be removed
+The key folder to remove. Must conform to the following:
+
+* Key folder must contain only the following characters:
+
+  * a-z
+  * A-Z
+  * 0-9
+  * The following special characters: `._:-/`
+
+* Key folder may not contain '/./' or '/../' sequences.
 
 ##### `options`
 
@@ -220,7 +238,16 @@ Raises:
 
 Data type: `String[1]`
 
-The key to be set
+The key to check. Must conform to the following:
+
+* Key must contain only the following characters:
+
+  * a-z
+  * A-Z
+  * 0-9
+  * The following special characters: `._:-/`
+
+* Key may not contain '/./' or '/../' sequences.
 
 ##### `options`
 
@@ -307,7 +334,16 @@ Raises:
 
 Data type: `String[1]`
 
-The key to retrieve
+The key to retrieve. Must conform to the following:
+
+* Key must contain only the following characters:
+
+  * a-z
+  * A-Z
+  * 0-9
+  * The following special characters: `._:-/`
+
+* Key may not contain '/./' or '/../' sequences.
 
 ##### `options`
 
@@ -447,7 +483,16 @@ Raises:
 
 Data type: `String[1]`
 
-The key folder to be removed
+The key folder to list. Must conform to the following:
+
+* Key folder must contain only the following characters:
+
+  * a-z
+  * A-Z
+  * 0-9
+  * The following special characters: `._:-/`
+
+* Key folder may not contain '/./' or '/../' sequences.
 
 ##### `options`
 
@@ -531,7 +576,16 @@ Raises:
 
 Data type: `String[1]`
 
-The key to be set
+The key to set. Must conform to the following:
+
+* Key must contain only the following characters:
+
+  * a-z
+  * A-Z
+  * 0-9
+  * The following special characters: `._:-/`
+
+* Key may not contain '/./' or '/../' sequences.
 
 ##### `value`
 
@@ -637,12 +691,16 @@ Type: Ruby 4.x API
 Validates key conforms to the libkv key specification
 
 * libkv key specification
+
   * Key must contain only the following characters:
+
     * a-z
     * A-Z
     * 0-9
     * The following special characters: `._:-/`
+
   * Key may not contain '/./' or '/../' sequences.
+
 * Terminates catalog compilation if validation fails.
 
 #### Examples
@@ -668,12 +726,16 @@ libkv::validate_key('looks/like/another/../unexpanded/linux/path')
 Validates key conforms to the libkv key specification
 
 * libkv key specification
+
   * Key must contain only the following characters:
+
     * a-z
     * A-Z
     * 0-9
     * The following special characters: `._:-/`
+
   * Key may not contain '/./' or '/../' sequences.
+
 * Terminates catalog compilation if validation fails.
 
 Returns: `Nil`

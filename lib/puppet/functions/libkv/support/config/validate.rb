@@ -2,7 +2,7 @@
 #
 # @author https://github.com/simp/pupmod-simp-libkv/graphs/contributors
 #
-Puppet::Functions.create_function(:'libkv::validate_backend_config') do
+Puppet::Functions.create_function(:'libkv::support::config::validate') do
 
   # @param options Hash that specifies libkv backend options
   #
@@ -14,14 +14,14 @@ Puppet::Functions.create_function(:'libkv::validate_backend_config') do
   #   configuration for a specified backend cannot be found, or different
   #   backend configurations are provided for the same ['type', 'id'] pair.
   #
-  dispatch :validate_backend_config do
+  dispatch :validate do
     # Can't use a fully-defined Struct, since the parts of the Hash
     # specifying individual plugin config may have plugin-specific keys
     param 'Hash',  :options
     param 'Array', :backends
   end
 
-  def validate_backend_config(options, backends)
+  def validate(options, backends)
     unless options.has_key?('backend')
       msg = "'backend' not specified in libkv configuration: #{options}"
       raise ArgumentError.new(msg)

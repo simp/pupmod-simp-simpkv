@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'libkv::validate_backend_config' do
+describe 'libkv::support::config::validate' do
 
   let(:backends) { [ 'file' ] }
 

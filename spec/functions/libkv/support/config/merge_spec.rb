@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'libkv::get_backend_config' do
+describe 'libkv::support::config::merge' do
 
   let(:backends) { [ 'file' ] }
   let(:class_resource)           { 'Class[Mymodule::Myclass]' }
