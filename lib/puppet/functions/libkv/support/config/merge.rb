@@ -1,8 +1,10 @@
 # Create merged backend configuration and then validate it.
 #
 # The `options` argument is merged with `libkv::options` Hiera and global libkv
-# defaults. Validation includes the following checks:
+# defaults and then, if the `backends` option is missing in the merged
+# configuration, it is inserted with a a single `default` backend of type `file`.
 #
+# Validation includes the following checks:
 # * configuration for the selected backend exists
 # * the plugin for the selected backend has been loaded
 # * different configuration for a specific plugin instance does not exist
@@ -24,10 +26,10 @@ Puppet::Functions.create_function(:'libkv::support::config::merge') do
   #   * Used to determine the default backend to use, when none is specified
   #     in the libkv options Hash
   #
-  # @return [Hash]] merged libkv options that will have the backend to use
+  # @return [Hash] merged libkv options that will have the backend to use
   #   specified by 'backend'
   #
-  # @raise [ArgumentError] if merged configuration fails validation
+  # @raise ArgumentError if merged configuration fails validation
   #
   # @see libkv::support::config::validate
   #
@@ -43,8 +45,9 @@ Puppet::Functions.create_function(:'libkv::support::config::merge') do
     return merged_options
   end
 
-  # merge options and set defaults for 'backend', 'environment', and 'softfail'
-  # when missing
+  # merge options; set defaults for 'backend', 'environment', and 'softfail'
+  # when missing; and when 'backends' is missing, insert a 'default' backend
+  # of type 'file'.
   def merge_options(options, resource_info)
     require 'deep_merge'
     # deep_merge will not work with frozen options, so make a deep copy
@@ -69,6 +72,13 @@ Puppet::Functions.create_function(:'libkv::support::config::merge') do
         elsif defaults.include?(partial_default)
           backend = partial_default
         end
+      else
+        merged_options['backends'] = {
+          'default' => {
+            'type' => 'file',
+            'id'   => 'auto_default'
+          }
+        }
       end
       merged_options['backend'] = backend
     end

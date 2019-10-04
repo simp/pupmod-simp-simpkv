@@ -88,6 +88,25 @@ describe 'libkv::deletetree' do
       expect( Dir.exist?(actual_keydir) ).to be false
     end
 
+    it 'should delete an existing key folder in the auto-default backend when backend config missing' do
+      # mocking is REQUIRED for GitLab
+      allow(Dir).to receive(:exist?).with(any_args).and_call_original
+      allow(Dir).to receive(:exist?).with('/var/simp/libkv/file/auto_default').and_return( false )
+      allow(FileUtils).to receive(:mkdir_p).with(any_args).and_call_original
+      allow(FileUtils).to receive(:mkdir_p).with('/var/simp/libkv/file/auto_default').
+        and_raise(Errno::EACCES, 'Permission denied')
+
+      # The test's Puppet.settings[:vardir] gets created when the subject (function object)
+      # is constructed
+      subject()
+      actual_keydir = File.join(Puppet.settings[:vardir], 'simp', 'libkv', 'file',
+        'auto_default', environment, keydir)
+      FileUtils.mkdir_p(File.dirname(actual_keydir))
+
+      is_expected.to run.with_params(keydir, @options_default_class).and_return(true)
+      expect( Dir.exist?(actual_keydir) ).to be false
+    end
+
     it 'should delete an existing empty key folder in a specific backend in options' do
       actual_keydir = File.join(test_file_env_root_dir, keydir)
       FileUtils.mkdir_p(actual_keydir)

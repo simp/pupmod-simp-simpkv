@@ -68,6 +68,7 @@ describe 'libkv file plugin anonymous class' do
         }
       }
     }
+    allow(Dir).to receive(:exist?).with(any_args).and_call_original
     allow(FileUtils).to receive(:rm_r).with(any_args).and_call_original
     allow(File).to receive(:open).with(any_args).and_call_original
   end
@@ -86,7 +87,7 @@ describe 'libkv file plugin anonymous class' do
     context 'success cases' do
       it 'should create the root_path tree when none exists' do
         expect{ plugin_class.new('file/test', @options) }.to_not raise_error
-        expect( File.exist?(@root_path) ).to be true
+        expect( Dir.exist?(@root_path) ).to be true
       end
 
       it 'should not fail if the root_path tree exists' do
@@ -98,6 +99,29 @@ describe 'libkv file plugin anonymous class' do
         FileUtils.mkdir_p(@root_path, :mode => 0755)
         expect{ plugin_class.new('file/test', @options) }.to_not raise_error
         expect( File.stat(@root_path).mode & 0777 ).to eq 0750
+      end
+
+      it 'should fallback to a Puppet.settings[:vardir] path when default path cannot be created' do
+        options = {
+          'backend'  => 'test',
+          'backends' => {
+            'test'  => {
+              'id'        => 'test',
+              'type'      => 'file'
+            }
+          }
+        }
+
+        vardir = File.join(@tmpdir, 'vardir')
+
+        allow(Dir).to receive(:exist?).with('/var/simp/libkv/file/test').and_return( false )
+        allow(FileUtils).to receive(:mkdir_p).with(any_args).and_call_original
+        allow(FileUtils).to receive(:mkdir_p).with('/var/simp/libkv/file/test').
+          and_raise(Errno::EACCES, 'Permission denied')
+        allow(Puppet).to receive(:settings).with(any_args).and_call_original
+        allow(Puppet).to receive_message_chain(:settings,:[]).with(:vardir).and_return(vardir)
+        expect{ plugin_class.new('file/test', options) }.to_not raise_error
+        expect( Dir.exist?(File.join(vardir, 'simp', 'libkv', 'file', 'test')) ).to be true
       end
     end
 
@@ -177,16 +201,20 @@ describe 'libkv file plugin anonymous class' do
       end
 
 
-      it 'should fail when root path cannot be created' do
+      it 'should fail when configured root path cannot be created' do
         options = {
           'backend'  => 'test',
           'backends' => {
-            'test'  => { 'id' => 'test', 'type' => 'file' }
+            'test'  => {
+              'id'        => 'test',
+              'type'      => 'file',
+              'root_path' => '/can/not/be/created'
+            }
           }
         }
 
-        allow(Dir).to receive(:exist?).with('/var/simp/libkv/file/test').and_return( false )
-        allow(FileUtils).to receive(:mkdir_p).with('/var/simp/libkv/file/test').
+        allow(Dir).to receive(:exist?).with('/can/not/be/created').and_return( false )
+        allow(FileUtils).to receive(:mkdir_p).with('/can/not/be/created').
           and_raise(Errno::EACCES, 'Permission denied')
 
         expect { plugin_class.new('file/test', options) }.
@@ -200,9 +228,7 @@ describe 'libkv file plugin anonymous class' do
             'test'  => {
               'id'        => 'test',
               'type'      => 'file',
-              'root_path' => @root_path,
-              'user'      => 'puppet',
-              'group'     => 'puppet'
+              'root_path' => @root_path
             }
           }
         }
@@ -213,28 +239,6 @@ describe 'libkv file plugin anonymous class' do
         expect { plugin_class.new('file/test', options) }.
           to raise_error(/libkv plugin file\/test Error: Unable to set permissions .* Permission denied/)
       end
-
-      it 'should fail when root path ownership cannot be set' do
-        options = {
-          'backend'  => 'test',
-          'backends' => {
-            'test'  => {
-              'id'        => 'test',
-              'type'      => 'file',
-              'root_path' => @root_path,
-              'user'      => 'puppet',
-              'group'     => 'puppet'
-            }
-          }
-        }
-
-        allow(FileUtils).to receive(:chown).with('puppet', 'puppet', @root_path).
-          and_raise(Errno::EACCES, 'Permission denied')
-
-        expect { plugin_class.new('file/test', options) }.
-          to raise_error(/libkv plugin file\/test Error: Unable to set permissions .* Permission denied/)
-      end
-
     end
   end
 
@@ -489,7 +493,7 @@ describe 'libkv file plugin anonymous class' do
 
       it 'should return :result=false an an :err_msg when the key file cannot be created' do
         key_file = File.join(@root_path, 'key')
-        allow(File).to receive(:open).with(key_file, File::RDWR|File::CREAT, 0640).
+        allow(File).to receive(:open).with(key_file, File::RDWR|File::CREAT).
           and_raise(Errno::EACCES, 'Permission denied')
 
         result = @plugin.put('key', 'value')

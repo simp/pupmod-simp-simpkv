@@ -20,7 +20,7 @@ Puppet::Functions.create_function(:'libkv::support::key::validate') do
   # @param key libkv key
   #
   # @return [Nil]
-  # @raise [ArgumentError] if validation fails
+  # @raise ArgumentError if validation fails
   #
   # @example Passing
   #   libkv::support::key::validate('looks/like/a/file/path')

@@ -48,6 +48,7 @@ This module provides
 
 * a standard Puppet language API (functions) for using key/value stores
 
+  * API modeled after https://github.com/docker/libkv#interface.
   * See [REFERENCE.md](REFERENCE.md) for more details on the available
     functions.
 
@@ -143,8 +144,6 @@ libkv::options:
       # plugin-specific configuration
       root_path: "/var/simp/libkv/file"
       lock_timeout_seconds: 30
-      user: puppet
-      group: puppet
 ```
 
 ### Multiple Backends Example
@@ -246,6 +245,27 @@ The search within the default hierarchy is simple:
     `mymodule::mydefine`.
 
 * Finally, if no match is found, default to a backend named `default`.
+
+### Auto-Default Backend
+
+libkv is intended to be configured via ``libkv::options`` and any
+application-specific configuration passed to the libkv Puppet functions.
+However, to facilitate rollout of libkv capabilities, (specifically
+use of libkv internally in ``simplib::passgen``), when `libkv::options``
+is not set in hieradata, libkv will automatically configure and use
+the libkv file store.  This configuration is equivalent to the following
+hieradata:
+
+```yaml
+libkv::options:
+  environment: "%{server_facts.environment}"
+  softfail: false
+  backend: default
+  backends:
+    default:
+      type: file
+      id: auto_default
+```
 
 ### Binary Value Example
 

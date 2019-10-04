@@ -81,6 +81,24 @@ describe 'libkv::exists' do
       is_expected.to run.with_params(key, @options_default_class).and_return(true)
     end
 
+    it 'should return true when the key exists in the auto-default backend when backend config missing' do
+      # mocking is REQUIRED for GitLab
+      allow(Dir).to receive(:exist?).with('/var/simp/libkv/file/auto_default').and_return( false )
+      allow(FileUtils).to receive(:mkdir_p).with(any_args).and_call_original
+      allow(FileUtils).to receive(:mkdir_p).with('/var/simp/libkv/file/auto_default').
+        and_raise(Errno::EACCES, 'Permission denied')
+
+      # The test's Puppet.settings[:vardir] gets created when the subject (function object)
+      # is constructed
+      subject()
+      key_file = File.join(Puppet.settings[:vardir], 'simp', 'libkv', 'file',
+        'auto_default', environment, key)
+      FileUtils.mkdir_p(File.dirname(key_file))
+      FileUtils.touch(key_file)
+
+      is_expected.to run.with_params(key).and_return(true)
+    end
+
     it 'should return false when the key does not exist at a specific backend in options' do
       is_expected.to run.with_params(key, @options_test_file).and_return(false)
     end

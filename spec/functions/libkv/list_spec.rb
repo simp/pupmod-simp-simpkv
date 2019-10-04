@@ -104,6 +104,24 @@ describe 'libkv::list' do
           and_return(key_list)
     end
 
+    it 'should retrieve key list from the auto-default backend when keys exist and backend config missing' do
+      # mocking is REQUIRED for GitLab
+      allow(Dir).to receive(:exist?).with(any_args).and_call_original
+      allow(Dir).to receive(:exist?).with('/var/simp/libkv/file/auto_default').and_return( false )
+      allow(FileUtils).to receive(:mkdir_p).with(any_args).and_call_original
+      allow(FileUtils).to receive(:mkdir_p).with('/var/simp/libkv/file/auto_default').
+        and_raise(Errno::EACCES, 'Permission denied')
+
+      # The test's Puppet.settings[:vardir] gets created when the subject (function object)
+      # is constructed
+      subject()
+      env_root_dir = File.join(Puppet.settings[:vardir], 'simp', 'libkv', 'file',
+        'auto_default', environment)
+      prepopulate_key_files(env_root_dir, keydir)
+
+      is_expected.to run.with_params(keydir).and_return(key_list)
+    end
+
     it 'should return an empty key list when no keys exist but the directory exists' do
       # directory has to exist or it is considered a failure
       actual_keydir = File.join(default_env_root_dir, keydir)

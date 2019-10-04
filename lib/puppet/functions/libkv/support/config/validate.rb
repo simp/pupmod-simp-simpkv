@@ -10,7 +10,7 @@ Puppet::Functions.create_function(:'libkv::support::config::validate') do
   #   loaded.
   #
   # @return [Nil]
-  # @raise [ArgumentError] if a backend has not been specified, appropriate
+  # @raise ArgumentError if a backend has not been specified, appropriate
   #   configuration for a specified backend cannot be found, or different
   #   backend configurations are provided for the same ['type', 'id'] pair.
   #

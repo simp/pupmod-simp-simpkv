@@ -20,9 +20,8 @@ Puppet::Functions.create_function(:'libkv::get') do
   #   backend to use (with or without backend-specific configuration).
   #   Will be merged with `libkv::options`.
   #
-  #   Supported options keys:
-  #
-  #   * `backends`: Hash.  Hash of backend configurations
+  # @option options [Hash] 'backends'
+  #   Hash of backend configurations
   #
   #     * Each backend configuration in the merged options Hash must be
   #       a Hash that has the following keys:
@@ -34,7 +33,8 @@ Puppet::Functions.create_function(:'libkv::get') do
   #      * Other keys for configuration specific to the backend may also be
   #        present.
   #
-  #   * `backend`: String.  Name of the backend to use.
+  # @option options [String] 'backend'
+  #   Name of the backend to use.
   #
   #     * When present, must match a key in the `backends` option of the
   #       merged options Hash.
@@ -44,7 +44,8 @@ Puppet::Functions.create_function(:'libkv::get') do
   #       calling Class, specific defined type instance, or defined type.
   #       If no match is found, it will use the 'default' backend.
   #
-  #   * `environment`: String.  Puppet environment to prepend to keys.
+  # @option options [String] 'environment'
+  #   Puppet environment to prepend to keys.
   #
   #     * When set to a non-empty string, it is prepended to the key used in
   #       the backend operation.
@@ -52,8 +53,8 @@ Puppet::Functions.create_function(:'libkv::get') do
   #       truly global.
   #     * Defaults to the Puppet environment for the node.
   #
-  #   * `resource`: String.  Name of the Puppet resource initiating this libkv
-  #     operation
+  # @option options [String] 'resource'
+  #   Name of the Puppet resource initiating this libkv operation
   #
   #     * Required when `backend` is not specified and you want to be able
   #       to use more than the `default` backend.
@@ -69,16 +70,20 @@ Puppet::Functions.create_function(:'libkv::get') do
   #       is called within any other function.  This is problematic for heavily
   #       used Puppet built-in functions such as `each`.
   #
-  #  * `softfail`: Boolean. Whether to ignore libkv operation failures.
+  # @option options [Boolean] 'softfail'
+  #   Whether to ignore libkv operation failures.
   #
-  #    * When `true`, this function will return a result even when the operation
-  #      failed at the backend.
-  #    * When `false`, this function will fail when the backend operation failed.
-  #    * Defaults to `false`.
+  #     * When `true`, this function will return a result even when the
+  #       operation failed at the backend.
+  #     * When `false`, this function will fail when the backend operation
+  #       failed.
+  #     * Defaults to `false`.
   #
-  # @raise [LoadError] If the libkv adapter cannot be loaded
+  # @raise ArgumentError If the key or merged backend config is invalid
   #
-  # @raise [RuntimeError] If the backend operation fails, unless 'softfail' is
+  # @raise LoadError If the libkv adapter cannot be loaded
+  #
+  # @raise RuntimeError If the backend operation fails, unless 'softfail' is
   #   `true` in the merged backend options.
   #
   # @return [Enum[Hash,Undef]] Hash containing the value and any metadata upon
@@ -89,6 +94,12 @@ Puppet::Functions.create_function(:'libkv::get') do
   #   * Hash may have a 'metadata' key containing a Hash with any metadata for
   #     the key
   #
+  # @example Retrieve the value and any metadata for a key in the default backend
+  #  $result = libkv::get("database/${facts['fqdn']}")
+  #  class { 'wordpress':
+  #    db_host => $result['value']
+  #  }
+
   dispatch :get do
     required_param 'String[1]', :key
     optional_param 'Hash',      :options

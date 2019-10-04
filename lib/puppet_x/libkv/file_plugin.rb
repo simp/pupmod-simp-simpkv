@@ -25,14 +25,12 @@ plugin_class = Class.new do
   # The plugin-specific configuration will be found in
   # `options['backends'][ options['backend'] ]`:
   #
-  # * `root_path`: root directory path; defaults to '/var/simp/libkv/<name>'
+  # * `root_path`: root directory path; defaults to '/var/simp/libkv/<name>' when
+  #     that directory can be created or '<Puppet[:vardir]>/simp/libkv/<name>'
+  #     otherwise
   # * `lock_timeout_seconds`: max seconds to wait for an exclusive file lock
   #   on a file modifying operation before failing the operation; defaults
   #   to 5 seconds
-  # * `user`: user for created directories and files; defaults to user
-  #   executing code
-  # * `group`: group for created directories and files; defaults to group
-  #   executing code
   #
   # @param name Name to ascribe to this plugin instance
   # @param options Hash of global libkv and backend-specific options
@@ -72,21 +70,24 @@ plugin_class = Class.new do
       @lock_timeout_seconds = 5
     end
 
-    @user = options['backends'][backend].fetch('user', nil)
-    @group = options['backends'][backend].fetch('group', nil)
-
     unless Dir.exist?(@root_path)
       begin
         FileUtils.mkdir_p(@root_path)
       rescue Exception => e
-        raise("libkv plugin #{name} Error: Unable to create #{@root_path}: #{e.message}")
+        if options['backends'][backend].has_key?('root_path')
+          # someone made an explicit config error
+          raise("libkv plugin #{name} Error: Unable to create #{@root_path}: #{e.message}")
+        else
+          # use a default we know will be ok
+          @root_path = File.join(Puppet.settings[:vardir], 'simp', 'libkv', name)
+          FileUtils.mkdir_p(@root_path)
+        end
       end
     end
 
     # set permissions on the root directory
     begin
       FileUtils.chmod(0750, @root_path)
-      FileUtils.chown(@user, @group, @root_path) if @user || @group
     rescue Exception => e
       raise("libkv plugin #{name} Error: Unable to set permissions on #{@root_path}: #{e.message}")
     end
@@ -195,15 +196,19 @@ plugin_class = Class.new do
     if File.directory?(key_file)
       err_msg = "libkv plugin #{@name}: Key specifies a folder"
     else
+      file = nil
       begin
+        # To ensure all threads are not sharing the same file descriptor
+        # do **NOT** use a File.open block!
+        file = File.open(key_file, 'r')
+
         Timeout::timeout(@lock_timeout_seconds) do
-          # To ensure all threads are not sharing the same file descriptor
-          # do **NOT** use a File.open block!
-          file = File.open(key_file, 'r')
           file.flock(File::LOCK_EX)
-          value = file.read
-          file.close # lock released with close
         end
+
+        value = file.read
+        file.close # lock released with close
+        file = nil
 
       # Don't need to specify the key in the error messages below, as the key
       # will be appended to the message by the originating libkv::get()
@@ -213,6 +218,9 @@ plugin_class = Class.new do
         err_msg = "libkv plugin #{@name}: Timed out waiting for key file lock"
       rescue Exception => e
         err_msg = "Key retrieval failed: #{e.message}"
+      ensure
+        # make sure lock is released even on failure
+        file.close unless file.nil?
       end
     end
     { :result => value, :err_msg => err_msg }
@@ -270,31 +278,38 @@ plugin_class = Class.new do
     success = nil
     err_msg = nil
 
+    file = nil
     begin
       # create relative directory for the key file
       keydir = File.dirname(key)
       unless keydir == '.'
         Dir.chdir(@root_path) do
           FileUtils.mkdir_p(keydir, :mode => 0750)
-          FileUtils.chown_R(@user, @group, keydir) if @user || @group
         end
       end
 
       # create key file
       key_file = File.join(@root_path, key)
+      # To ensure all threads are not sharing the same file descriptor
+      # do **NOT** use a File.open block!
+      # Also, don't use 'w' as it truncates file before the lock is obtained
+      file = File.open(key_file, File::RDWR|File::CREAT)
+
       Timeout::timeout(@lock_timeout_seconds) do
-        # To ensure all threads are not sharing the same file descriptor
-        # do **NOT** use a File.open block!
-        # Also, don't use 'w' as it truncates file before the lock is obtained
-        file = File.open(key_file, File::RDWR|File::CREAT, 0640)
+        # only wrap timeout around flock, so we don't end up with partially
+        # modified files
         file.flock(File::LOCK_EX)
-        file.rewind
-        file.write(value)
-        file.flush
-        file.truncate(file.pos)
-        file.close # lock released with close
       end
-      FileUtils.chown(@user, @group, key_file) if @user || @group
+
+      file.rewind
+      file.write(value)
+      file.flush
+      file.truncate(file.pos)
+      file.close # lock released with close
+      file = nil
+      # we set the permissions here, instead of when the file was opened,
+      # so that the user's umask is ignored
+      File.chmod(0640, key_file)
       success = true
 
     # Don't need to specify the key in the error messages below, as the key
@@ -305,6 +320,8 @@ plugin_class = Class.new do
     rescue Exception => e
       success = false
       err_msg = "Key write failed: #{e.message}"
+    ensure
+      file.close unless file.nil?
     end
 
     { :result => success, :err_msg => err_msg }

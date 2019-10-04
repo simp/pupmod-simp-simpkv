@@ -5,39 +5,32 @@
 
 **Functions**
 
-* [`libkv::add_libkv`](#libkvadd_libkv): Add libkv 'extension' to the catalog instance, if it is not present
 * [`libkv::delete`](#libkvdelete): Deletes a `key` from the configured backend.
 * [`libkv::deletetree`](#libkvdeletetree): Deletes a whole folder from the configured backend.
 * [`libkv::exists`](#libkvexists): Returns whether the `key` exists in the configured backend.
 * [`libkv::get`](#libkvget): Retrieves the value and any metadata stored at `key` from the  configured backend.
-* [`libkv::get_backend_config`](#libkvget_backend_config): Create merged backend configuration and then validate it.  The `options` argument is merged with `libkv::options` Hiera and global libkv defa
 * [`libkv::list`](#libkvlist): Returns a list of all keys in a folder.
 * [`libkv::put`](#libkvput): Sets the data at `key` to the specified `value` in the configured backend. Optionally sets metadata along with the `value`.
-* [`libkv::validate_backend_config`](#libkvvalidate_backend_config): Validate backend configuration
-* [`libkv::validate_key`](#libkvvalidate_key): Validates key conforms to the libkv key specification  * libkv key specification    * Key must contain only the following characters:      * 
+* [`libkv::support::config::merge`](#libkvsupportconfigmerge): Create merged backend configuration and then validate it.  The `options` argument is merged with `libkv::options` Hiera and global libkv defa
+* [`libkv::support::config::validate`](#libkvsupportconfigvalidate): Validate backend configuration
+* [`libkv::support::key::validate`](#libkvsupportkeyvalidate): Validates key conforms to the libkv key specification  * libkv key specification    * Key must contain only the following characters:      * 
+* [`libkv::support::load`](#libkvsupportload): Load libkv adapter and plugins and add libkv 'extension' to the catalog instance, if it is not present
 
 ## Functions
-
-### libkv::add_libkv
-
-Type: Ruby 4.x API
-
-Add libkv 'extension' to the catalog instance, if it is not present
-
-#### `libkv::add_libkv()`
-
-Add libkv 'extension' to the catalog instance, if it is not present
-
-Returns: `Nil`
-
-Raises:
-* `LoadError` if libkv adapter software fails to load
 
 ### libkv::delete
 
 Type: Ruby 4.x API
 
 Deletes a `key` from the configured backend.
+
+#### Examples
+
+##### Delete a key using the default backend
+
+```puppet
+libkv::delete("hosts/${facts['fqdn']}")
+```
 
 #### `libkv::delete(String[1] $key, Optional[Hash] $options)`
 
@@ -48,9 +41,17 @@ backend operation fails and 'softfail' is `true` in the merged backend
 options
 
 Raises:
-* `If` the key or merged backend config is invalid
-* `If` the libkv adapter cannot be loaded
-* `If` the backend operation fails, unless 'softfail' is `true` in the merged backend options.
+* `ArgumentError` If the key or merged backend config is invalid
+* `LoadError` If the libkv adapter cannot be loaded
+* `RuntimeError` If the backend operation fails, unless 'softfail' is `true` in the merged backend options.
+
+##### Examples
+
+###### Delete a key using the default backend
+
+```puppet
+libkv::delete("hosts/${facts['fqdn']}")
+```
 
 ##### `key`
 
@@ -75,9 +76,9 @@ Hash that specifies global libkv options and/or the specific
 backend to use (with or without backend-specific configuration).
 Will be merged with `libkv::options`.
 
-Supported options keys:
+Options:
 
-* `backends`: Hash.  Hash of backend configurations
+* **'backends'** `Hash`: Hash of backend configurations
 
   * Each backend configuration in the merged options Hash must be
     a Hash that has the following keys:
@@ -88,8 +89,7 @@ Supported options keys:
 
    * Other keys for configuration specific to the backend may also be
      present.
-
-* `backend`: String.  Name of the backend to use.
+* **'backend'** `String`: Name of the backend to use.
 
   * When present, must match a key in the `backends` option of the
     merged options Hash.
@@ -98,17 +98,14 @@ Supported options keys:
     `resource` option.  This is typically the catalog resource id of the
     calling Class, specific defined type instance, or defined type.
     If no match is found, it will use the 'default' backend.
-
-* `environment`: String.  Puppet environment to prepend to keys.
+* **'environment'** `String`: Puppet environment to prepend to keys.
 
   * When set to a non-empty string, it is prepended to the key used in
     the backend operation.
   * Should only be set to an empty string when the key being accessed is
     truly global.
   * Defaults to the Puppet environment for the node.
-
-* `resource`: String.  Name of the Puppet resource initiating this libkv
-  operation
+* **'resource'** `String`: Name of the Puppet resource initiating this libkv operation
 
   * Required when `backend` is not specified and you want to be able
     to use more than the `default` backend.
@@ -123,12 +120,27 @@ Supported options keys:
     Appropriate scope is not necessarily available when a libkv function
     is called within any other function.  This is problematic for heavily
     used Puppet built-in functions such as `each`.
+* **'softfail'** `Boolean`: Whether to ignore libkv operation failures.
+
+  * When `true`, this function will return a result even when the
+    operation failed at the backend.
+  * When `false`, this function will fail when the backend operation
+    failed.
+  * Defaults to `false`.
 
 ### libkv::deletetree
 
 Type: Ruby 4.x API
 
 Deletes a whole folder from the configured backend.
+
+#### Examples
+
+##### Delete a key folder using the default backend
+
+```puppet
+libkv::delete("hosts")
+```
 
 #### `libkv::deletetree(String[1] $keydir, Optional[Hash] $options)`
 
@@ -139,9 +151,17 @@ backend operation fails and 'softfail' is `true` in the merged backend
 options
 
 Raises:
-* `If` the key folder or merged backend config is invalid
-* `If` the libkv adapter cannot be loaded
-* `If` the backend operation fails, unless 'softfail' is `true` in the merged backend options.
+* `ArgumentError` If the key folder or merged backend config is invalid
+* `LoadError` If the libkv adapter cannot be loaded
+* `RuntimeError` If the backend operation fails, unless 'softfail' is `true` in the merged backend options.
+
+##### Examples
+
+###### Delete a key folder using the default backend
+
+```puppet
+libkv::delete("hosts")
+```
 
 ##### `keydir`
 
@@ -166,9 +186,9 @@ Hash that specifies global libkv options and/or the specific
 backend to use (with or without backend-specific configuration).
 Will be merged with `libkv::options`.
 
-Supported options keys:
+Options:
 
-* `backends`: Hash.  Hash of backend configurations
+* **'backends'** `Hash`: Hash of backend configurations
 
   * Each backend configuration in the merged options Hash must be
     a Hash that has the following keys:
@@ -179,8 +199,7 @@ Supported options keys:
 
    * Other keys for configuration specific to the backend may also be
      present.
-
-* `backend`: String.  Name of the backend to use.
+* **'backend'** `String`: Name of the backend to use.
 
   * When present, must match a key in the `backends` option of the
     merged options Hash.
@@ -189,17 +208,14 @@ Supported options keys:
     `resource` option.  This is typically the catatlog resource id of the
     calling Class, specific defined type instance, or defined type.
     If no match is found, it will use the 'default' backend.
-
-* `environment`: String.  Puppet environment to prepend to keys.
+* **'environment'** `String`: Puppet environment to prepend to keys.
 
   * When set to a non-empty string, it is prepended to the key used in
     the backend operation.
   * Should only be set to an empty string when the key being accessed is
     truly global.
   * Defaults to the Puppet environment for the node.
-
-* `resource`: String.  Name of the Puppet resource initiating this libkv
-  operation
+* **'resource'** `String`: Name of the Puppet resource initiating this libkv operation
 
   * Required when `backend` is not specified and you want to be able
     to use more than the `default` backend.
@@ -214,12 +230,29 @@ Supported options keys:
     Appropriate scope is not necessarily available when a libkv function
     is called within any other function.  This is problematic for heavily
     used Puppet built-in functions such as `each`.
+* **'softfail'** `Boolean`: Whether to ignore libkv operation failures.
+
+  * When `true`, this function will return a result even when the
+    operation failed at the backend.
+  * When `false`, this function will fail when the backend operation
+    failed.
+  * Defaults to `false`.
 
 ### libkv::exists
 
 Type: Ruby 4.x API
 
 Returns whether the `key` exists in the configured backend.
+
+#### Examples
+
+##### Check for the existence of a key in the default backend
+
+```puppet
+if libkv::exists("hosts/${facts['fqdn']}") {
+   notify { "hosts/${facts['fqdn']} exists": }
+}
+```
 
 #### `libkv::exists(String[1] $key, Optional[Hash] $options)`
 
@@ -230,9 +263,19 @@ Returns: `Enum[Boolean,Undef]` If the backend operation succeeds, returns
 in the merged backend options, returns nil
 
 Raises:
-* `If` the key is invalid, the requested backend does not exist in `libkv::options`, or the plugin for the requested backend is not available.
-* `If` the libkv adapter cannot be loaded
-* `If` the backend operation fails, unless 'softfail' is `true` in the merged backend options.
+* `ArgumentError` If the key or merged backend config is invalid
+* `LoadError` If the libkv adapter cannot be loaded
+* `RuntimeError` If the backend operation fails, unless 'softfail' is `true` in the merged backend options.
+
+##### Examples
+
+###### Check for the existence of a key in the default backend
+
+```puppet
+if libkv::exists("hosts/${facts['fqdn']}") {
+   notify { "hosts/${facts['fqdn']} exists": }
+}
+```
 
 ##### `key`
 
@@ -257,9 +300,9 @@ Hash that specifies global libkv options and/or the specific
 backend to use (with or without backend-specific configuration).
 Will be merged with `libkv::options`.
 
-Supported options keys:
+Options:
 
-* `backends`: Hash.  Hash of backend configurations
+* **'backends'** `Hash`: Hash of backend configurations
 
   * Each backend configuration in the merged options Hash must be
     a Hash that has the following keys:
@@ -270,8 +313,7 @@ Supported options keys:
 
    * Other keys for configuration specific to the backend may also be
      present.
-
-* `backend`: String.  Name of the backend to use.
+* **'backend'** `String`: Name of the backend to use.
 
   * When present, must match a key in the `backends` option of the
     merged options Hash.
@@ -280,17 +322,14 @@ Supported options keys:
     `resource` option.  This is typically the catalog resource id of the
     calling Class, specific defined type instance, or defined type.
     If no match is found, it will use the 'default' backend.
-
-* `environment`: String.  Puppet environment to prepend to keys.
+* **'environment'** `String`: Puppet environment to prepend to keys.
 
   * When set to a non-empty string, it is prepended to the key used in
     the backend operation.
   * Should only be set to an empty string when the key being accessed is
     truly global.
   * Defaults to the Puppet environment for the node.
-
-* `resource`: String.  Name of the Puppet resource initiating this libkv
-  operation
+* **'resource'** `String`: Name of the Puppet resource initiating this libkv operation
 
   * Required when `backend` is not specified and you want to be able
     to use more than the `default` backend.
@@ -305,6 +344,13 @@ Supported options keys:
     Appropriate scope is not necessarily available when a libkv function
     is called within any other function.  This is problematic for heavily
     used Puppet built-in functions such as `each`.
+* **'softfail'** `Boolean`: Whether to ignore libkv operation failures.
+
+  * When `true`, this function will return a result even when the
+    operation failed at the backend.
+  * When `false`, this function will fail when the backend operation
+    failed.
+  * Defaults to `false`.
 
 ### libkv::get
 
@@ -312,6 +358,17 @@ Type: Ruby 4.x API
 
 Retrieves the value and any metadata stored at `key` from the
  configured backend.
+
+#### Examples
+
+##### Retrieve the value and any metadata for a key in the default backend
+
+```puppet
+$result = libkv::get("database/${facts['fqdn']}")
+class { 'wordpress':
+  db_host => $result['value']
+}
+```
 
 #### `libkv::get(String[1] $key, Optional[Hash] $options)`
 
@@ -327,8 +384,20 @@ in the merged backend options
   the key
 
 Raises:
-* `If` the libkv adapter cannot be loaded
-* `If` the backend operation fails, unless 'softfail' is `true` in the merged backend options.
+* `ArgumentError` If the key or merged backend config is invalid
+* `LoadError` If the libkv adapter cannot be loaded
+* `RuntimeError` If the backend operation fails, unless 'softfail' is `true` in the merged backend options.
+
+##### Examples
+
+###### Retrieve the value and any metadata for a key in the default backend
+
+```puppet
+$result = libkv::get("database/${facts['fqdn']}")
+class { 'wordpress':
+  db_host => $result['value']
+}
+```
 
 ##### `key`
 
@@ -353,9 +422,9 @@ Hash that specifies global libkv options and/or the specific
 backend to use (with or without backend-specific configuration).
 Will be merged with `libkv::options`.
 
-Supported options keys:
+Options:
 
-* `backends`: Hash.  Hash of backend configurations
+* **'backends'** `Hash`: Hash of backend configurations
 
   * Each backend configuration in the merged options Hash must be
     a Hash that has the following keys:
@@ -366,8 +435,7 @@ Supported options keys:
 
    * Other keys for configuration specific to the backend may also be
      present.
-
-* `backend`: String.  Name of the backend to use.
+* **'backend'** `String`: Name of the backend to use.
 
   * When present, must match a key in the `backends` option of the
     merged options Hash.
@@ -376,17 +444,14 @@ Supported options keys:
     `resource` option.  This is typically the catalog resource id of the
     calling Class, specific defined type instance, or defined type.
     If no match is found, it will use the 'default' backend.
-
-* `environment`: String.  Puppet environment to prepend to keys.
+* **'environment'** `String`: Puppet environment to prepend to keys.
 
   * When set to a non-empty string, it is prepended to the key used in
     the backend operation.
   * Should only be set to an empty string when the key being accessed is
     truly global.
   * Defaults to the Puppet environment for the node.
-
-* `resource`: String.  Name of the Puppet resource initiating this libkv
-  operation
+* **'resource'** `String`: Name of the Puppet resource initiating this libkv operation
 
   * Required when `backend` is not specified and you want to be able
     to use more than the `default` backend.
@@ -401,67 +466,33 @@ Supported options keys:
     Appropriate scope is not necessarily available when a libkv function
     is called within any other function.  This is problematic for heavily
     used Puppet built-in functions such as `each`.
+* **'softfail'** `Boolean`: Whether to ignore libkv operation failures.
 
-### libkv::get_backend_config
-
-Type: Ruby 4.x API
-
-Create merged backend configuration and then validate it.
-
-The `options` argument is merged with `libkv::options` Hiera and global libkv
-defaults. Validation includes the following checks:
-
-* configuration for the selected backend exists
-* the plugin for the selected backend has been loaded
-* different configuration for a specific plugin instance does not exist
-
-#### `libkv::get_backend_config(Hash $options, Array $backends, String[1] $resource_info)`
-
-Create merged backend configuration and then validate it.
-
-The `options` argument is merged with `libkv::options` Hiera and global libkv
-defaults. Validation includes the following checks:
-
-* configuration for the selected backend exists
-* the plugin for the selected backend has been loaded
-* different configuration for a specific plugin instance does not exist
-
-Returns: `Hash` ] merged libkv options that will have the backend to use
-specified by 'backend'
-
-Raises:
-* `if` merged configuration fails validation
-
-##### `options`
-
-Data type: `Hash`
-
-Hash that specifies libkv backend options to be merged with
-`libkv::options`.
-
-##### `backends`
-
-Data type: `Array`
-
-List of backends for which plugins have been successfully
-loaded.
-
-##### `resource_info`
-
-Data type: `String[1]`
-
-Resource string for the Puppet class or define that has
-called the libkv function.
-
-* Examples: 'Class[Mymodule::Myclass]' or 'Mymodule::Mydefine[myinstance]'
-* Used to determine the default backend to use, when none is specified
-  in the libkv options Hash
+  * When `true`, this function will return a result even when the
+    operation failed at the backend.
+  * When `false`, this function will fail when the backend operation
+    failed.
+  * Defaults to `false`.
 
 ### libkv::list
 
 Type: Ruby 4.x API
 
 Returns a list of all keys in a folder.
+
+#### Examples
+
+##### Set the value for a key in the default backend
+
+```puppet
+libkv::put("hosts/${facts['fqdn']}", "${facts['ipaddress']}")
+```
+
+##### Set the value and corresponding metadata for a key in the default backend
+
+```puppet
+libkv::put("hosts/${facts['fqdn']}", "${facts['ipaddress']}", { 'rack_id' => '281x'} )
+```
 
 #### `libkv::list(String[1] $keydir, Optional[Hash] $options)`
 
@@ -476,8 +507,23 @@ in the merged backend options
   key.
 
 Raises:
-* `If` the libkv adapter cannot be loaded
-* `If` the backend operation fails, unless 'softfail' is `true` in the merged backend options.
+* `ArgumentError` If the key folder or merged backend config is invalid
+* `LoadError` If the libkv adapter cannot be loaded
+* `RuntimeError` If the backend operation fails, unless 'softfail' is `true` in the merged backend options.
+
+##### Examples
+
+###### Set the value for a key in the default backend
+
+```puppet
+libkv::put("hosts/${facts['fqdn']}", "${facts['ipaddress']}")
+```
+
+###### Set the value and corresponding metadata for a key in the default backend
+
+```puppet
+libkv::put("hosts/${facts['fqdn']}", "${facts['ipaddress']}", { 'rack_id' => '281x'} )
+```
 
 ##### `keydir`
 
@@ -502,21 +548,18 @@ Hash that specifies global libkv options and/or the specific
 backend to use (with or without backend-specific configuration).
 Will be merged with `libkv::options`.
 
-Supported options keys:
+Options:
 
-* `backends`: Hash.  Hash of backend configurations
+* **'backends'** `Hash`: * Each backend configuration in the merged options Hash must be
+  a Hash that has the following keys:
 
-  * Each backend configuration in the merged options Hash must be
-    a Hash that has the following keys:
+  * `type`:  Backend type.
+  * `id`:  Unique name for the instance of the backend. (Same backend
+    type can be configured differently).
 
-    * `type`:  Backend type.
-    * `id`:  Unique name for the instance of the backend. (Same backend
-      type can be configured differently).
-
-   * Other keys for configuration specific to the backend may also be
-     present.
-
-* `backend`: String.  Name of the backend to use.
+ * Other keys for configuration specific to the backend may also be
+   present.
+* **'backend'** `String`: Name of the backend to use.
 
   * When present, must match a key in the `backends` option of the
     merged options Hash.
@@ -525,17 +568,14 @@ Supported options keys:
     `resource` option.  This is typically the catalog resource id of the
     calling Class, specific defined type instance, or defined type.
     If no match is found, it will use the 'default' backend.
-
-* `environment`: String.  Puppet environment to prepend to keys.
+* **'environment'** `String`: Puppet environment to prepend to keys.
 
   * When set to a non-empty string, it is prepended to the key used in
     the backend operation.
   * Should only be set to an empty string when the key being accessed is
     truly global.
   * Defaults to the Puppet environment for the node.
-
-* `resource`: String.  Name of the Puppet resource initiating this libkv
-  operation
+* **'resource'** `String`: Name of the Puppet resource initiating this libkv operation
 
   * Required when `backend` is not specified and you want to be able
     to use more than the `default` backend.
@@ -550,6 +590,13 @@ Supported options keys:
     Appropriate scope is not necessarily available when a libkv function
     is called within any other function.  This is problematic for heavily
     used Puppet built-in functions such as `each`.
+* **'softfail'** `Boolean`: Whether to ignore libkv operation failures.
+
+  * When `true`, this function will return a result even when the
+    operation failed at the backend.
+  * When `false`, this function will fail when the backend operation
+    failed.
+  * Defaults to `false`.
 
 ### libkv::put
 
@@ -568,9 +615,9 @@ backend operation fails and 'softfail' is `true` in the merged backend
 options
 
 Raises:
-* `If` the key or merged backend config is invalid
-* `If` the libkv adapter cannot be loaded
-* `If` the backend operation fails, unless 'softfail' is `true` in the merged backend options.
+* `ArgumentError` If the key or merged backend config is invalid
+* `LoadError` If the libkv adapter cannot be loaded
+* `RuntimeError` If the backend operation fails, unless 'softfail' is `true` in the merged backend options.
 
 ##### `key`
 
@@ -607,9 +654,9 @@ Hash that specifies global libkv options and/or the specific
 backend to use (with or without backend-specific configuration).
 Will be merged with `libkv::options`.
 
-Supported options keys:
+Options:
 
-* `backends`: Hash.  Hash of backend configurations
+* **'backends'** `Hash`: Hash of backend configurations
 
   * Each backend configuration in the merged options Hash must be
     a Hash that has the following keys:
@@ -620,27 +667,21 @@ Supported options keys:
 
    * Other keys for configuration specific to the backend may also be
      present.
-
-* `backend`: String.  Name of the backend to use.
-
-  * When present, must match a key in the `backends` option of the
-    merged options Hash.
-  * When absent and not specified in `libkv::options`, this function
-    will look for a 'default.xxx' backend whose name matches the
-    `resource` option.  This is typically the catalog resource id of the
-    calling Class, specific defined type instance, or defined type.
-    If no match is found, it will use the 'default' backend.
-
-* `environment`: String.  Puppet environment to prepend to keys.
+* **'backend'** `String`: * When present, must match a key in the `backends` option of the
+  merged options Hash.
+* When absent and not specified in `libkv::options`, this function
+  will look for a 'default.xxx' backend whose name matches the
+  `resource` option.  This is typically the catalog resource id of the
+  calling Class, specific defined type instance, or defined type.
+  If no match is found, it will use the 'default' backend.
+* **'environment'** `String`: Puppet environment to prepend to keys.
 
   * When set to a non-empty string, it is prepended to the key used in
     the backend operation.
   * Should only be set to an empty string when the key being accessed is
     truly global.
   * Defaults to the Puppet environment for the node.
-
-* `resource`: String.  Name of the Puppet resource initiating this libkv
-  operation
+* **'resource'** `String`: Name of the Puppet resource initiating this libkv operation
 
   * Required when `backend` is not specified and you want to be able
     to use more than the `default` backend.
@@ -655,21 +696,87 @@ Supported options keys:
     Appropriate scope is not necessarily available when a libkv function
     is called within any other function.  This is problematic for heavily
     used Puppet built-in functions such as `each`.
+* **'softfail'** `Boolean`: Whether to ignore libkv operation failures.
 
-### libkv::validate_backend_config
+  * When `true`, this function will return a result even when the
+    operation failed at the backend.
+  * When `false`, this function will fail when the backend operation
+    failed.
+  * Defaults to `false`.
+
+### libkv::support::config::merge
+
+Type: Ruby 4.x API
+
+Create merged backend configuration and then validate it.
+
+The `options` argument is merged with `libkv::options` Hiera and global libkv
+defaults and then, if the `backends` option is missing in the merged
+configuration, it is inserted with a a single `default` backend of type `file`.
+
+Validation includes the following checks:
+* configuration for the selected backend exists
+* the plugin for the selected backend has been loaded
+* different configuration for a specific plugin instance does not exist
+
+#### `libkv::support::config::merge(Hash $options, Array $backends, String[1] $resource_info)`
+
+Create merged backend configuration and then validate it.
+
+The `options` argument is merged with `libkv::options` Hiera and global libkv
+defaults and then, if the `backends` option is missing in the merged
+configuration, it is inserted with a a single `default` backend of type `file`.
+
+Validation includes the following checks:
+* configuration for the selected backend exists
+* the plugin for the selected backend has been loaded
+* different configuration for a specific plugin instance does not exist
+
+Returns: `Hash` merged libkv options that will have the backend to use
+specified by 'backend'
+
+Raises:
+* `ArgumentError` if merged configuration fails validation
+
+##### `options`
+
+Data type: `Hash`
+
+Hash that specifies libkv backend options to be merged with
+`libkv::options`.
+
+##### `backends`
+
+Data type: `Array`
+
+List of backends for which plugins have been successfully
+loaded.
+
+##### `resource_info`
+
+Data type: `String[1]`
+
+Resource string for the Puppet class or define that has
+called the libkv function.
+
+* Examples: 'Class[Mymodule::Myclass]' or 'Mymodule::Mydefine[myinstance]'
+* Used to determine the default backend to use, when none is specified
+  in the libkv options Hash
+
+### libkv::support::config::validate
 
 Type: Ruby 4.x API
 
 Validate backend configuration
 
-#### `libkv::validate_backend_config(Hash $options, Array $backends)`
+#### `libkv::support::config::validate(Hash $options, Array $backends)`
 
 Validate backend configuration
 
 Returns: `Nil`
 
 Raises:
-* `if` a backend has not been specified, appropriate configuration for a specified backend cannot be found, or different backend configurations are provided for the same ['type', 'id'] pair.
+* `ArgumentError` if a backend has not been specified, appropriate configuration for a specified backend cannot be found, or different backend configurations are provided for the same ['type', 'id'] pair.
 
 ##### `options`
 
@@ -684,7 +791,7 @@ Data type: `Array`
 List of backends for which plugins have been successfully
 loaded.
 
-### libkv::validate_key
+### libkv::support::key::validate
 
 Type: Ruby 4.x API
 
@@ -708,20 +815,20 @@ Validates key conforms to the libkv key specification
 ##### Passing
 
 ```puppet
-libkv::validate_key('looks/like/a/file/path')
-libkv::validate_key('looks/like/a/directory/path/')
-libkv::validate_key('simp-simp_snmpd:password.auth')
+libkv::support::key::validate('looks/like/a/file/path')
+libkv::support::key::validate('looks/like/a/directory/path/')
+libkv::support::key::validate('simp-simp_snmpd:password.auth')
 ```
 
 ##### Failing
 
 ```puppet
-libkv::validate_key('${special}/chars/not/allowed!'}
-libkv::validate_key('looks/like/an/./unexpanded/linux/path')
-libkv::validate_key('looks/like/another/../unexpanded/linux/path')
+libkv::support::key::validate('${special}/chars/not/allowed!'}
+libkv::support::key::validate('looks/like/an/./unexpanded/linux/path')
+libkv::support::key::validate('looks/like/another/../unexpanded/linux/path')
 ```
 
-#### `libkv::validate_key(String[1] $key)`
+#### `libkv::support::key::validate(String[1] $key)`
 
 Validates key conforms to the libkv key specification
 
@@ -741,24 +848,24 @@ Validates key conforms to the libkv key specification
 Returns: `Nil`
 
 Raises:
-* `if` validation fails
+* `ArgumentError` if validation fails
 
 ##### Examples
 
 ###### Passing
 
 ```puppet
-libkv::validate_key('looks/like/a/file/path')
-libkv::validate_key('looks/like/a/directory/path/')
-libkv::validate_key('simp-simp_snmpd:password.auth')
+libkv::support::key::validate('looks/like/a/file/path')
+libkv::support::key::validate('looks/like/a/directory/path/')
+libkv::support::key::validate('simp-simp_snmpd:password.auth')
 ```
 
 ###### Failing
 
 ```puppet
-libkv::validate_key('${special}/chars/not/allowed!'}
-libkv::validate_key('looks/like/an/./unexpanded/linux/path')
-libkv::validate_key('looks/like/another/../unexpanded/linux/path')
+libkv::support::key::validate('${special}/chars/not/allowed!'}
+libkv::support::key::validate('looks/like/an/./unexpanded/linux/path')
+libkv::support::key::validate('looks/like/another/../unexpanded/linux/path')
 ```
 
 ##### `key`
@@ -766,4 +873,21 @@ libkv::validate_key('looks/like/another/../unexpanded/linux/path')
 Data type: `String[1]`
 
 libkv key
+
+### libkv::support::load
+
+Type: Ruby 4.x API
+
+Load libkv adapter and plugins and add libkv 'extension' to the catalog
+instance, if it is not present
+
+#### `libkv::support::load()`
+
+Load libkv adapter and plugins and add libkv 'extension' to the catalog
+instance, if it is not present
+
+Returns: `Nil`
+
+Raises:
+* `LoadError` if libkv adapter software fails to load
 

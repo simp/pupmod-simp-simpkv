@@ -16,7 +16,7 @@ describe 'libkv::support::config::merge' do
           'file' => {
             'id'   => 'test',
             'type' => 'file'
-          },
+          }
         }
       }
 
@@ -32,7 +32,7 @@ describe 'libkv::support::config::merge' do
           'default' => {
             'id'   => 'test',
             'type' => 'file'
-          },
+          }
         }
       }
       output_config = input_config.dup
@@ -50,7 +50,7 @@ describe 'libkv::support::config::merge' do
           'default' => {
             'id'   => 'test',
             'type' => 'file'
-          },
+          }
         }
       }
       output_config = input_config.dup
@@ -68,7 +68,7 @@ describe 'libkv::support::config::merge' do
           'default' => {
             'id'   => 'test',
             'type' => 'file'
-          },
+          }
         }
       }
       output_config = input_config.dup
@@ -78,11 +78,34 @@ describe 'libkv::support::config::merge' do
         and_return(output_config)
     end
 
+    it "should add 'backends' with file backend default when backends missing" do
+      output_config = {
+        'environment' => 'myenv',
+        'softfail'    => false,
+        'backend'     => 'default',
+        'backends'    => {
+          'default' => {
+            'id'   => 'auto_default',
+            'type' => 'file'
+          }
+        }
+      }
+      is_expected.to run.with_params({}, backends, class_resource).
+        and_return(output_config)
+    end
+
     it 'should fail when input config is invalid' do
-      options = {}
+      options = {
+        'backends' => {
+          'default' => {
+            'id'   => 'test',
+            'type' => 'does_not_exist'
+          }
+        }
+      }
       is_expected.to run.with_params(options, backends, class_resource).
         and_raise_error(ArgumentError,
-        /'backends' not specified in libkv configuration/)
+        /libkv backend plugin 'does_not_exist' not available/)
     end
 
   end
@@ -116,9 +139,9 @@ describe 'libkv::support::config::merge' do
         'softfail'    => true,
         'backends'    => {
           'test' => {
-            'type'                 => 'file',
-            'id'                   => 'test',
-            'root_path'            => '/tmp/test',
+            'type'      => 'file',
+            'id'        => 'test',
+            'root_path' => '/tmp/test',
           }
         }
       }
@@ -135,9 +158,9 @@ describe 'libkv::support::config::merge' do
             'lock_timeout_seconds' => 30
           },
           'test' => {
-            'type'                 => 'file',
-            'id'                   => 'test',
-            'root_path'            => '/tmp/test',
+            'type'      => 'file',
+            'id'        => 'test',
+            'root_path' => '/tmp/test',
           }
         }
       }

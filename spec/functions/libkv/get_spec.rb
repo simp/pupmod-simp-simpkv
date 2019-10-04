@@ -102,6 +102,25 @@ describe 'libkv::get' do
       is_expected.to run.with_params(key, @options_default_class).and_return(expected)
     end
 
+    it 'should retrieve the key,value,metadata tuple from the auto-default backend when backend config missing' do
+      # mocking is REQUIRED for GitLab
+      allow(Dir).to receive(:exist?).with('/var/simp/libkv/file/auto_default').and_return( false )
+      allow(FileUtils).to receive(:mkdir_p).with(any_args).and_call_original
+      allow(FileUtils).to receive(:mkdir_p).with('/var/simp/libkv/file/auto_default').
+        and_raise(Errno::EACCES, 'Permission denied')
+
+      # The test's Puppet.settings[:vardir] gets created when the subject (function object)
+      # is constructed
+      subject()
+      key_file = File.join(Puppet.settings[:vardir], 'simp', 'libkv', 'file',
+        'auto_default', environment, key)
+      FileUtils.mkdir_p(File.dirname(key_file))
+      File.open(key_file, 'w') { |file| file.write(serialized_value) }
+
+      expected = { 'value' => value, 'metadata' => metadata }
+      is_expected.to run.with_params(key).and_return(expected)
+    end
+
     it 'should use environment-less key when environment is empty' do
       options = @options_default.dup
       options['environment'] = ''

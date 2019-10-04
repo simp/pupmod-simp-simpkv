@@ -77,6 +77,20 @@ describe 'libkv::put' do
       expect( File.exist?(key_file) ).to be true
     end
 
+    it 'should store key,value,metadata tuple to the auto-default backend when backend config missing'  do
+      # mocking is REQUIRED for GitLab
+      allow(Dir).to receive(:exist?).with('/var/simp/libkv/file/auto_default').and_return( false )
+      allow(FileUtils).to receive(:mkdir_p).with(any_args).and_call_original
+      allow(FileUtils).to receive(:mkdir_p).with('/var/simp/libkv/file/auto_default').
+        and_raise(Errno::EACCES, 'Permission denied')
+
+      is_expected.to run.with_params(key, value, metadata).and_return(true)
+
+      key_file = File.join(Puppet.settings[:vardir], 'simp', 'libkv', 'file',
+        'auto_default', environment, key)
+      expect( File.exist?(key_file) ).to be true
+    end
+
     it 'should store key,value,metadata tuple to the default backend for resource' do
       is_expected.to run.with_params(key, value , metadata, @options_default_class).
         and_return(true)
