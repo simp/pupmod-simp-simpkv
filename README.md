@@ -37,11 +37,11 @@ a compliance-management framework built on Puppet.
 
 If you find any issues, please submit them via [JIRA](https://simp-project.atlassian.net/).
 
-Please read our [Contribution Guide] (https://simp.readthedocs.io/en/stable/contributors_guide/index.html).
+Please read our [Contribution Guide](https://simp.readthedocs.io/en/stable/contributors_guide/index.html).
 
 ## Module Description
 
-Provides and abstract library that allows Puppet to access one or more key/value
+Provides an abstract library that allows Puppet to access one or more key/value
 stores.
 
 This module provides
@@ -151,7 +151,7 @@ libkv::options:
 
 This example will store and retrieve host information using libkv function signatures
 and configuration that support a multiple backends.  The function signatures and
-configuration are a little more complicated, but still relatively straight forward
+configuration are a little more complicated, but still relatively straightforward
 to understand.
 
 To store a node's hostname and IP address:
@@ -173,7 +173,7 @@ $hosts.each |$host, $info | {
 }
 ```
 
-In hieradata, configure the backend with ``libkv::options`` Hash.  This example,
+In hieradata, configure the backend with ``libkv::options`` Hash.  This example 
 will configure multiple instances of libkv's file backend.
 
 ```yaml
@@ -293,8 +293,8 @@ configurations. The primary keys in this Hash are as follows:
    * When present, must match a key in `backends`.
    * When absent, the backend configuration will be selected from the set of
      default entries in `backends`, based on the name of the catalog resource
-     requesting a libkv operation.  (See [Default Backend Selection]
-     (#default-backend-selection)).
+     requesting a libkv operation.  
+     (See [Default Backend Selection](#default-backend-selection)).
 
 * `environment`: Optional String.  Puppet environment to prepend to keys.
 
@@ -323,7 +323,7 @@ conform to the following conventions:
 * Each name is a String.
 * Each name is necessarily unique, but more than one name can contain
   the same backend configuration.  This is useful in the default
-  hiearchy in which you want subsets of defaults to use the same
+  hierarchy in which you want subsets of defaults to use the same
   configuration.
 * When the name begins with `default` it is part of the default hierarchy.
 
