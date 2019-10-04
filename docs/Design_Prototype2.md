@@ -61,7 +61,7 @@
 ## Scope
 
 This documents libkv requirements, roll out considerations, and a
-second-iteration, protoype design to meet those requirements.
+second-iteration, prototype design to meet those requirements.
 
 ## Requirements
 
@@ -158,7 +158,7 @@ libkv must provide a backend plugin adapter that
   * It must continue to operate with valid plugins, when a malformed plugin
     fails to load.
 
-* The plugin adapter must allow multiple but instances of an individual
+* The plugin adapter must allow multiple instances of an individual
   plugin to be instantiated and used during the catalog compile, when the
   instances have different configuration parameters.
 
