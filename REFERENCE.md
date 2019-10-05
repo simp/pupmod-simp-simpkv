@@ -482,16 +482,15 @@ Returns a list of all keys in a folder.
 
 #### Examples
 
-##### Set the value for a key in the default backend
+##### Retrieve the list of key info for a key folder in the default backend
 
 ```puppet
-libkv::put("hosts/${facts['fqdn']}", "${facts['ipaddress']}")
-```
-
-##### Set the value and corresponding metadata for a key in the default backend
-
-```puppet
-libkv::put("hosts/${facts['fqdn']}", "${facts['ipaddress']}", { 'rack_id' => '281x'} )
+$hosts = libkv::list('hosts')
+$hosts.each |$host, $info | {
+  host { $host:
+    ip => $info['value'],
+  }
+}
 ```
 
 #### `libkv::list(String[1] $keydir, Optional[Hash] $options)`
@@ -513,16 +512,15 @@ Raises:
 
 ##### Examples
 
-###### Set the value for a key in the default backend
+###### Retrieve the list of key info for a key folder in the default backend
 
 ```puppet
-libkv::put("hosts/${facts['fqdn']}", "${facts['ipaddress']}")
-```
-
-###### Set the value and corresponding metadata for a key in the default backend
-
-```puppet
-libkv::put("hosts/${facts['fqdn']}", "${facts['ipaddress']}", { 'rack_id' => '281x'} )
+$hosts = libkv::list('hosts')
+$hosts.each |$host, $info | {
+  host { $host:
+    ip => $info['value'],
+  }
+}
 ```
 
 ##### `keydir`

@@ -92,11 +92,13 @@ Puppet::Functions.create_function(:'libkv::list') do
   #   * Each value in the Hash is a Hash with a 'value' key and an optional 'metadata'
   #     key.
   #
-  # @example Set the value for a key in the default backend
-  #   libkv::put("hosts/${facts['fqdn']}", "${facts['ipaddress']}")
-  #
-  # @example Set the value and corresponding metadata for a key in the default backend
-  #   libkv::put("hosts/${facts['fqdn']}", "${facts['ipaddress']}", { 'rack_id' => '281x'} )
+  # @example Retrieve the list of key info for a key folder in the default backend
+  #   $hosts = libkv::list('hosts')
+  #   $hosts.each |$host, $info | {
+  #     host { $host:
+  #       ip => $info['value'],
+  #     }
+  #   }
   #
   dispatch :list do
     required_param 'String[1]', :keydir
