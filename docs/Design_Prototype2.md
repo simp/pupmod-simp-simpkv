@@ -209,17 +209,17 @@ general requirements:
 * When configured via Hiera, libkv configuration must include a default backend
   configuration.
 
-* Users must be able to set libkv configuration in an individual libkv Puppet
-  functions call.
+* Users must be able to set a libkv configuration in an individual libkv Puppet
+  function call.
 
-  * Configuration may includes global libkv options and backend configurations.
-  * Configuration may select of a specific, existing, backend configuration.
+  * Configuration may include global libkv options and backend configurations.
+  * Configuration may select a specific, existing, backend configuration.
   * Configuration must override any Hiera libkv configuration.
 
 * Users must be able to self-identify with an application identifier in an
   individual libkv Puppet function call.
 
-  * The application id will be used to lookup the appropriate backend
+  * The application id will be used to look up the appropriate backend
     configuration to use, when the function call has not already specified it.
   * The application id can be unique to a caller or shared among libkv function
     calls.
@@ -416,7 +416,7 @@ Major design/API changes since version 0.6.X are as follows:
 
 * Redesigned global Hiera configuration to support more complex libkv deployment
   scenarios.  The limited libkv Hiera configuration, `libkv::url` and
-  `libkv::auth`, has been replace with a Hash `libkv::options` that meets
+  `libkv::auth`, has been replaced with a Hash `libkv::options` that meets
   the configuration requirements specified in [Configuration](#configuration).
 
 * Standardized error handling
@@ -616,14 +616,14 @@ each function will return a result object even when the operation failed.
 Each function body will affect the operation requested by doing the following:
 
 * validate parameters beyond what is provided by Puppet
-* lookup global backend configuration in Hiera
+* look up global backend configuration in Hiera
 * merge the global backend configuration with specific backend configuration
   provided in options passed to the function (specific configuration takes
   priority)
 * identify the plugin to use based on the merged configuration
 * load and instantiate the plugin adapter, if it has not already been loaded
 * delegate operations to that adapter
-* return the results or raise, as appropriate
+* return the results or raise an exception, as appropriate
 
 #### Common Function Options
 
@@ -728,7 +728,7 @@ modifying operations to the backend plugins.
 * The plugins are expected to provide atomic key-modifying operations
   automatically, wherever possible, using backend-specific lock/or
   atomic operations mechanisms.
-* A plugin may choose to cache data for key quering operations, keeping
+* A plugin may choose to cache data for key querying operations, keeping
   in mind each plugin instance only remains active for the duration of the
   catalog instance (compile).
 * Each plugin may choose to offer a retry option, to minimize failed catalog
