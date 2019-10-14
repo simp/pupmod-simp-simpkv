@@ -98,7 +98,7 @@ describe 'libkv file plugin anonymous class' do
       it 'should fix the permissions of root_path' do
         FileUtils.mkdir_p(@root_path, :mode => 0755)
         expect{ plugin_class.new('file/test', @options) }.to_not raise_error
-        expect( File.stat(@root_path).mode & 0777 ).to eq 0750
+        expect( File.stat(@root_path).mode & 0777 ).to eq 0770
       end
 
       it 'should fallback to a Puppet.settings[:vardir] path when default path cannot be created' do
@@ -233,7 +233,7 @@ describe 'libkv file plugin anonymous class' do
           }
         }
 
-        allow(FileUtils).to receive(:chmod).with(0750, @root_path).
+        allow(FileUtils).to receive(:chmod).with(0770, @root_path).
           and_raise(Errno::EACCES, 'Permission denied')
 
         expect { plugin_class.new('file/test', options) }.
@@ -276,7 +276,7 @@ describe 'libkv file plugin anonymous class' do
 
         result = @plugin.delete('key1')
         expect( result[:result] ).to be false
-        expect( result[:err_msg] ).to match(/Delete failed:/)
+        expect( result[:err_msg] ).to match(/Delete of '.*' failed:/)
       end
     end
 
@@ -304,7 +304,7 @@ describe 'libkv file plugin anonymous class' do
 
         result = @plugin.deletetree('production/gen_passwd')
         expect( result[:result] ).to be false
-        expect( result[:err_msg] ).to match(/Folder delete failed:/)
+        expect( result[:err_msg] ).to match(/Folder delete of '.*' failed:/)
       end
     end
 
@@ -355,7 +355,7 @@ describe 'libkv file plugin anonymous class' do
           puts "     >> Executing plugin get() for '#{key}'"
           result = @plugin.get(key)
           expect( result[:result] ).to be_nil
-          expect( result[:err_msg] ).to match /Timed out waiting for key file lock/
+          expect( result[:err_msg] ).to match /Timed out waiting for lock of key file/
         end
 
         # just to be sure lock is appropriately cleared...
@@ -371,7 +371,7 @@ describe 'libkv file plugin anonymous class' do
           and_raise(Errno::EACCES, 'Permission denied')
         result = @plugin.get('production/key1')
         expect( result[:result] ).to be_nil
-        expect( result[:err_msg] ).to match(/Key retrieval failed/)
+        expect( result[:err_msg] ).to match(/Key retrieval at '.*' failed/)
       end
     end
 
@@ -418,7 +418,7 @@ describe 'libkv file plugin anonymous class' do
       it 'should return an unset :result  and an :err_msg when key folder does not exist or is inaccessible' do
         result = @plugin.list('production')
         expect( result[:result] ).to be_nil
-        expect( result[:err_msg] ).to match(/Key folder not found/)
+        expect( result[:err_msg] ).to match(/Key folder '.*' not found/)
       end
     end
 
@@ -439,7 +439,7 @@ describe 'libkv file plugin anonymous class' do
         expect( result[:err_msg] ).to be_nil
         expect( @plugin.get(key)[:result] ).to eq value
         key_file = File.join(@root_path, key)
-        expect( File.stat(key_file).mode & 0777 ).to eq 0640
+        expect( File.stat(key_file).mode & 0777 ).to eq 0660
       end
 
       it 'should return :result=true when the key file does not exist for a complex key' do
@@ -450,9 +450,9 @@ describe 'libkv file plugin anonymous class' do
         expect( result[:err_msg] ).to be_nil
         expect( @plugin.get(key)[:result] ).to eq value
         key_file = File.join(@root_path, key)
-        expect( File.stat(key_file).mode & 0777 ).to eq 0640
-        expect( File.stat(File.join(@root_path, 'production')).mode & 0777 ).to eq 0750
-        expect( File.stat(File.join(@root_path, 'production', 'gen_passwd')).mode & 0777 ).to eq 0750
+        expect( File.stat(key_file).mode & 0777 ).to eq 0660
+        expect( File.stat(File.join(@root_path, 'production')).mode & 0777 ).to eq 0770
+        expect( File.stat(File.join(@root_path, 'production', 'gen_passwd')).mode & 0777 ).to eq 0770
       end
 
       it 'should return :result=true when the key file exists and is accessible' do
@@ -482,7 +482,7 @@ describe 'libkv file plugin anonymous class' do
           puts "     >> Executing plugin.put() for '#{key}'"
           result = @plugin.put(key, value2)
           expect( result[:result] ).to be false
-          expect( result[:err_msg] ).to match /Timed out waiting for key file lock/
+          expect( result[:err_msg] ).to match /Timed out waiting for lock of key file/
         end
 
         # just to be sure lock is appropriately cleared...
@@ -498,7 +498,7 @@ describe 'libkv file plugin anonymous class' do
 
         result = @plugin.put('key', 'value')
         expect( result[:result] ).to be false
-        expect( result[:err_msg] ).to match(/Key write failed/)
+        expect( result[:err_msg] ).to match(/Key write to '.*' failed/)
       end
     end
   end
