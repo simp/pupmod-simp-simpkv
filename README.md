@@ -86,8 +86,10 @@ Using `libkv` is simple:
 * Use `libkv` functions to store and retrieve key/value pairs in your Puppet
   code.
 * Configure the backend(s) to use in Hieradata.
-* Reconfigure the backend(s) in Hieradata, as your needs change.  No changes
-  to your Puppet code will be required.
+* Reconfigure the backend(s) in Hieradata, as your needs change.
+
+  * No changes to your Puppet code will be required.
+  * Just transfer your data from the old key/value store to the new one.
 
 The backend configuration of `libkv` can be as simple as you want (one backend)
 or complex (multiple backends servicing different applications).  Examples of
