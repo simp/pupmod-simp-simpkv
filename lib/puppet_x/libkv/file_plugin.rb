@@ -56,20 +56,29 @@ plugin_class = Class.new do
 
     @name = name
 
+    default_root_path_var = File.join('/', 'var', 'simp', 'libkv', name)
+    default_root_path_puppet_vardir = File.join(Puppet.settings[:vardir], 'simp', 'libkv', name)
+
     # set optional configuration
     backend = options['backend']
-    if options['backends'][backend].has_key?('root_path')
-      @root_path = options['backends'][backend]['root_path']
-    else
-      @root_path = File.join('/', 'var', 'simp', 'libkv', name)
-      Puppet.debug("libkv plugin #{name}: Using default root path #{@root_path}")
-    end
-
     if options['backends'][backend].has_key?('lock_timeout_seconds')
       @lock_timeout_seconds = options['backends'][backend]['lock_timeout_seconds']
     else
       @lock_timeout_seconds = 5
       Puppet.debug("libkv plugin #{name}: Using default lock timeout #{@lock_timeout_seconds}")
+    end
+
+    if options['backends'][backend].has_key?('root_path')
+      @root_path = options['backends'][backend]['root_path']
+    elsif Dir.exist?(default_root_path_var)
+      @root_path = default_root_path_var
+      Puppet.debug("libkv plugin #{name}: Using existing default root path '#{@root_path}'")
+    elsif Dir.exist?(default_root_path_puppet_vardir)
+      @root_path = default_root_path_puppet_vardir
+      Puppet.debug("libkv plugin #{name}: Using existing default root path '#{@root_path}'")
+    else
+      @root_path = default_root_path_var
+      Puppet.debug("libkv plugin #{name}: Using default root path '#{@root_path}'")
     end
 
     unless Dir.exist?(@root_path)
@@ -78,11 +87,11 @@ plugin_class = Class.new do
       rescue Exception => e
         if options['backends'][backend].has_key?('root_path')
           # someone made an explicit config error
-          raise("libkv plugin #{name} Error: Unable to create configured root path #{@root_path}: #{e.message}")
+          raise("libkv plugin #{name} Error: Unable to create configured root path '#{@root_path}': #{e.message}")
         else
           # use a default we know will be ok
           new_path = File.join(Puppet.settings[:vardir], 'simp', 'libkv', name)
-          Puppet.warning("libkv plugin #{name}: Unable to create root path #{@root_path}. Defaulting to #{new_path}")
+          Puppet.warning("libkv plugin #{name}: Unable to create root path '#{@root_path}'. Defaulting to '#{new_path}'")
           @root_path = new_path
           FileUtils.mkdir_p(@root_path)
         end
