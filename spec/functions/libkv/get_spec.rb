@@ -104,6 +104,7 @@ describe 'libkv::get' do
 
     it 'should retrieve the key,value,metadata tuple from the auto-default backend when backend config missing' do
       # mocking is REQUIRED for GitLab
+      allow(Dir).to receive(:exist?).with(any_args).and_call_original
       allow(Dir).to receive(:exist?).with('/var/simp/libkv/file/auto_default').and_return( false )
       allow(FileUtils).to receive(:mkdir_p).with(any_args).and_call_original
       allow(FileUtils).to receive(:mkdir_p).with('/var/simp/libkv/file/auto_default').
