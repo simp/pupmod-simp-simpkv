@@ -1,8 +1,13 @@
 # vim: set expandtab ts=2 sw=2:
-require 'net/http'
-require 'uri'
-require 'base64'
-libkv.load("consul") do
+provider_class = Class.new do
+  require 'net/http'
+  require 'uri'
+  require 'base64'
+
+  def self.name
+    'consul'
+  end
+
   def initialize(url, auth)
     @uri = URI.parse(url)
     @resturi = URI.parse(url)
@@ -242,7 +247,7 @@ libkv.load("consul") do
     if (key == nil)
       throw Exception
     end
-    # Get the value of key first. This is the only way to tell if we try to delete a key 
+    # Get the value of key first. This is the only way to tell if we try to delete a key
     response = consul_request(path: "/v1/kv" + @basepath + key, method: 'DELETE')
     if (response.class == Net::HTTPOK)
       if (response.body =~ /true/)
@@ -315,7 +320,7 @@ libkv.load("consul") do
     if (key == nil)
       throw Exception
     end
-    # Get the value of key first. This is the only way to tell if we try to delete a key 
+    # Get the value of key first. This is the only way to tell if we try to delete a key
     response = consul_request(path: "/v1/kv" + @basepath + key + "?keys", method: 'GET')
     if (response.class == Net::HTTPOK)
       true

@@ -1,609 +1,464 @@
-[![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html) [![Build Status](https://travis-ci.org/simp/pupmod-simp-libkv.svg)](https://travis-ci.org/simp/pupmod-simp-libkv) [![SIMP compatibility](https://img.shields.io/badge/SIMP%20compatibility-6.*-orange.svg)](https://img.shields.io/badge/SIMP%20compatibility-6.*-orange.svg)
+[![License](https://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/73/badge)](https://bestpractices.coreinfrastructure.org/projects/73)
+[![Puppet Forge](https://img.shields.io/puppetforge/v/simp/libkv.svg)](https://forge.puppetlabs.com/simp/libkv)
+[![Puppet Forge Downloads](https://img.shields.io/puppetforge/dt/simp/libkv.svg)](https://forge.puppetlabs.com/simp/libkv)
+[![Build Status](https://travis-ci.org/simp/pupmod-simp-libkv.svg)](https://travis-ci.org/simp/pupmod-simp-libkv)
 
 #### Table of Contents
 
-1. [Description](#description)
-2. [Usage - Configuration options and additional functionality](#usage)
-3. [Testing](#testing)
-4. [Function Reference](#function-reference)
-    * [libkv::get](#get)
-    * [libkv::put](#put)
-    * [libkv::delete](#delete)
-    * [libkv::exists](#exists)
-    * [libkv::list](#list)
-    * [libkv::deletetree](#deletetree)
-    * [libkv::atomic_create](#atomic_create)
-    * [libkv::atomic_delete](#atomic_delete)
-    * [libkv::atomic_get](#atomic_get)
-    * [libkv::atomic_put](#atomic_put)
-    * [libkv::atomic_list](#atomic_list)
-    * [libkv::empty_value](#empty_value)
-    * [libkv::info](#info)
-    * [libkv::supports](#supports)
-    * [libkv::pop_error](#pop_error)
-    * [libkv::provider](#provider)
-    * [libkv::watch](#watch)
-    * [libkv::watchtree](#watchtree)
-    * [libkv::newlock](#newlock)
+<!-- vim-markdown-toc -->
 
-5. [Development - Guide for contributing to the module](#development)
-    * [Acceptance Tests - Beaker env variables](#acceptance-tests)
+* [Overview](#overview)
+* [This is a SIMP module](#this-is-a-simp-module)
+* [Module Description](#module-description)
+* [Terminology](#terminology)
+* [Usage](#usage)
+  * [Single Backend Example](#single-backend-example)
+  * [Multiple Backends Example](#multiple-backends-example)
+  * [Binary Value Example](#binary-value-example)
+  * [Auto-Default Backend](#auto-default-backend)
+  * [libkv Configuration Reference](#libkv-configuration-reference)
+* [File Store and Plugin](#file-store-and-plugin)
+* [Limitations](#limitations)
+* [Plugin Development](#plugin-development)
+  * [Plugin Loading](#plugin-loading)
+  * [Implementing the Store Interface API](#implementing-the-store-interface-api)
+* [libkv Development](#libkv-development)
+  * [Unit tests](#unit-tests)
+  * [Acceptance tests](#acceptance-tests)
 
-## Description
+<!-- vim-markdown-toc GFM -->
 
-libkv is an abstract library that allows puppet to access a distributed key
-value store, like consul or etcd. This library implements all the basic
-key/value primitives, get, put, list, delete. It also exposes any 'check and
-set' functionality the underlying store supports. This allows building of safe
-atomic operations, to build complex distributed systems. This library supports
-loading 'provider' modules that exist in other modules, and provides a first
-class api.
+## Overview
 
-libkv uses lookup to store authentication information. This information can
-range from ssl client certificates, access tokens, or usernames and passwords.
-It is exposed as a hash named libkv::auth, and will be merged by default. The
-keys in the auth token are passed as is to the provider, and can vary between
-providers. Please read the documentation on configuring 'libkv::auth' for each
-provider
+## This is a SIMP module
 
-libkv currently supports the following providers:
+This module is a component of the [System Integrity Management Platform](https://simp-project.com),
+a compliance-management framework built on Puppet.
 
-* `mock` - Useful for testing, as it provides a kv store that is destroyed
-           after each catalog compilation
-* `consul` - Allows connectivity to an existing consul service
+If you find any issues, please submit them via [JIRA](https://simp-project.atlassian.net/).
 
-With the intention to support the following:
-* `etcd` - Allows connectivity to an existing etcd service
-* `simp6-legacy` - Implements the SIMP 6 legacy file storage api. 
-* `file` - Implements a non-ha flat file storage api.
+Please read our [Contribution Guide](https://simp.readthedocs.io/en/stable/contributors_guide/index.html).
 
-This module is a component of the [System Integrity Management
-Platform](https://github.com/NationalSecurityAgency/SIMP), a
-compliance-management framework built on Puppet.
+## Module Description
 
-If you find any issues, they may be submitted to our [bug
-tracker](https://simp-project.atlassian.net/).
+Provides an abstract library that allows Puppet to access one or more key/value
+stores.
+
+This module provides
+
+* a standard Puppet language API (functions) for using key/value stores
+
+  * The API is modeled after https://github.com/docker/libkv#interface.
+  * See [REFERENCE.md](REFERENCE.md) for more details on the available
+    functions.
+
+* a configuration scheme that allows users to specify per-application use
+  of different key/value store instances
+* adapter software that loads and uses store-specific interface software
+  provided by the libkv module itself and other modules
+* a Ruby API for the store interface software that developers can implement
+  to provide their own store interface
+* a file-based store on the local filesystem and its interface software.
+
+  * Future versions of this module will provide a distributed key/value store.
+
+If you find any issues, they may be submitted to our
+[bug tracker](https://simp-project.atlassian.net/).
+
+## Terminology
+
+The following terminology will be used throughout this document:
+
+* backend - A specific key/value store, e.g., files on a local filesystem,
+  Consul, Etcd, Zookeeper
+* plugin - Ruby software that interfaces with a specific backend to
+  affect the operations requested in libkv Puppet functions.
+* plugin instance - Instance of the plugin that handles a unique backend
+  configuration.
+* plugin adapter - Ruby software that loads, selects, and executes the
+  appropriate plugin software for a libkv function call.
 
 ## Usage
 
-As an example, you can use the following to store hostnames, and then read all
-the known hostnames from consul and generate a hosts file:
+Using `libkv` is simple:
+
+* Use `libkv` functions to store and retrieve key/value pairs in your Puppet
+  code.
+* Configure the backend(s) to use in Hieradata.
+* Reconfigure the backend(s) in Hieradata, as your needs change.
+
+  * No changes to your Puppet code will be required.
+  * Just transfer your data from the old key/value store to the new one.
+
+The backend configuration of `libkv` can be as simple as you want (one backend)
+or complex (multiple backends servicing different applications).  Examples of
+both scenarios will be shown in this section, along with a configuration
+reference.
+
+### Single Backend Example
+
+This example will store and retrieve host information using libkv function
+signatures that assume the default backend and hieradata that only configures
+the default backend.
+
+To store a node's hostname and IP address:
 
 ```puppet
-libkv::put("/hosts/${::clientcert}", $::ipaddress)
+libkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'])
+```
 
-$hosts = libkv::list("/hosts")
-$hosts.each |$host, $ip | {
+To create a hosts file using the list of stored host information:
+
+```puppet
+$hosts = libkv::list('hosts')
+$hosts.each |$host, $info | {
   host { $host:
-    ip => $ip,
+    ip => $info['value'],
   }
 }
 ```
 
-Each key specified *must* contain only the following characters:
-* a-z
-* A-Z
-* 0-9
-* The following special characters: `._:-/`
-
-Additionally, `/./` and `/../` are disallowed in all providers as key
-components. The key name also *must* begin with `/`
-
-When any libkv function is called, it will first call `lookup()` and attempt to
-find a value for libkv::url from hiera. This url specifies the provider name,
-the host, the port, and the path in the underlying store. For example:
+In hieradata, configure the default backend in the ``libkv::options`` Hash.  This
+example, will configure libkv's file backend.
 
 ```yaml
-libkv::url: 'consul://127.0.0.1:8500/puppet'
-libkv::url: 'consul+ssl://1.2.3.4:8501/puppet'
-libkv::url: 'file://'
-libkv::url: 'etcd://127.0.0.1:2380/puppet/%{environment}/'
-libkv::url: 'consul://127.0.0.1:8500/puppet/%{trusted.extensions.pp_department}/%{environment}'
+libkv::options:
+
+  # Hash of backend configurations.
+  # - We have only the required 'default' entry which will apply to
+  #   all libkv calls.
+  backends:
+    default:
+      # This is the advertised type for libkv's file plugin.
+      type: file
+      # This is a unique id for this configuration of the 'file' plugin.
+      id: file
+
+      # plugin-specific configuration
+      root_path: "/var/simp/libkv/file"
+      lock_timeout_seconds: 30
 ```
 
-## Testing
+### Multiple Backends Example
 
-Manual and automated tests require a shim to kick off Consul inside of Docker,
-before running.  Travis is programmed to run the shim.  To do so manually,
-first ensure you have [set up Docker](http://simp.readthedocs.io/en/latest/getting_started_guide/ISO_Build/Environment_Preparation.html#set-up-docker) properly.
+This example will store and retrieve host information using libkv function
+signatures that request a backend based on an application id and multi-backend
+hieradata that supports the request.  The function signatures and hieradata are
+a little more complicated, but still relatively straightforward to understand.
 
-Next, run the shim:
+To store a node's hostname and IP address using the backend servicing `myapp1`:
 
-```bash
-$ ./prep_ci.sh
+```puppet
+$libkv_options = { 'app_id' => 'myapp1' }
+$empty_metadata = {}
+libkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'], $empty_metadata, $libkv_options)
 ```
 
-**NOTE**: There is a bug which will not allow the containers to deploy if
-selinux is enforcing.  Set to permissive or disabled.
+To create a hosts file using the list of stored host information using the
+backend servicing `myapp1`:
 
-Run the unit tests:
-
-```bash
-$ bundle exec rake spec
+```puppet
+$libkv_options = { 'app_id' => 'myapp1' }
+$hosts = libkv::list('hosts', $libkv_options)
+$hosts.each |$host, $info | {
+  host { $host:
+    ip => $info['value'],
+  }
+}
 ```
 
-## Function reference
+In hieradata, configure multiple backends in the ``libkv::options`` Hash.
+This example will configure multiple instances of libkv's file backend.
+
+```yaml
+# The backend configurations here will be inserted into libkv::options
+# below via the alias function.
+
+libkv::backend::file_default:
+  type: file
+  id: default
+  root_path: "/var/simp/libkv/file"
+
+libkv::backend::file_myapp:
+  type: file
+  id: myapp
+  root_path: "/path/to/myapp"
+
+libkv::backend::file_yourapp:
+  type: file
+  id: yourapp
+  root_path: "/path/to/yourapp"
+
+
+libkv::options:
+  # Hash of backend configurations.
+  # * Includes application-specific backends and the required default backend.
+  # * libkv will use the appropriate backend for each libkv function call.
+  backends:
+    # backend for specific myapp application
+    "myapp_special_snowflake": "%{alias('libkv::backend::file_default')}"
+
+    # backend for remaining myapp* applications, including myapp1
+    "myapp":                   "%{alias('libkv::backend::file_myapp')}"
+
+    # backend for all yourapp* applications
+    "yourapp":                 "%{alias('libkv::backend::file_yourapp')}"
 
-<h3><a id="get">libkv::get</a></h3>
+    # required default backend
+    "default":                 "%{alias('libkv::backend::file_default')}"
+```
 
-Connects to the backend and retrieves the data stored at **key**
+In this example, we are setting the application identifier to `myapp1` in
+our libkv function calls.  libkv selects `myapp` as the backend to use for
+`myapp1` using the following simple search algorithm:
 
+* First, it looks for a backend named for the application id.
+* Next, it looks for the longest backend name matching the start of the
+  application id.
+* Finally, if no match is found, it defaults to a backend named `default`.
+
+### Binary Value Example
 
+libkv is able to store and retrieve binary values, provided the Puppet code
+uses the appropriate configuration and functions/types for binary data.
+
+  * **IMPORTANT**:  In Puppet 5, be sure to turn on `--rich_data` for both the
+    master and agent in order to ensure correct serialization/deserialization
+    of the `Binary` Puppet type.
 
+Below is an example of using libkv for a binary value.
 
+To store the content of a generated keytab file:
+
+```puppet
+# Load in the binary content from a file.  Returns a Binary Puppet type.
+$original_binary_content = binary_file('/path/to/keytabs/app.keytab')
 
-`Any $data = libkv::get(String key)`
+# Set a key/value pair with the binary content
+libkv::put('app/keytab', $original_binary_content)
+```
 
+To retrieve the keytab binary content and use it in a `file` resource:
 
-*Returns:*
-Any
+```puppet
+# Retrieve a binary value from a key/value store and set a Binary variable
+$retrieved_result = libkv::get('app/keytab')
+$retrieved_binary_content = Binary.new($retrieved_result['value'], '%r')
 
-*Usage:*
+# Persist binary data to another file
+file { '/different/path/to/keytabs/app.keytab':
+  content => $retrieved_binary_content
+}
 
+```
 
-<pre lang="ruby">
- $database_server = libkv::get("/database/${::fqdn}")
- class { "wordpress":
- 	db_host => $database_server,
- }
-</pre>
+### Auto-Default Backend
 
+libkv is intended to be configured via ``libkv::options`` and any
+application-specific configuration passed to the libkv Puppet functions.
+However, to facilitate rollout of libkv capabilities, (specifically
+use of libkv internally in ``simplib::passgen``), when ``libkv::options``
+is not set in hieradata, libkv will automatically use the libkv file store with
+the configuration that is equivalent to the following hieradata:
 
+```yaml
+libkv::options:
+  environment: "%{server_facts.environment}"
+  softfail: false
+  backend: default
+  backends:
+    default:
+      type: file
+      id: auto_default
+```
 
+### libkv Configuration Reference
 
+The libkv configuration used for each libkv function call is comprised of
+a merge of a function-provided options Hash, Hiera configuration specified
+by the `libkv::options` Hash, and global configuration defaults.  The merge
+is executed in a fashion to ensure the function-provided options take
+precedence over the `libkv::options` Hiera values.
 
+The merged libkv configuration contains global and backend-specific
+configurations, along with an optional application identifier. The primary
+keys in this Hash are as follows:
 
-<h3><a id="put">libkv::put</a></h3>
+* `app_id`: Optional String in libkv function calls, only. Specifies an
+  application name that can be used to identify which backend configuration
+  to use via fuzzy name matching, in the absence of the `backend` option.
+  (See [Backend Selection](#backend-selection)).
 
-Sets the data at `key` to the specified `value`
+  * More flexible option than `backend`.
+  * Useful for grouping together libkv function calls found in different
+    catalog resources.
 
+* `backend`: Optional String. Specifies a definitive backend configuration
+  to use.
 
+  * Takes precedence over `app_id`.
+  * When present, must match a key in `backends` and will be used unequivocally.
 
+    * If that backend does not exist in `backends`, the libkv function will fail.
 
+  * When absent, the backend configuration will be selected from the set of
+    entries in `backends`, using the `app_id` option if specified.
+    (See [Backend Selection](#backend-selection)).
 
-`Boolean $suceeeded = libkv::put(String key, Any value)`
+* `backends`: Required Hash. Specifies backend configurations.  Each key
+  is the name of a backend configuration and its value contains the
+  corresponding configuration Hash.
 
+  * Each key is a String.
+  * Must include a 'default' key.
+  * More than one key can use the same backend configuration.
+  * See [Backend Configuration Entries](#backend-configuration-entries)
+    for more details about a backend configuration Hash.
 
-*Returns:*
-Boolean
+* `environment`: Optional String.  Puppet environment to prepend to keys.
 
-*Usage:*
+  * When set to a non-empty string, it is prepended to the key or key folder
+    used in a backend operation.
+  * Should only be set to an empty string when the key being accessed is truly
+    global.
+  * Defaults to the Puppet environment for the node when absent.
 
+* `softfail`: Optional Boolean. Whether to ignore libkv operation failures.
 
-<pre lang="ruby">
-libkv::put("/hosts/${::fqdn}", "${::ipaddress}")
-</pre>
+  * When `true`, each libkv function will return a result object even when the
+    operation failed at the backend.
+  * When `false`, each libkv function will fail when the backend operation
+    failed.
+  * Defaults to `false` when absent.
 
+#### Backend Configuration Entries
 
+Each backend configuration entry in `backends` is a Hash.  The Hash must
+contain `type` and `id` keys, where the (`type`,`id`) pair defines a unique
+configuration.
 
+* `type` must be unique across all backend plugins, including those
+  provided by other modules.
+* `id` must be unique for a each distinct configuration for a `type`.
+* Other keys for configuration specific to the backend may also be present.
 
+#### Backend Selection
 
+The backend to use for a libkv Puppet function call will be determined from
+the merged libkv options Hash as follows:
 
-<h3><a id="delete">libkv::delete</a></h3>
+* If a specific backend is requested via the `backend` key in the merged libkv
+  options Hash, that backend will be selected.
 
-Deletes the specified `key`. Must be a single key
+  * If that backend does not exist in `backends`, the libkv function will fail.
 
+* Otherwise, if an `app_id` option is specified in the merged libkv options
+  Hash and it matches a key in the `backends` Hash, exactly, that backend will
+  be selected.
+* Otherwise, if an `app_id` option is specified in the merged libkv options
+  Hash and it starts with the key in the `backends` Hash, that backend will be
+  selected.
 
+  * When multiple backends satisfy the 'start with' match, the backend with the
+    most matching characters is selected.
 
+* Otherwise, if the `app_id` option does not match any key in in the `backends`
+  Hash or is not present, the `default` backend will be selected.
 
+## File Store and Plugin
 
-`Boolean $suceeeded = libkv::delete(String key)`
+libkv provides a file-based key/value store and its plugin.  This file store
+maintains individual key files on a local filesystem, has a backend type `file`,
+and supports the following plugin-specific configuration parameters.
 
+* `root_path`: Root directory path for the key files
 
-*Returns:*
-Boolean
+  * Defaults to `/var/simp/libkv/file/<id>` when that directory can be created
+    or '<Puppet[:vardir]>/simp/libkv/<name>' otherwise.
 
-*Usage:*
+* `lock_timeout_seconds`: Maximum number of seconds to wait for an exclusive
+  file lock on a file modifying operation before failing the operation.
 
+  * Defaults to 5 seconds.
 
-<pre lang="ruby">
-$response = libkv::delete("/hosts/${::fqdn}")
+## Limitations
 
-</pre>
+* SIMP Puppet modules are generally intended to be used on a Red Hat Enterprise
+  Linux-compatible distribution such as EL6 and EL7.
 
+* libkv's file plugin is only guaranteed to work on local filesystems.  It may not
+  work on shared filesystems, such as NFS.
 
+* `libkv` only supports the use of binary data for the value when that data is
+   a Puppet `Binary`. It does not support binary data which is a sub-element of
+   a more complex value type (e.g.  `Array[Binary]` or `Hash` that has a key or
+   value that is a `Binary`).
 
+## Plugin Development
 
+### Plugin Loading
 
+Each plugin (store interface) is written in pure Ruby and, to prevent
+cross-environment contamination, is implemented as an anonymous class
+that is automatically loaded by the libkv adapter with each Puppet compile.
+You do not have to do anything special to have your plugin loaded, provided
+you follow the instructions in the next section.
 
-<h3><a id="exists">libkv::exists</a></h3>
+### Implementing the Store Interface API
 
-Returns true if `key` exists
+To create your own plugin
 
+* Create a `lib/puppet_x/libkv` directory within your store plugin module.
+* Copy `lib/puppet_x/libkv/plugin_template.rb` from the libkv module into that
+  directory with a name `<your plugin name>_plugin.rb`.  For example,
+  `nfs_file_plugin.rb`.
+* **READ** all the documentation in your plugin skeleton, paying close attention
+  the `IMPORTANT NOTES` discussion.
+* Implement the body of each method as identified by a `FIXME`. Be sure to
+  conform to the API for the method.
+* Write unit tests for your plugin, using the unit tests for libkv's file
+  plugin, `spec/unit/puppet_x/libkv/file_plugin_spec.rb` as an example.  That
+  test shows you how to instantiate an object of your plugin for testing
+  purposes.
+* Write acceptance tests for your plugin, using the acceptance tests for
+  libkv's file plugin, `spec/acceptances/suites/default/file_plugin_spec.rb`,
+  as an example.  That test uses a test module, `spec/support/libkv_test` to
+  exercise the the libkv API and verify its operation.
+* Document your plugin's type and configuration parameters in the README.md for
+  your store plugin module.
 
+## libkv Development
 
+Please read our [Contribution Guide] (https://simp.readthedocs.io/en/stable/contributors_guide/index.html).
 
+### Unit tests
 
-`Boolean $exists = libkv::exists(String key)`
+Unit tests, written in ``rspec-puppet`` can be run by calling:
 
-
-*Returns:*
-Boolean
-
-*Usage:*
-
-
-<pre lang="ruby">
- if (libkv::exists("/hosts/${::fqdn}") == true) {
- 	notify { "/hosts/${::fqdn} exists": }
- }
-</pre>
-
-
-
-
-
-
-<h3><a id="list">libkv::list</a></h3>
-
-Lists all keys in the folder named `key`
-
-
-
-
-
-`Hash $list = libkv::list(String key)`
-
-
-*Returns:*
-Hash
-
-*Usage:*
-
-
-<pre lang="ruby">
- $list = libkv::list('/hosts')
- $list.each |String $host, String $ip| {
- 	host { $host:
- 		ip => $ip,
- 	}
- }
-</pre>
-
-
-
-
-
-
-<h3><a id="deletetree">libkv::deletetree</a></h3>
-
-Deletes the whole folder named `key`. This action is inherently unsafe.
-
-
-
-
-
-`Boolean $succeeded = libkv::deletetree(String key)`
-
-
-*Returns:*
-Boolean
-
-*Usage:*
-
-
-<pre lang="ruby">
-$response = libkv::deletetree("/hosts")
-
-</pre>
-
-
-
-
-
-
-<h3><a id="atomic_create">libkv::atomic_create</a></h3>
-
-Store `value` in `key`, but only if key does not exist already, and do so atomically
-
-
-
-
-
-`Boolean $suceeeded = libkv::atomic_create(String key, Any value)`
-
-
-*Returns:*
-Boolean
-
-*Usage:*
-
-
-<pre lang="ruby">
- $id = rand(0,2048)
- $result = libkv::atomic_create("/serverids/${::fqdn}", $id)
- if ($result == false) {
- 	$serverid = libkv::get("/serverids/${::fqdn}")
- } else {
- 	$serverid = $id
- }
- notify("the server id of ${serverid} is indempotent!") 
-</pre>
-
-
-
-
-
-
-<h3><a id="atomic_delete">libkv::atomic_delete</a></h3>
-
-Delete `key`, but only if key still matches the value of `previous`
-
-
-
-
-
-`Boolean $suceeded = libkv::atomic_delete(String key, Hash previous)`
-
-
-*Returns:*
-Boolean
-
-*Usage:*
-
-
-<pre lang="ruby">
- $previous = libkv::atomic_get("/env/${::fqdn}")
- $result = libkv::atomic_delete("/env/${::fqdn}", $previous)
- 
-</pre>
-
-
-
-
-
-
-<h3><a id="atomic_get">libkv::atomic_get</a></h3>
-
-Get the value of key, but return it in a hash suitable for use with other atomic functions
-
-
-
-
-
-`Hash $previous = libkv::atomic_get(String key)`
-
-
-*Returns:*
-Hash
-
-*Usage:*
-
-
-<pre lang="ruby">
- $previous = libkv::atomic_get("/env/${::fqdn}")
- notify { "previous value is ${previous["value"]}": }
- 
-</pre>
-
-
-
-
-
-
-<h3><a id="atomic_put">libkv::atomic_put</a></h3>
-
-Set `key` to `value`, but only if the key is still set to `previous`
-
-
-
-
-
-`Boolean $suceeeded = libkv::atomic_put(String key, Any value, Hash previous)`
-
-
-*Returns:*
-Boolean
-
-*Usage:*
-
-
-<pre lang="ruby">
- $newvalue = 'new'
- $previous = libkv::atomic_get("/env/${::fqdn}")
- $result = libkv::atomic_put("/env/${::fqdn}", $newvalue, $previous)
- if ($result == true) {
- 	$real = $newvalue
- } else {
- 	$real = libkv::get("/env/${::fqdn}")
- }
- notify { "I updated to $real atomically!": }
- 
-</pre>
-
-
-
-
-
-
-<h3><a id="atomic_list">libkv::atomic_list</a></h3>
-
-List all keys in folder `key`, but return them in a format suitable for other atomic functions
-
-
-
-
-
-`Hash $list = libkv::atomic_list(String key)`
-
-
-*Returns:*
-Hash
-
-*Usage:*
-
-
-<pre lang="ruby">
-# Add a host resource for everything under /hosts
-
- $list = libkv::atomic_list('/hosts')
- $list.each |String $host, Hash $data| {
- 	host { $host:
- 		ip => $data['value'],
- 	}
- }
-</pre>
-
-
-<pre lang="ruby">
-# For each host in /hosts, atomically update the value to 'newip'
-
- $list = libkv::atomic_list('/hosts')
- $list.each |String $host, Hash $data| {
- 	libkv::atomic_put("/hosts/${host}", "newip", $data)
- }
-</pre>
-
-
-
-
-
-
-<h3><a id="empty_value">libkv::empty_value</a></h3>
-
-Return an hash suitable for other atomic functions, that represents an empty value
-
-
-`Hash $empty_value = libkv::empty_value()`
-
-
-*Returns:*
-Hash
-
-*Usage:*
-
-
-<pre lang="ruby">
- $empty = libkv::empty()
- $result = libkv::atomic_get("/some/key")
- if ($result == $empty) {
- 	notify { "/some/key doesn't exist": }
- }
- 
-</pre>
-
-
-
-
-
-
-<h3><a id="info">libkv::info</a></h3>
-
-Return a hash of informtion on the underlying provider. Provider specific
-
-
-`Hash $provider_information = libkv::info()`
-
-
-*Returns:*
-Hash
-
-*Usage:*
-
-
-<pre lang="ruby">
- $info = libkv::info()
- notify { "libkv connection is: ${info}": }
- 
-</pre>
-
-
-
-
-
-
-<h3><a id="supports">libkv::supports</a></h3>
-
-Return an array of all supported functions
-
-
-`Array $supported_functions = libkv::supports()`
-
-
-*Returns:*
-Array
-
-*Usage:*
-
-
-<pre lang="ruby">
- $supports = libkv::supports()
- if ($supports in 'atomic_get') {
- 	libkv::atomic_get('/some/key')
- } else {
- 	libkv::get('/some/key')
- }
- 
-</pre>
-
-
-
-
-
-
-<h3><a id="pop_error">libkv::pop_error</a></h3>
-
-Return the error message for the last call
-
-
-<h3><a id="provider">libkv::provider</a></h3>
-
-Return the name of the current provider
-
-
-`String $provider_name = libkv::provider()`
-
-
-*Returns:*
-String
-
-*Usage:*
-
-
-<pre lang="ruby">
- $provider = libkv::provider()
- notify { "libkv connection is: ${provider}": }
- 
-</pre>
-
-
-
-
-
-
-<h3><a id="watch">libkv::watch</a></h3>
-
-
-
-
-<h3><a id="watchtree">libkv::watchtree</a></h3>
-
-
-
-
-<h3><a id="newlock">libkv::newlock</a></h3>
-
-
-
-
-
-## Development
-
-Please read our [Contribution Guide](http://simp-doc.readthedocs.io/en/stable/contributors_guide/index.html).
+```shell
+bundle exec rake spec
+```
 
 ### Acceptance tests
 
-This module includes [Beaker](https://github.com/puppetlabs/beaker) acceptance
-tests using the SIMP [Beaker Helpers](https://github.com/simp/rubygem-simp-beaker-helpers).
-By default the tests use [Vagrant](https://www.vagrantup.com/) with
-[VirtualBox](https://www.virtualbox.org) as a back-end; Vagrant and VirtualBox
-must both be installed to run these tests without modification. To execute the
-tests run the following:
+To run the system tests, you need [Vagrant](https://www.vagrantup.com/) installed. Then, run:
 
 ```shell
-bundle install
 bundle exec rake beaker:suites
 ```
 
-Please refer to the [SIMP Beaker Helpers documentation](https://github.com/simp/rubygem-simp-beaker-helpers/blob/master/README.md)
-for more information.
+Some environment variables may be useful:
+
+```shell
+BEAKER_debug=true
+BEAKER_provision=no
+BEAKER_destroy=no
+BEAKER_use_fixtures_dir_for_modules=yes
+```
+
+* `BEAKER_debug`: show the commands being run on the STU and their output.
+* `BEAKER_destroy=no`: prevent the machine destruction after the tests finish so you can inspect the state.
+* `BEAKER_provision=no`: prevent the machine from being recreated. This can save a lot of time while you're writing the tests.
+* `BEAKER_use_fixtures_dir_for_modules=yes`: cause all module dependencies to be loaded from the `spec/fixtures/modules` directory, based on the contents of `.fixtures.yml`.  The contents of this directory are usually populated by `bundle exec rake spec_prep`.  This can be used to run acceptance tests to run on isolated networks.
+

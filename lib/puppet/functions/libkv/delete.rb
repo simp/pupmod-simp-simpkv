@@ -1,86 +1,131 @@
-# vim: set expandtab ts=2 sw=2:
+# Deletes a `key` from the configured backend.
 #
-# @author Dylan Cochran <dylan.cochran@onyxpoint.com>
+# @author https://github.com/simp/pupmod-simp-libkv/graphs/contributors
+#
 Puppet::Functions.create_function(:'libkv::delete') do
-  # @param parameters [Hash] Hash of all parameters
-  # 
-  # @param key [String] string of the key to retrieve
+
+  # @param key The key to remove. Must conform to the following:
   #
-  # @return [Any] The value in the underlying backing store
+  #   * Key must contain only the following characters:
   #
+  #     * a-z
+  #     * A-Z
+  #     * 0-9
+  #     * The following special characters: `._:-/`
+  #
+  #   * Key may not contain '/./' or '/../' sequences.
+  #
+  # @param options libkv configuration that will be merged with
+  #   `libkv::options`.  All keys are optional.
+  #
+  # @option options [String] 'app_id'
+  #   Specifies an application name that can be used to identify which backend
+  #   configuration to use via fuzzy name matching, in the absence of the
+  #   `backend` option.
+  #
+  #     * More flexible option than `backend`.
+  #     * Useful for grouping together libkv function calls found in different
+  #       catalog resources.
+  #     * When specified and the `backend` option is absent, the backend will be
+  #       selected preferring a backend in the merged `backends` option whose
+  #       name exactly matches the `app_id`, followed by the longest backend
+  #       name that matches the beginning of the `app_id`, followed by the
+  #       `default` backend.
+  #     * When absent and the `backend` option is also absent, this function
+  #       will use the `default` backend.
+  #
+  # @option options [String] 'backend'
+  #   Definitive name of the backend to use.
+  #
+  #     * Takes precedence over `app_id`.
+  #     * When present, must match a key in the `backends` option of the
+  #       merged options Hash or the function will fail.
+  #     * When absent in the merged options, this function will select
+  #       the backend as described in the `app_id` option.
+  #
+  # @option options [Hash] 'backends'
+  #   Hash of backend configurations
+  #
+  #     * Each backend configuration in the merged options Hash must be
+  #       a Hash that has the following keys:
+  #
+  #       * `type`:  Backend type.
+  #       * `id`:  Unique name for the instance of the backend. (Same backend
+  #         type can be configured differently).
+  #
+  #      * Other keys for configuration specific to the backend may also be
+  #        present.
+  #
+  # @option options [String] 'environment'
+  #   Puppet environment to prepend to keys.
+  #
+  #     * When set to a non-empty string, it is prepended to the key used in
+  #       the backend operation.
+  #     * Should only be set to an empty string when the key being accessed is
+  #       truly global.
+  #     * Defaults to the Puppet environment for the node.
+  #
+  # @option options [Boolean] 'softfail'
+  #   Whether to ignore libkv operation failures.
+  #
+  #     * When `true`, this function will return a result even when the
+  #       operation failed at the backend.
+  #     * When `false`, this function will fail when the backend operation
+  #       failed.
+  #     * Defaults to `false`.
+  #
+  # @raise ArgumentError If the key or merged backend config is invalid
+  #
+  # @raise LoadError If the libkv adapter cannot be loaded
+  #
+  # @raise RuntimeError If the backend operation fails, unless 'softfail' is
+  #   `true` in the merged backend options.
+  #
+  # @return [Boolean] `true` when backend operation succeeds; `false` when the
+  #   backend operation fails and 'softfail' is `true` in the merged backend
+  #   options
+  #
+  # @example Delete a key using the default backend
+  #   libkv::delete("hosts/${facts['fqdn']}")
+  #
+  # @example Delete a key using the backend servicing an application id
+  #   libkv::delete("hosts/${facts['fqdn']}", { 'app_id' => 'myapp' })
   #
   dispatch :delete do
-    param 'Hash', :parameters
+    required_param 'String[1]', :key
+    optional_param 'Hash',      :options
   end
 
+  def delete(key, options={})
+    # key validation difficult to do via a type alias, so validate via function
+    call_function('libkv::support::key::validate', key)
 
+    # load libkv and add libkv 'extension' to the catalog instance as needed
+    call_function('libkv::support::load')
 
-  
-    dispatch :delete_v1 do
-    
-      
-        param "String", :parameters
-      
-    
-    end
-    def delete_v1(key)
-     params = {}
-     
-      
-        params['key'] = key
-      
-    
-    delete(params)
-    end
-  
-
-def delete(params)
-    nparams = params.dup
-    if (closure_scope.class.to_s == 'Puppet::Parser::Scope') 
-      catalog = closure_scope.find_global_scope.catalog
-    else
-      if ($__LIBKV_CATALOG == nil)
-        catalog = Object.new
-        $__LIBKV_CATALOG = catalog
-      else
-        catalog = $__LIBKV_CATALOG
-      end
-    end
+    # determine backend configuration using options, `libkv::options`,
+    # and the list of backends for which plugins have been loaded
     begin
-      find_libkv = catalog.libkv
-    rescue
-      filename = File.dirname(File.dirname(File.dirname(File.dirname("#{__FILE__}")))) + "/puppet_x/libkv/loader.rb"
-      if File.exists?(filename)
-        catalog.instance_eval(File.read(filename), filename)
-        find_libkv = catalog.libkv
+      catalog = closure_scope.find_global_scope.catalog
+      merged_options = call_function( 'libkv::support::config::merge', options,
+        catalog.libkv.backends)
+    rescue ArgumentError => e
+      msg = "libkv Configuration Error for libkv::delete with key='#{key}': #{e.message}"
+      raise ArgumentError.new(msg)
+    end
+
+    # use libkv for delete operation
+    backend_result = catalog.libkv.delete(key, merged_options)
+    success = backend_result[:result]
+    unless success
+      err_msg =  "libkv Error for libkv::delete with key='#{key}': #{backend_result[:err_msg]}"
+      if merged_options['softfail']
+        Puppet.warning(err_msg)
       else
-        raise Exception
+        raise(err_msg)
       end
     end
-    libkv = find_libkv
-    if nparams.key?('url')
-      url = nparams['url']
-    else
-      url = call_function('lookup', 'libkv::url', { 'default_value' => 'mock://'})
-    end
-    nparams["url"] = url
-    
-    if nparams.key?('auth')
-      auth = nparams['auth']
-    else
-      auth = call_function('lookup', 'libkv::auth', { 'default_value' => nil })
-    end
-    nparams["auth"] = auth
-    if (nparams["softfail"] == true)
-      begin
-        retval = libkv.delete(url, auth, nparams);
-      rescue
-        retval = false
-      end
-    else
-      retval = libkv.delete(url, auth, nparams);
-     end
-    return retval;
+
+    success
   end
 end
-
