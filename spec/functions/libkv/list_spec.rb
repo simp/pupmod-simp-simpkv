@@ -10,6 +10,12 @@ def prepopulate_key_files(root_dir, keydir)
     filename = File.join(actual_keydir, description.gsub(' ','_'))
     File.open(filename, 'w') { |file| file.write(info[:serialized_value]) }
   end
+
+  # create a few sub-folders within the keydir
+  ['subapp1', 'subapp2', 'subapp3'].each do |folder|
+    subdir = File.join(actual_keydir, folder)
+    FileUtils.mkdir_p(subdir)
+  end
 end
 
 describe 'libkv::list' do
@@ -74,6 +80,10 @@ describe 'libkv::list' do
     list.delete('skip')
     list
   }
+  let(:full_list) {
+   { 'keys' => key_list, 'folders' => ['app1/subapp1', 'app1/subapp2', 'app1/subapp3'] }
+  }
+
   let(:test_file_env_root_dir) { File.join(@root_path_test_file, 'production') }
   let(:default_app_id_env_root_dir) { File.join(@root_path_default_app_id, 'production') }
   let(:default_env_root_dir) { File.join(@root_path_default, 'production') }
@@ -87,21 +97,21 @@ describe 'libkv::list' do
       prepopulate_key_files(test_file_env_root_dir, keydir)
 
       is_expected.to run.with_params(keydir, @options_test_file).
-          and_return(key_list)
+          and_return(full_list)
     end
 
     it 'should retrieve key list from the default backend in options when keys exist and app_id unspecified' do
       prepopulate_key_files(default_env_root_dir, keydir)
 
       is_expected.to run.with_params(keydir, @options_default).
-          and_return(key_list)
+          and_return(full_list)
     end
 
     it 'should retrieve key list from the default backend for the app_id when keys exist' do
       prepopulate_key_files(default_app_id_env_root_dir, keydir)
 
       is_expected.to run.with_params(keydir, @options_default_app_id).
-          and_return(key_list)
+          and_return(full_list)
     end
 
     it 'should retrieve key list from the auto-default backend when keys exist and backend config missing' do
@@ -119,7 +129,7 @@ describe 'libkv::list' do
         'auto_default', environment)
       prepopulate_key_files(env_root_dir, keydir)
 
-      is_expected.to run.with_params(keydir).and_return(key_list)
+      is_expected.to run.with_params(keydir).and_return(full_list)
     end
 
     it 'should return an empty key list when no keys exist but the directory exists' do
@@ -127,7 +137,7 @@ describe 'libkv::list' do
       actual_keydir = File.join(default_env_root_dir, keydir)
       FileUtils.mkdir_p(actual_keydir)
 
-      is_expected.to run.with_params(keydir, @options_default).and_return({})
+      is_expected.to run.with_params(keydir, @options_default).and_return({'keys'=>{}, 'folders'=>[]})
     end
 
     it 'should fail when the directory does not exist and `softfail` is false' do
@@ -140,7 +150,7 @@ describe 'libkv::list' do
       options['environment'] = ''
       prepopulate_key_files(@root_path_default, keydir)
 
-      is_expected.to run.with_params(keydir, options).and_return(key_list)
+      is_expected.to run.with_params(keydir, options).and_return(full_list)
     end
 
     it 'should fail when backend list fails and `softfail` is false' do
@@ -172,7 +182,7 @@ describe 'libkv::list' do
       default_env_root_dir = File.join(@root_path_default, 'myenv')
       prepopulate_key_files(default_env_root_dir, keydir)
 
-      is_expected.to run.with_params(keydir, options).and_return(key_list)
+      is_expected.to run.with_params(keydir, options).and_return(full_list)
     end
   end
 

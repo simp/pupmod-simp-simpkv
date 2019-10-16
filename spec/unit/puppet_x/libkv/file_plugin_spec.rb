@@ -382,17 +382,24 @@ describe 'libkv file plugin anonymous class' do
         key_dir = File.join(@root_path, 'production')
         FileUtils.mkdir_p(key_dir)
         result = @plugin.list('production')
-        expect( result[:result] ).to eq({})
+        expect( result[:result] ).to eq({ :keys => {}, :folders => []})
         expect( result[:err_msg] ).to be_nil
       end
 
-      it 'should return full list of key/value pairs in :result when key folder content is accessible' do
+      it 'should return full list of key/value pairs and sub-folders in :result when key folder content is accessible' do
         expected = {
-          'production/key1' => 'value for key1',
-          'production/key2' => 'value for key2',
-          'production/key3' => 'value for key3'
+          :keys => {
+            'production/key1' => 'value for key1',
+            'production/key2' => 'value for key2',
+            'production/key3' => 'value for key3'
+          },
+          :folders => [
+            'production/app1',
+            'production/app2'
+          ]
         }
-        expected.each { |key,value| @plugin.put(key, value) }
+        expected[:keys].each { |key,value| @plugin.put(key, value) }
+        expected[:folders].each { |folder| @plugin.put("#{folder}/key", "#{folder}/key value") }
         result = @plugin.list('production')
         expect( result[:result] ).to eq(expected)
         expect( result[:err_msg] ).to be_nil
@@ -400,10 +407,13 @@ describe 'libkv file plugin anonymous class' do
 
       it 'should return partial list of key/value pairs in :result when some key folder content is not accessible' do
         expected = {
-          'production/key1' => 'value for key1',
-          'production/key3' => 'value for key3'
+          :keys => {
+            'production/key1' => 'value for key1',
+            'production/key3' => 'value for key3'
+          },
+          :folders => []
         }
-        expected.each { |key,value| @plugin.put(key, value) }
+        expected[:keys].each { |key,value| @plugin.put(key, value) }
 
         # create a file for 'production/key2', but make it inaccessible via a lock
         locked_key_file_operation(@root_path, 'production/key2', 'value for key2') do

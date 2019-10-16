@@ -241,35 +241,47 @@ plugin_class = Class.new do
     { :result => value, :err_msg => err_msg }
   end
 
-  # Returns a list of all keys/value pairs in a folder
+  # Returns a listing of all keys/info pairs and sub-folders in a folder
+  #
+  # The list operation does not recurse through any sub-folders. Only
+  # information about the specified key folder is returned.
   #
   # This implementation is best effort.  It will attempt to retrieve the
   # information in a folder and only fail if the folder itself cannot be
   # accessed.  Individual key retrieval failures will be ignored.
   #
   # @return results Hash
-  #   * :result - Hash of retrieved key/value pairs; nil if the
+  #   * :result - Hash of retrieved key and sub-folder info; nil if the
   #     retrieval operation failed
+  #
+  #     * :keys - Hash of the key/value pairs for keys in the folder
+  #     * :folders - Array of sub-folder names
+  #
   #   * :err_msg - String. Explanatory text upon failure; nil otherwise.
   #
   def list(keydir)
-    pairs = nil
+    result = nil
     err_msg = nil
     dir = File.join(@root_path, keydir)
     if Dir.exist?(dir)
-      pairs = {}
-      Dir.glob(File.join(dir,'*')).each do |keyfile|
-        key = keyfile.gsub(@root_path + File::SEPARATOR,'')
-        result = get(key)
-        unless result[:result].nil?
-          pairs[key] = result[:result]
+      result = { :keys => {}, :folders => [] }
+      Dir.glob(File.join(dir,'*')).each do |entry|
+        if File.directory?(entry)
+          result[:folders] << entry.gsub(@root_path + File::SEPARATOR,'')
+        else
+          key = entry.gsub(@root_path + File::SEPARATOR,'')
+          key_result = get(key)
+          unless key_result[:result].nil?
+            result[:keys][key] = key_result[:result]
+          end
         end
       end
+      result[:folders].sort!
     else
        err_msg = "libkv plugin #{@name}: Key folder '#{keydir}' not found"
     end
 
-    { :result => pairs, :err_msg => err_msg }
+    { :result => result, :err_msg => err_msg }
   end
 
   # @return unique identifier assigned to this plugin instance

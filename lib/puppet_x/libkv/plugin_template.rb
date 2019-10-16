@@ -209,13 +209,22 @@ plugin_class = Class.new do
     { :result => nil, :err_msg => 'FIXME: not implemented' }
   end
 
-  # Returns a list of all keys/value pairs in a folder
+  # Returns a listing of all keys/info pairs and sub-folders in a folder
+  #
+  # The list operation does not recurse through any sub-folders. Only
+  # information about the specified key folder is returned.
   #
   # This implementation is best effort.  It will attempt to retrieve the
   # information in a folder and only fail if the folder itself cannot be
   # accessed.  Individual key retrieval failures will be ignored.
   #
   # @return results Hash
+  #   * :result - Hash of retrieved key and sub-folder info; nil if the
+  #     retrieval operation failed
+  #
+  #     * :keys - Hash of the key/value pairs for keys in the folder
+  #     * :folders - Array of sub-folder names
+  #
   #   * :result - Hash of retrieved key/value pairs; nil if the
   #     retrieval operation failed
   #   * :err_msg - String. Explanatory text upon failure; nil otherwise.

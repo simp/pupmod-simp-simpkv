@@ -387,10 +387,15 @@ describe 'libkv adapter anonymous class' do
       let(:keydir) { key.gsub('/key','') }
       it 'should return deserialized plugin list result' do
         @plugin.put(key_plus_env, serialized_value)
+        # create a sub-folder
+        @plugin.put(key_plus_env.gsub('/key', '/app1/key'), serialized_value)
         expect(@adapter.list(keydir, @options_file)).
           to eq({
             :result => {
-              key => {:value => value, :metadata => metadata},
+              :keys => {
+                key => {:value => value, :metadata => metadata},
+              },
+              :folders => [ "#{keydir}/app1" ]
             },
             :err_msg => nil
           })
