@@ -114,6 +114,12 @@ Puppet::Functions.create_function(:'libkv::list') do
   #   $result = libkv::list('applications')
   #   notice("Supported applications: ${join($result['folders'], ' ')}")
   #
+  # @example Retrieve the top folder list for the environment in the default backend
+  #   $result = libkv::list('/')
+  #
+  # @example Retrieve the list of environments supported by the default backend
+  #   $result = libkv::list('/', { 'environment' => '' })
+  #
   dispatch :list do
     required_param 'String[1]', :keydir
     optional_param 'Hash',      :options

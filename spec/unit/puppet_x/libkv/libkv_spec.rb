@@ -401,6 +401,32 @@ describe 'libkv adapter anonymous class' do
           })
       end
 
+      it "should return list of top level folders for the environment when passed '/' as the key" do
+        @plugin.put(key_plus_env, serialized_value)
+        expect(@adapter.list('/', @options_file)).
+          to eq({
+            :result => {
+              :keys => {},
+              :folders => [ 'my' ]
+            },
+            :err_msg => nil
+          })
+      end
+
+      it "should return list of environments when passed '/' as the key and environment is set to ''" do
+        @plugin.put(key_plus_env, serialized_value)
+        options = @options_file.dup
+        options['environment'] =''
+        expect(@adapter.list('/', options)).
+          to eq({
+            :result => {
+              :keys => {},
+              :folders => [ 'production' ]
+            },
+            :err_msg => nil
+          })
+      end
+
       it 'should return a failed result when deserialization of plugin list result fails' do
         @plugin.put(key_plus_env, 'This is not JSON')
         result = @adapter.list(keydir, @options_file)

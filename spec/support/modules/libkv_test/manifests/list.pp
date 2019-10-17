@@ -28,4 +28,23 @@ class libkv_test::list inherits libkv_test::params
     $_expected,
     "libkv::list('${::libkv_test::params::test_keydir}')"
   )
+
+  # top level list for the environment of the libkv backend specified by
+  # $::libkv_test::params::libkv_options
+  libkv_test::assert_equal(
+    libkv::list('/', $::libkv_test::params::libkv_options),
+    {keys => {}, folders => [ 'from_class' ]},
+    "libkv::list('/', ${::libkv_test::params::libkv_options})"
+  )
+
+
+  # top level list overall for the libkv backend specified by
+  # $::libkv_test::params::libkv_options (i.e., the list of environments
+  # for the backend)
+  $_options = deep_merge($::libkv_test::params::libkv_options, { 'environment' => '' })
+  libkv_test::assert_equal(
+    libkv::list('/', $_options),
+    {keys => {}, folders => ['production']},
+    "libkv::list('/', ${_options})"
+  )
 }

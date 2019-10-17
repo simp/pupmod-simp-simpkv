@@ -16,6 +16,7 @@
 simp_libkv_adapter_class = Class.new do
   require 'base64'
   require 'json'
+  require 'pathname'
 
   attr_accessor :plugin_classes, :plugin_instances
 
@@ -336,7 +337,8 @@ simp_libkv_adapter_class = Class.new do
       end
     end
 
-    normalized_key
+    # get rid of extraneous slashes
+    Pathname.new(normalized_key).cleanpath.to_s
   end
 
   # Creates or retrieves an instance of the backend plugin class specified

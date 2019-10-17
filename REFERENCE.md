@@ -556,6 +556,18 @@ $result = libkv::list('applications')
 notice("Supported applications: ${join($result['folders'], ' ')}")
 ```
 
+##### Retrieve the top folder list for the environment in the default backend
+
+```puppet
+$result = libkv::list('/')
+```
+
+##### Retrieve the list of environments supported by the default backend
+
+```puppet
+$result = libkv::list('/', { 'environment' => '' })
+```
+
 #### `libkv::list(String[1] $keydir, Optional[Hash] $options)`
 
 Returns a listing of all keys and sub-folders in a folder.
@@ -607,6 +619,18 @@ $result['keys'].each |$host, $info | {
 ```puppet
 $result = libkv::list('applications')
 notice("Supported applications: ${join($result['folders'], ' ')}")
+```
+
+###### Retrieve the top folder list for the environment in the default backend
+
+```puppet
+$result = libkv::list('/')
+```
+
+###### Retrieve the list of environments supported by the default backend
+
+```puppet
+$result = libkv::list('/', { 'environment' => '' })
 ```
 
 ##### `keydir`
