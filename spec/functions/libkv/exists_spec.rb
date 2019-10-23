@@ -100,8 +100,21 @@ describe 'libkv::exists' do
       is_expected.to run.with_params(key).and_return(true)
     end
 
+    it 'should return true when the key folder exists at a specific backend in options' do
+      sub_keydir = 'app1'
+      FileUtils.mkdir_p(File.join(test_file_keydir, sub_keydir))
+
+      is_expected.to run.with_params(sub_keydir, @options_test_file).and_return(true)
+    end
+
     it 'should return false when the key does not exist at a specific backend in options' do
       is_expected.to run.with_params(key, @options_test_file).and_return(false)
+    end
+
+    it 'should return false when the key folder does not exists at a specific backend in options' do
+      FileUtils.mkdir_p(test_file_keydir)
+
+      is_expected.to run.with_params('missing/sub/dir', @options_test_file).and_return(false)
     end
 
     it 'should use environment-less key when environment is empty' do

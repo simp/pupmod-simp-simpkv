@@ -74,14 +74,14 @@ describe 'libkv::list' do
       else
         info_hash = { 'value' => info[:value] }
         info_hash['metadata'] = info[:metadata] unless info[:metadata].empty?
-        [ "#{keydir}/#{description.gsub(' ','_')}", info_hash ]
+        [ "#{description.gsub(' ','_')}", info_hash ]
       end
     }.to_h
     list.delete('skip')
     list
   }
   let(:full_list) {
-   { 'keys' => key_list, 'folders' => ['app1/subapp1', 'app1/subapp2', 'app1/subapp3'] }
+   { 'keys' => key_list, 'folders' => ['subapp1', 'subapp2', 'subapp3'] }
   }
 
   let(:test_file_env_root_dir) { File.join(@root_path_test_file, 'production') }

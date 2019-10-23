@@ -335,9 +335,16 @@ describe 'libkv adapter anonymous class' do
     end
 
     context '#exists' do
-      it 'should return plugin exists result' do
+      it 'should return plugin exists result for a key' do
+        @plugin.put(key_plus_env, serialized_value)
         expect(@adapter.exists(key, @options_file)).
-          to eq({:result => false, :err_msg => nil})
+          to eq({:result => true, :err_msg => nil})
+      end
+
+      it 'should return plugin exists result for a keydir' do
+        @plugin.put(key_plus_env, serialized_value)
+        expect(@adapter.exists(File.dirname(key), @options_file)).
+          to eq({:result => true, :err_msg => nil})
       end
 
       it 'should return a failed result when plugin instance cannot be created' do
@@ -393,9 +400,9 @@ describe 'libkv adapter anonymous class' do
           to eq({
             :result => {
               :keys => {
-                key => {:value => value, :metadata => metadata},
+                File.basename(key) => {:value => value, :metadata => metadata},
               },
-              :folders => [ "#{keydir}/app1" ]
+              :folders => [ 'app1' ]
             },
             :err_msg => nil
           })

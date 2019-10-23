@@ -7,7 +7,7 @@
 
 * [`libkv::delete`](#libkvdelete): Deletes a `key` from the configured backend.
 * [`libkv::deletetree`](#libkvdeletetree): Deletes a whole folder from the configured backend.
-* [`libkv::exists`](#libkvexists): Returns whether the `key` exists in the configured backend.
+* [`libkv::exists`](#libkvexists): Returns whether key or key folder exists in the configured backend.
 * [`libkv::get`](#libkvget): Retrieves the value and any metadata stored at `key` from the  configured backend.
 * [`libkv::list`](#libkvlist): Returns a listing of all keys and sub-folders in a folder.  The list operation does not recurse through any sub-folders. Only information abo
 * [`libkv::put`](#libkvput): Sets the data at `key` to the specified `value` in the configured backend. Optionally sets metadata along with the `value`.
@@ -258,7 +258,7 @@ configuration to use via fuzzy name matching, in the absence of the
 
 Type: Ruby 4.x API
 
-Returns whether the `key` exists in the configured backend.
+Returns whether key or key folder exists in the configured backend.
 
 #### Examples
 
@@ -278,9 +278,17 @@ if libkv::exists("hosts/${facts['fqdn']}", { 'app_id' => 'myapp' }) {
 }
 ```
 
+##### Check for the existence of a key folder in the default backend
+
+```puppet
+if libkv::exists("hosts") {
+   notify { 'hosts folder exists': }
+}
+```
+
 #### `libkv::exists(String[1] $key, Optional[Hash] $options)`
 
-Returns whether the `key` exists in the configured backend.
+Returns whether key or key folder exists in the configured backend.
 
 Returns: `Enum[Boolean,Undef]` If the backend operation succeeds, returns
 `true` or `false`; if the backend operation fails and 'softfail' is `true`
@@ -309,11 +317,19 @@ if libkv::exists("hosts/${facts['fqdn']}", { 'app_id' => 'myapp' }) {
 }
 ```
 
+###### Check for the existence of a key folder in the default backend
+
+```puppet
+if libkv::exists("hosts") {
+   notify { 'hosts folder exists': }
+}
+```
+
 ##### `key`
 
 Data type: `String[1]`
 
-The key to check. Must conform to the following:
+The key or key folder to check. Must conform to the following:
 
 * Key must contain only the following characters:
 

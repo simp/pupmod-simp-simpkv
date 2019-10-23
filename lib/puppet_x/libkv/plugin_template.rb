@@ -165,13 +165,13 @@ plugin_class = Class.new do
     { :result => false, :err_msg => 'FIXME: not implemented' }
   end
 
-  # Returns whether the `key` exists in the configured backend.
+  # Returns whether key or key folder exists in the configured backend.
   #
-  # @param key String key
+  # @param key String key or key folder to check
   #
   # @return results Hash
-  #   * :result - Boolean indicating whether key exists; nil if could not
-  #     be determined
+  #   * :result - Boolean indicating whether key/key folder exists;
+  #     nil if could not be determined
   #   * :err_msg - String. Explanatory text when status could not be
   #     determined; nil otherwise.
   #

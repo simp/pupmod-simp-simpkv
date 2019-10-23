@@ -180,13 +180,13 @@ plugin_class = Class.new do
     { :result => success, :err_msg => err_msg }
   end
 
-  # Returns whether the `key` exists in the configured backend.
+  # Returns whether key or key folder exists in the configured backend.
   #
-  # @param key String key
+  # @param key String key or key folder to check
   #
   # @return results Hash
-  #   * :result - Boolean indicating whether key exists; nil if could not
-  #     be determined
+  #   * :result - Boolean indicating whether key/key folder exists;
+  #     nil if could not be determined
   #   * :err_msg - String. Explanatory text when status could not be
   #     determined; nil otherwise.
   #
@@ -267,12 +267,12 @@ plugin_class = Class.new do
       result = { :keys => {}, :folders => [] }
       Dir.glob(File.join(dir,'*')).each do |entry|
         if File.directory?(entry)
-          result[:folders] << entry.gsub(@root_path + File::SEPARATOR,'')
+          result[:folders] << File.basename(entry)
         else
           key = entry.gsub(@root_path + File::SEPARATOR,'')
           key_result = get(key)
           unless key_result[:result].nil?
-            result[:keys][key] = key_result[:result]
+            result[:keys][File.basename(key)] = key_result[:result]
           end
         end
       end

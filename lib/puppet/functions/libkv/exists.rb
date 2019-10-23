@@ -1,10 +1,10 @@
-# Returns whether the `key` exists in the configured backend.
+# Returns whether key or key folder exists in the configured backend.
 #
 # @author https://github.com/simp/pupmod-simp-libkv/graphs/contributors
 #
 Puppet::Functions.create_function(:'libkv::exists') do
 
-  # @param key The key to check. Must conform to the following:
+  # @param key The key or key folder to check. Must conform to the following:
   #
   #   * Key must contain only the following characters:
   #
@@ -93,6 +93,11 @@ Puppet::Functions.create_function(:'libkv::exists') do
   # @example Check for the existence of a key in the backend servicing an application id
   #   if libkv::exists("hosts/${facts['fqdn']}", { 'app_id' => 'myapp' }) {
   #      notify { "hosts/${facts['fqdn']} exists": }
+  #   }
+  #
+  # @example Check for the existence of a key folder in the default backend
+  #   if libkv::exists("hosts") {
+  #      notify { 'hosts folder exists': }
   #   }
   #
   dispatch :exists do
