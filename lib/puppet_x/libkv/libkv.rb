@@ -16,6 +16,7 @@
 simp_libkv_adapter_class = Class.new do
   require 'base64'
   require 'json'
+  require 'pathname'
 
   attr_accessor :plugin_classes, :plugin_instances
 
@@ -44,7 +45,8 @@ simp_libkv_adapter_class = Class.new do
     #     - deletetree: delete a folder from the backend
     #     - exists: check for existence of key in the backend
     #     - get: retrieve the value of a key in the backend
-    #     - list: list the key/value pairs available in a folder in the backend
+    #     - list: list the key/value pairs and sub-folders available in a
+    #       folder in the backend
     #     - put: insert a key/value pair into the backend
     #
     # NOTE: All backend plugins must return a unique value for .type().
@@ -147,12 +149,12 @@ simp_libkv_adapter_class = Class.new do
 
   # execute exists operation on the backend, after normalizing the key
   #
-  # @param key String key
+  # @param key String key or key folder to check
   # @param options Hash of global libkv and backend-specific options
   #
   # @return results Hash
-  #   * :result - Boolean indicating whether key exists; nil if could not
-  #     be determined
+  #   * :result - Boolean indicating whether key/key folder exists;
+  #     nil if could not be determined
   #   * :err_msg - String. Explanatory text when status could not be
   #     determined; nil otherwise.
   #
@@ -216,17 +218,24 @@ simp_libkv_adapter_class = Class.new do
     result
   end
 
-  # Returns a list of all keys with their info Hash in a folder, after
-  # normalizing the folder name
+  # Returns a listing of all keys/info pairs and all sub-folders in a folder,
+  # after normalizing the folder name
+  #
+  # The list operation does not recurse through any sub-folders. Only
+  # information about the specified key folder is returned.
   #
   # @param keydir String key folder path
   # @param options Hash of global libkv and backend-specific options
   #
   # @return results Hash
-  #   * :result - Hash of retrieved key info; nil if the retrieval operation
-  #     failed
-  #     * Each key in :result is a key found in the folder
-  #     * Each value in :result is a Hash with 2 keys:  :value and :metadata.
+  #   * :result - Hash of retrieved key and sub-folder info; nil if the
+  #     retrieval operation failed
+  #
+  #     * :keys - Hash of the key information in the folder
+  #       * Each Hash key is a key found in the folder
+  #       * Each Hash value is a Hash with :value and :metadata keys.
+  #     * :folders - Array of sub-folder names
+  #
   #   * :err_msg - String. Explanatory text upon failure; nil otherwise.
   #
   def list(keydir, options)
@@ -242,10 +251,19 @@ simp_libkv_adapter_class = Class.new do
       begin
         raw_result = instance.list( normalize_key(keydir, options) )
         if raw_result[:result]
-          result = { :result => {}, :err_msg => nil }
-          raw_result[:result].each do |raw_key,raw_value|
+          result = {
+            :result  => { :keys => {}, :folders => [] },
+            :err_msg => nil
+          }
+
+          raw_result[:result][:folders].each do |raw_folder|
+            folder = normalize_key(raw_folder, options, :remove_env)
+            result[:result][:folders] << folder
+          end
+
+          raw_result[:result][:keys].each do |raw_key,raw_value|
             key = normalize_key(raw_key, options, :remove_env)
-            result[:result][key] = deserialize(raw_value)
+            result[:result][:keys][key] = deserialize(raw_value)
           end
         else
           result = raw_result
@@ -319,7 +337,8 @@ simp_libkv_adapter_class = Class.new do
       end
     end
 
-    normalized_key
+    # get rid of extraneous slashes
+    Pathname.new(normalized_key).cleanpath.to_s
   end
 
   # Creates or retrieves an instance of the backend plugin class specified

@@ -1,4 +1,7 @@
-# Returns a list of all keys in a folder.
+# Returns a listing of all keys and sub-folders in a folder.
+#
+# The list operation does not recurse through any sub-folders. Only information
+# about the specified key folder is returned.
 #
 # @author https://github.com/simp/pupmod-simp-libkv/graphs/contributors
 #
@@ -81,29 +84,41 @@ Puppet::Functions.create_function(:'libkv::list') do
   # @raise RuntimeError If the backend operation fails, unless 'softfail' is
   #   `true` in the merged backend options.
   #
-  # @return [Enum[Hash,Undef]] Hash containing the key/info pairs upon
-  #   success; Undef when the backend operation fails and 'softfail' is `true`
-  #   in the merged backend options
+  # @return [Enum[Hash,Undef]] Hash containing the key/info pairs and list of
+  #   sub-folders upon success; Undef when the backend operation fails and
+  #   'softfail' is `true` in the merged backend options
   #
-  #   * Each key in the Hash is a key found in the folder
-  #   * Each value in the Hash is a Hash with a 'value' key and an optional 'metadata'
-  #     key.
+  #   * 'keys' attribute is a Hash of the key information in the folder
+  #     * Each Hash key is a key found in the folder
+  #     * Each Hash value is a Hash with a 'value' key and an optional
+  #       'metadata' key.
+  #   * 'folders' attribute is an Array of sub-folder names
   #
   # @example Retrieve the list of key info for a key folder in the default backend
-  #   $hosts = libkv::list('hosts')
-  #   $hosts.each |$host, $info | {
+  #   $result = libkv::list('hosts')
+  #   $result['keys'].each |$host, $info | {
   #     host { $host:
   #       ip => $info['value'],
   #     }
   #   }
   #
   # @example Retrieve the list of key info for a key folder in the backend servicing an application id
-  #   $hosts = libkv::list('hosts', { 'app_id' => 'myapp' })
-  #   $hosts.each |$host, $info | {
+  #   $result = libkv::list('hosts', { 'app_id' => 'myapp' })
+  #   $result['keys'].each |$host, $info | {
   #     host { $host:
   #       ip => $info['value'],
   #     }
   #   }
+  #
+  # @example Retrieve the list of sub-folders in a key folder in the default backend
+  #   $result = libkv::list('applications')
+  #   notice("Supported applications: ${join($result['folders'], ' ')}")
+  #
+  # @example Retrieve the top folder list for the environment in the default backend
+  #   $result = libkv::list('/')
+  #
+  # @example Retrieve the list of environments supported by the default backend
+  #   $result = libkv::list('/', { 'environment' => '' })
   #
   dispatch :list do
     required_param 'String[1]', :keydir
@@ -140,11 +155,11 @@ Puppet::Functions.create_function(:'libkv::list') do
         raise(err_msg)
       end
     else
-      result = {}
-      backend_result[:result].each do |key,info|
-         result[key] = { 'value' => info[:value] }
+      result = { 'keys' => {}, 'folders' => backend_result[:result][:folders] }
+      backend_result[:result][:keys].each do |key,info|
+         result['keys'][key] = { 'value' => info[:value] }
          unless info[:metadata].empty?
-          result[key]['metadata'] = info[:metadata]
+          result['keys'][key]['metadata'] = info[:metadata]
         end
       end
     end

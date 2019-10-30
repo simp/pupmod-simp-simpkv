@@ -7,9 +7,9 @@
 
 * [`libkv::delete`](#libkvdelete): Deletes a `key` from the configured backend.
 * [`libkv::deletetree`](#libkvdeletetree): Deletes a whole folder from the configured backend.
-* [`libkv::exists`](#libkvexists): Returns whether the `key` exists in the configured backend.
+* [`libkv::exists`](#libkvexists): Returns whether key or key folder exists in the configured backend.
 * [`libkv::get`](#libkvget): Retrieves the value and any metadata stored at `key` from the  configured backend.
-* [`libkv::list`](#libkvlist): Returns a list of all keys in a folder.
+* [`libkv::list`](#libkvlist): Returns a listing of all keys and sub-folders in a folder.  The list operation does not recurse through any sub-folders. Only information abo
 * [`libkv::put`](#libkvput): Sets the data at `key` to the specified `value` in the configured backend. Optionally sets metadata along with the `value`.
 * [`libkv::support::config::merge`](#libkvsupportconfigmerge): Create merged backend configuration and then validate it.  The merge entails the following operations: * The `options` argument is merged wit
 * [`libkv::support::config::validate`](#libkvsupportconfigvalidate): Validate backend configuration
@@ -258,7 +258,7 @@ configuration to use via fuzzy name matching, in the absence of the
 
 Type: Ruby 4.x API
 
-Returns whether the `key` exists in the configured backend.
+Returns whether key or key folder exists in the configured backend.
 
 #### Examples
 
@@ -278,9 +278,17 @@ if libkv::exists("hosts/${facts['fqdn']}", { 'app_id' => 'myapp' }) {
 }
 ```
 
+##### Check for the existence of a key folder in the default backend
+
+```puppet
+if libkv::exists("hosts") {
+   notify { 'hosts folder exists': }
+}
+```
+
 #### `libkv::exists(String[1] $key, Optional[Hash] $options)`
 
-Returns whether the `key` exists in the configured backend.
+Returns whether key or key folder exists in the configured backend.
 
 Returns: `Enum[Boolean,Undef]` If the backend operation succeeds, returns
 `true` or `false`; if the backend operation fails and 'softfail' is `true`
@@ -309,11 +317,19 @@ if libkv::exists("hosts/${facts['fqdn']}", { 'app_id' => 'myapp' }) {
 }
 ```
 
+###### Check for the existence of a key folder in the default backend
+
+```puppet
+if libkv::exists("hosts") {
+   notify { 'hosts folder exists': }
+}
+```
+
 ##### `key`
 
 Data type: `String[1]`
 
-The key to check. Must conform to the following:
+The key or key folder to check. Must conform to the following:
 
 * Key must contain only the following characters:
 
@@ -520,15 +536,18 @@ configuration to use via fuzzy name matching, in the absence of the
 
 Type: Ruby 4.x API
 
-Returns a list of all keys in a folder.
+Returns a listing of all keys and sub-folders in a folder.
+
+The list operation does not recurse through any sub-folders. Only information
+about the specified key folder is returned.
 
 #### Examples
 
 ##### Retrieve the list of key info for a key folder in the default backend
 
 ```puppet
-$hosts = libkv::list('hosts')
-$hosts.each |$host, $info | {
+$result = libkv::list('hosts')
+$result['keys'].each |$host, $info | {
   host { $host:
     ip => $info['value'],
   }
@@ -538,25 +557,49 @@ $hosts.each |$host, $info | {
 ##### Retrieve the list of key info for a key folder in the backend servicing an application id
 
 ```puppet
-$hosts = libkv::list('hosts', { 'app_id' => 'myapp' })
-$hosts.each |$host, $info | {
+$result = libkv::list('hosts', { 'app_id' => 'myapp' })
+$result['keys'].each |$host, $info | {
   host { $host:
     ip => $info['value'],
   }
 }
 ```
 
+##### Retrieve the list of sub-folders in a key folder in the default backend
+
+```puppet
+$result = libkv::list('applications')
+notice("Supported applications: ${join($result['folders'], ' ')}")
+```
+
+##### Retrieve the top folder list for the environment in the default backend
+
+```puppet
+$result = libkv::list('/')
+```
+
+##### Retrieve the list of environments supported by the default backend
+
+```puppet
+$result = libkv::list('/', { 'environment' => '' })
+```
+
 #### `libkv::list(String[1] $keydir, Optional[Hash] $options)`
 
-Returns a list of all keys in a folder.
+Returns a listing of all keys and sub-folders in a folder.
 
-Returns: `Enum[Hash,Undef]` Hash containing the key/info pairs upon
-success; Undef when the backend operation fails and 'softfail' is `true`
-in the merged backend options
+The list operation does not recurse through any sub-folders. Only information
+about the specified key folder is returned.
 
-* Each key in the Hash is a key found in the folder
-* Each value in the Hash is a Hash with a 'value' key and an optional 'metadata'
-  key.
+Returns: `Enum[Hash,Undef]` Hash containing the key/info pairs and list of
+sub-folders upon success; Undef when the backend operation fails and
+'softfail' is `true` in the merged backend options
+
+* 'keys' attribute is a Hash of the key information in the folder
+  * Each Hash key is a key found in the folder
+  * Each Hash value is a Hash with a 'value' key and an optional
+    'metadata' key.
+* 'folders' attribute is an Array of sub-folder names
 
 Raises:
 * `ArgumentError` If the key folder or merged backend config is invalid
@@ -568,8 +611,8 @@ Raises:
 ###### Retrieve the list of key info for a key folder in the default backend
 
 ```puppet
-$hosts = libkv::list('hosts')
-$hosts.each |$host, $info | {
+$result = libkv::list('hosts')
+$result['keys'].each |$host, $info | {
   host { $host:
     ip => $info['value'],
   }
@@ -579,12 +622,31 @@ $hosts.each |$host, $info | {
 ###### Retrieve the list of key info for a key folder in the backend servicing an application id
 
 ```puppet
-$hosts = libkv::list('hosts', { 'app_id' => 'myapp' })
-$hosts.each |$host, $info | {
+$result = libkv::list('hosts', { 'app_id' => 'myapp' })
+$result['keys'].each |$host, $info | {
   host { $host:
     ip => $info['value'],
   }
 }
+```
+
+###### Retrieve the list of sub-folders in a key folder in the default backend
+
+```puppet
+$result = libkv::list('applications')
+notice("Supported applications: ${join($result['folders'], ' ')}")
+```
+
+###### Retrieve the top folder list for the environment in the default backend
+
+```puppet
+$result = libkv::list('/')
+```
+
+###### Retrieve the list of environments supported by the default backend
+
+```puppet
+$result = libkv::list('/', { 'environment' => '' })
 ```
 
 ##### `keydir`

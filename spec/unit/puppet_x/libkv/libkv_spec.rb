@@ -335,9 +335,16 @@ describe 'libkv adapter anonymous class' do
     end
 
     context '#exists' do
-      it 'should return plugin exists result' do
+      it 'should return plugin exists result for a key' do
+        @plugin.put(key_plus_env, serialized_value)
         expect(@adapter.exists(key, @options_file)).
-          to eq({:result => false, :err_msg => nil})
+          to eq({:result => true, :err_msg => nil})
+      end
+
+      it 'should return plugin exists result for a keydir' do
+        @plugin.put(key_plus_env, serialized_value)
+        expect(@adapter.exists(File.dirname(key), @options_file)).
+          to eq({:result => true, :err_msg => nil})
       end
 
       it 'should return a failed result when plugin instance cannot be created' do
@@ -387,10 +394,41 @@ describe 'libkv adapter anonymous class' do
       let(:keydir) { key.gsub('/key','') }
       it 'should return deserialized plugin list result' do
         @plugin.put(key_plus_env, serialized_value)
+        # create a sub-folder
+        @plugin.put(key_plus_env.gsub('/key', '/app1/key'), serialized_value)
         expect(@adapter.list(keydir, @options_file)).
           to eq({
             :result => {
-              key => {:value => value, :metadata => metadata},
+              :keys => {
+                File.basename(key) => {:value => value, :metadata => metadata},
+              },
+              :folders => [ 'app1' ]
+            },
+            :err_msg => nil
+          })
+      end
+
+      it "should return list of top level folders for the environment when passed '/' as the key" do
+        @plugin.put(key_plus_env, serialized_value)
+        expect(@adapter.list('/', @options_file)).
+          to eq({
+            :result => {
+              :keys => {},
+              :folders => [ 'my' ]
+            },
+            :err_msg => nil
+          })
+      end
+
+      it "should return list of environments when passed '/' as the key and environment is set to ''" do
+        @plugin.put(key_plus_env, serialized_value)
+        options = @options_file.dup
+        options['environment'] =''
+        expect(@adapter.list('/', options)).
+          to eq({
+            :result => {
+              :keys => {},
+              :folders => [ 'production' ]
             },
             :err_msg => nil
           })

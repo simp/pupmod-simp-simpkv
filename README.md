@@ -71,7 +71,7 @@ If you find any issues, they may be submitted to our
 The following terminology will be used throughout this document:
 
 * backend - A specific key/value store, e.g., files on a local filesystem,
-  Consul, Etcd, Zookeeper
+  Consul, Etcd, Zookeeper.
 * plugin - Ruby software that interfaces with a specific backend to
   affect the operations requested in libkv Puppet functions.
 * plugin instance - Instance of the plugin that handles a unique backend
@@ -111,8 +111,8 @@ libkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'])
 To create a hosts file using the list of stored host information:
 
 ```puppet
-$hosts = libkv::list('hosts')
-$hosts.each |$host, $info | {
+$result = libkv::list('hosts')
+$result['keys'].each |$host, $info | {
   host { $host:
     ip => $info['value'],
   }
@@ -160,8 +160,8 @@ backend servicing `myapp1`:
 
 ```puppet
 $libkv_options = { 'app_id' => 'myapp1' }
-$hosts = libkv::list('hosts', $libkv_options)
-$hosts.each |$host, $info | {
+$result = libkv::list('hosts', $libkv_options)
+$result['keys'].each |$host, $info | {
   host { $host:
     ip => $info['value'],
   }
