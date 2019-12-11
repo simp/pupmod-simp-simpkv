@@ -223,9 +223,10 @@ our libkv function calls.  libkv selects `myapp` as the backend to use for
 libkv is able to store and retrieve binary values, provided the Puppet code
 uses the appropriate configuration and functions/types for binary data.
 
-  * **IMPORTANT**:  In Puppet 5, be sure to turn on `--rich_data` for both the
-    master and agent in order to ensure correct serialization/deserialization
-    of the `Binary` Puppet type.
+  * **IMPORTANT**:  Puppet 5 does not fully support binary data.  So,
+    although libkv will properly serialize and deserialize the data, the
+    binary data can only be used for Puppet `file` resources when applied
+    with `puppet apply`, not `puppet agent`.
 
 Below is an example of using libkv for a binary value.
 

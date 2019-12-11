@@ -5,6 +5,7 @@
 # a `plugin_class` local variable.
 plugin_class = Class.new do
 
+  require 'etc'
   require 'fileutils'
   require 'timeout'
 
@@ -19,7 +20,7 @@ plugin_class = Class.new do
     'file'
   end
 
-  # construct an instance of this plugin using global and plugin-specific
+  # Constructs an instance of this plugin using global and plugin-specific
   # configuration found in options
   #
   # The plugin-specific configuration will be found in
@@ -35,10 +36,11 @@ plugin_class = Class.new do
   # @param name Name to ascribe to this plugin instance
   # @param options Hash of global libkv and backend-specific options
   # @raise RuntimeError if any required configuration is missing from options,
-  #   the root directory cannot be created when missing, the permissions of the
-  #   root directory cannot be set
+  #   the root directory can be created when missing, or the root directory
+  #   exists but cannnot be read/modified by this process
   def initialize(name, options)
-    # backend config should already have been verified, but just in case...
+    # backend config should already have been verified by libkv adapter, but
+    # just in case...
     unless (
         options.is_a?(Hash) &&
         options.has_key?('backend') &&
@@ -51,62 +53,19 @@ plugin_class = Class.new do
         # so have to repeat what is already in self.type
         (options['backends'][ options['backend'] ]['type'] == 'file')
     )
-      raise("libkv plugin #{name} misconfigured: #{options}")
+      raise("Plugin misconfigured: #{options}")
     end
 
     @name = name
 
-    default_root_path_var = File.join('/', 'var', 'simp', 'libkv', name)
-    default_root_path_puppet_vardir = File.join(Puppet.settings[:vardir], 'simp', 'libkv', name)
-
     # set optional configuration
     backend = options['backend']
+    @root_path = ensure_root_path(options)
     if options['backends'][backend].has_key?('lock_timeout_seconds')
       @lock_timeout_seconds = options['backends'][backend]['lock_timeout_seconds']
     else
       @lock_timeout_seconds = 5
       Puppet.debug("libkv plugin #{name}: Using default lock timeout #{@lock_timeout_seconds}")
-    end
-
-    if options['backends'][backend].has_key?('root_path')
-      @root_path = options['backends'][backend]['root_path']
-    elsif Dir.exist?(default_root_path_var)
-      @root_path = default_root_path_var
-      Puppet.debug("libkv plugin #{name}: Using existing default root path '#{@root_path}'")
-    elsif Dir.exist?(default_root_path_puppet_vardir)
-      @root_path = default_root_path_puppet_vardir
-      Puppet.debug("libkv plugin #{name}: Using existing default root path '#{@root_path}'")
-    else
-      @root_path = default_root_path_var
-      Puppet.debug("libkv plugin #{name}: Using default root path '#{@root_path}'")
-    end
-
-    unless Dir.exist?(@root_path)
-      begin
-        FileUtils.mkdir_p(@root_path)
-      rescue Exception => e
-        if options['backends'][backend].has_key?('root_path')
-          # someone made an explicit config error
-          raise("libkv plugin #{name} Error: Unable to create configured root path '#{@root_path}': #{e.message}")
-        else
-          # use a default we know will be ok
-          new_path = File.join(Puppet.settings[:vardir], 'simp', 'libkv', name)
-          Puppet.warning("libkv plugin #{name}: Unable to create root path '#{@root_path}'. Defaulting to '#{new_path}'")
-          @root_path = new_path
-          FileUtils.mkdir_p(@root_path)
-        end
-      end
-    end
-
-    # set permissions on the root directory
-    # NOTE: Group writable setting is specifically to support `simp passgen`
-    # operations implemented with `puppet apply` and run as root:puppet.
-    # Do not want `simp passgen` to create a file/directory that subsequent
-    # `puppet agent` runs as puppet:puppet will not be able to manage.
-    begin
-      FileUtils.chmod(0770, @root_path)
-    rescue Exception => e
-      raise("libkv plugin #{name} Error: Unable to set permissions on #{@root_path}: #{e.message}")
     end
 
     Puppet.debug("#{@name} libkv plugin for #{@root_path} constructed")
@@ -127,7 +86,7 @@ plugin_class = Class.new do
     key_file = File.join(@root_path, key)
     if File.directory?(key_file)
       success = false
-      err_msg = "libkv plugin #{@name}: Key specifies a folder at '#{key_file}'"
+      err_msg = "Key specifies a folder at '#{key_file}'"
     else
       begin
         File.unlink(key_file)
@@ -211,7 +170,7 @@ plugin_class = Class.new do
     err_msg = nil
     key_file = File.join(@root_path, key)
     if File.directory?(key_file)
-      err_msg = "libkv plugin #{@name}: Key specifies a folder at '#{key_file}'"
+      err_msg = "Key specifies a folder at '#{key_file}'"
     else
       file = nil
       begin
@@ -228,9 +187,12 @@ plugin_class = Class.new do
         file = nil
 
       rescue Errno::ENOENT
-        err_msg = "libkv plugin #{@name}: Key not found at '#{key_file}'"
+        err_msg = "Key not found at '#{key_file}'"
+      rescue Errno::EACCES
+        err_msg = "Cannot read '#{key_file}' as #{user}:#{group}. \n"
+        err_msg += ">>> Enable '#{group}' group read AND write access on '#{key_file}' to fix."
       rescue Timeout::Error
-        err_msg = "libkv plugin #{@name}: Timed out waiting for lock of key file '#{key_file}'"
+        err_msg = "Timed out waiting for lock of key file '#{key_file}'"
       rescue Exception => e
         err_msg = "Key retrieval at '#{key_file}' failed: #{e.message}"
       ensure
@@ -278,7 +240,7 @@ plugin_class = Class.new do
       end
       result[:folders].sort!
     else
-       err_msg = "libkv plugin #{@name}: Key folder '#{keydir}' not found"
+       err_msg = "Key folder '#{keydir}' not found"
     end
 
     { :result => result, :err_msg => err_msg }
@@ -303,22 +265,15 @@ plugin_class = Class.new do
     err_msg = nil
 
     file = nil
+    key_file = File.join(@root_path, key)
     begin
-      # create relative directory for the key file
+      # ensure relative directory for the key file is present
       keydir = File.dirname(key)
-      unless keydir == '.'
-        Dir.chdir(@root_path) do
-          # Group writable setting is specifically to support `simp passgen`
-          # operations implemented with `puppet apply` and run as root:puppet.
-          # Do not want `simp passgen` to create a file/directory that
-          # subsequent `puppet agent` runs as puppet:puppet will not be able
-          # to manage.
-          FileUtils.mkdir_p(keydir, :mode => 0770)
-        end
-      end
+      ensure_folder_path(keydir) unless keydir == '.'
 
-      # create key file
-      key_file = File.join(@root_path, key)
+      # create/update a key file
+      new_file = !File.exist?(key_file)
+
       # To ensure all threads are not sharing the same file descriptor
       # do **NOT** use a File.open block!
       # Also, don't use 'w' as it truncates file before the lock is obtained
@@ -336,19 +291,26 @@ plugin_class = Class.new do
       file.truncate(file.pos)
       file.close # lock released with close
       file = nil
-      # we set the permissions here, instead of when the file was opened,
-      # so that the user's umask is ignored
-      # NOTE: Group writable setting is specifically to support `simp passgen`
-      # operations implemented with `puppet apply` and run as root:puppet.
-      # Do not want `simp passgen` to create a file/directory that
-      # subsequent `puppet agent` runs as puppet:puppet will not be able
-      # to manage.
-      File.chmod(0660, key_file)
+
+      if new_file || ( File.stat(key_file).uid == user_id )
+        # we set the permissions here, instead of when the file was opened,
+        # so that the user's umask is ignored
+        # NOTE: Group writable setting is specifically to support `simp passgen`
+        # operations implemented with `puppet apply` and run as root:puppet.
+        # Do not want `simp passgen` to create a file/directory that
+        # subsequent `puppet agent` runs as puppet:puppet will not be able
+        # to manage.
+        File.chmod(0660, key_file)
+      end
       success = true
 
     rescue Timeout::Error
       success = false
-      err_msg = "libkv plugin #{@name}: Timed out waiting for lock of key file '#{key_file}'"
+      err_msg = "Timed out waiting for lock of key file '#{key_file}'"
+    rescue Errno::EACCES
+      success = false
+      err_msg = "Cannot write to '#{key_file}' as #{user}:#{group}. \n"
+      err_msg += ">>> Enable '#{group}' group read AND write access on '#{key_file}' to fix."
     rescue Exception => e
       success = false
       err_msg = "Key write to '#{key_file}' failed: #{e.message}"
@@ -360,5 +322,166 @@ plugin_class = Class.new do
   end
 
   ###### Internal Methods ######
+
+  # Ensures that the relative path to a key is present and the process can read
+  # and write to each sub-directory in the path
+  #
+  # @param keydir Relative path to a key
+  #
+  # @raise RuntimeError if process cannot read and write to any sub-directory
+  #   in the path
+  def ensure_folder_path(keydir)
+    Dir.chdir(@root_path) do
+      path = Pathname.new(keydir)
+      path.descend do |path|
+        if Dir.exist?(path)
+          verify_dir_access(path.to_s)
+        else
+          # Group writable setting is specifically to support `simp passgen`
+          # operations implemented with `puppet apply` and run as root:puppet.
+          # Do not want `simp passgen` to create a file/directory that
+          # subsequent `puppet agent` runs as puppet:puppet will not be able
+          # to manage.
+          FileUtils.mkdir(path.to_s, :mode => 0770)
+        end
+      end
+    end
+  end
+
+  # Determines the appropriate root path to files managed by this plugin and
+  # then ensures it is available and has the appropriate permissions
+  #
+  # * If no root directory is specified in options, preferentially defaults to
+  #   '/var/simp/libkv/<name>', but uses '<Puppet[:vardir]>/simp/libkv/<name>'
+  #   as a fallback.
+  # * Creates root directory if it does not exist
+  #
+  # @param options Hash of global libkv and backend-specific options
+  #
+  # @return Root path
+  #
+  # @raise RuntimeError if any required configuration is missing from options,
+  #   the root directory can be created when missing, or the root directory
+  #   exists but cannnot be read/modified by this process
+  def ensure_root_path(options)
+    root_path = nil
+    backend = options['backend']
+    default_root_path_var = File.join('/', 'var', 'simp', 'libkv', @name)
+    default_root_path_puppet_vardir = File.join(Puppet.settings[:vardir], 'simp', 'libkv', @name)
+
+    if options['backends'][backend].has_key?('root_path')
+      root_path = options['backends'][backend]['root_path']
+    elsif Dir.exist?(default_root_path_var)
+      root_path = default_root_path_var
+      Puppet.debug("libkv plugin #{@name}: Using existing default root path '#{root_path}'")
+    elsif Dir.exist?(default_root_path_puppet_vardir)
+      root_path = default_root_path_puppet_vardir
+      Puppet.debug("libkv plugin #{@name}: Using existing default root path '#{root_path}'")
+    else
+      root_path = default_root_path_var
+      Puppet.debug("libkv plugin #{@name}: Using default root path '#{root_path}'")
+    end
+
+    if Dir.exist?(root_path)
+      verify_dir_access(root_path)
+    else
+      begin
+        FileUtils.mkdir_p(root_path)
+      rescue Exception => e
+        if options['backends'][backend].has_key?('root_path')
+          # someone made an explicit config error
+          err_msg = "Unable to create configured root path '#{root_path}'.\n"
+          err_msg += ">>> Ensure '#{group}' group can create '#{root_path}' to fix."
+          raise(err_msg)
+        else
+          # try again using a fallback default that should work for 'puppet agent' runs
+          begin
+            FileUtils.mkdir_p(default_root_path_puppet_vardir)
+            Puppet.warning("libkv plugin #{name}: Unable to create root path " +
+            "'#{root_path}'. Defaulting to '#{default_root_path_puppet_vardir}'")
+            root_path = default_root_path_puppet_vardir
+          rescue Exception => e
+            # our fallback default didn't work...
+            err_msg = "Unable to create default root path '#{root_path}'.\n"
+            err_msg += ">>> Ensure '#{group}' group can create '#{root_path}' to fix."
+            raise(err_msg)
+          end
+        end
+      end
+
+      # set permissions on the root directory
+      # NOTE: Group writable setting is specifically to support `simp passgen`
+      # operations implemented with `puppet apply` and run as root:puppet.
+      # Do not want `simp passgen` to create a file/directory that subsequent
+      # `puppet agent` runs as puppet:puppet will not be able to manage.
+      begin
+        FileUtils.chmod(0770, root_path)
+      rescue Exception => e
+        raise("Unable to set permissions on #{root_path}: #{e.message}")
+      end
+    end
+
+    root_path
+  end
+
+  # @return Process gid
+  def group_id
+    Process.gid
+  end
+
+  # @return Process group name
+  def group
+    return @group unless @group.nil?
+
+    @group = Etc.getgrgid(group_id).name
+    @group
+  end
+
+  # @return Process uid
+  def user_id
+    Process.uid
+  end
+
+  # @return Process user name
+  def user
+    return @user unless @user.nil?
+
+    @user = Etc.getpwuid(user_id).name
+    @user
+  end
+
+  # Verifies that the process has read/write permissions in the directory
+  #
+  # @param dir Directory to verify
+  # @raise RuntimeError if process cannot read and write to the directory
+  def verify_dir_access(dir)
+    begin
+      Dir.entries(dir)
+
+      # We can read the directory, now make sure we can write to it
+      stat = File.stat(dir)
+      write_access = false
+      if (stat.uid == user_id)
+        # we own the dir, so go ahead and enforce desired permissions
+        FileUtils.chmod(0770, dir)
+        write_access = true
+      elsif (stat.gid == group_id) && ( (stat.mode & 00070) == 0070 )
+        write_access = true
+      elsif (stat.mode & 00007) == 0007
+        #  Yuk! Should we warn?
+        write_access = true
+      end
+
+      unless write_access
+        err_msg = "Cannot modify '#{dir}' as #{user}:#{group}. \n"
+        err_msg += ">>> Enable '#{group}' group read AND write access on '#{dir}' to fix."
+        raise(err_msg)
+      end
+    rescue Errno::EACCES
+      err_msg = "Cannot access '#{dir}' as #{user}:#{group}. \n"
+      err_msg += ">>> Enable '#{group}' group read AND write access on '#{dir}' to fix."
+      raise(err_msg)
+    end
+  end
 
 end
