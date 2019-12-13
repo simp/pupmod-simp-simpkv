@@ -2,6 +2,7 @@ require 'spec_helper'
 
 require 'fileutils'
 require 'tmpdir'
+require 'ostruct'
 
 # mimic loading that is done in libkv.rb
 project_dir = File.join(File.dirname(__FILE__), '..', '..', '..', '..')
@@ -68,7 +69,11 @@ describe 'libkv file plugin anonymous class' do
         }
       }
     }
+
+    @plugin_name = 'file/test'
     allow(Dir).to receive(:exist?).with(any_args).and_call_original
+    allow(FileUtils).to receive(:chmod).with(any_args).and_call_original
+    allow(FileUtils).to receive(:mkdir_p).with(any_args).and_call_original
     allow(FileUtils).to receive(:rm_r).with(any_args).and_call_original
     allow(File).to receive(:open).with(any_args).and_call_original
   end
@@ -86,62 +91,33 @@ describe 'libkv file plugin anonymous class' do
   context 'constructor' do
     context 'success cases' do
       it 'should create the root_path tree when none exists' do
-        expect{ plugin_class.new('file/test', @options) }.to_not raise_error
+        expect{ plugin_class.new(@plugin_name, @options) }.to_not raise_error
         expect( Dir.exist?(@root_path) ).to be true
       end
 
       it 'should not fail if the root_path tree exists' do
         FileUtils.mkdir_p(@root_path)
-        expect { plugin_class.new('file/test', @options) }.to_not raise_error
-      end
-
-      it 'should fix the permissions of root_path' do
-        FileUtils.mkdir_p(@root_path, :mode => 0755)
-        expect{ plugin_class.new('file/test', @options) }.to_not raise_error
-        expect( File.stat(@root_path).mode & 0777 ).to eq 0770
-      end
-
-      it 'should fallback to a Puppet.settings[:vardir] path when default path cannot be created' do
-        options = {
-          'backend'  => 'test',
-          'backends' => {
-            'test'  => {
-              'id'        => 'test',
-              'type'      => 'file'
-            }
-          }
-        }
-
-        vardir = File.join(@tmpdir, 'vardir')
-
-        allow(Dir).to receive(:exist?).with('/var/simp/libkv/file/test').and_return( false )
-        allow(FileUtils).to receive(:mkdir_p).with(any_args).and_call_original
-        allow(FileUtils).to receive(:mkdir_p).with('/var/simp/libkv/file/test').
-          and_raise(Errno::EACCES, 'Permission denied')
-        allow(Puppet).to receive(:settings).with(any_args).and_call_original
-        allow(Puppet).to receive_message_chain(:settings,:[]).with(:vardir).and_return(vardir)
-        expect{ plugin_class.new('file/test', options) }.to_not raise_error
-        expect( Dir.exist?(File.join(vardir, 'simp', 'libkv', 'file', 'test')) ).to be true
+        expect { plugin_class.new(@plugin_name, @options) }.to_not raise_error
       end
     end
 
     context 'error cases' do
       it 'should fail when options is not a Hash' do
-        expect { plugin_class.new('file/test', 'oops') }.
-          to raise_error(/libkv plugin file\/test misconfigured/)
+        expect { plugin_class.new(@plugin_name, 'oops') }.
+          to raise_error(/Plugin misconfigured/)
       end
 
       it "should fail when options missing 'backend' key" do
-        expect { plugin_class.new('file/test', {} ) }.
-          to raise_error(/libkv plugin file\/test misconfigured: {}/)
+        expect { plugin_class.new(@plugin_name, {} ) }.
+          to raise_error(/Plugin misconfigured/)
       end
 
       it "should fail when options missing 'backends' key" do
         options = {
           'backend' => 'test'
         }
-        expect { plugin_class.new('file/test', options) }.
-          to raise_error(/libkv plugin file\/test misconfigured: {.*backend.*}/)
+        expect { plugin_class.new(@plugin_name, options) }.
+          to raise_error(/Plugin misconfigured: {.*backend.*}/)
       end
 
       it "should fail when options 'backends' key is not a Hash" do
@@ -149,8 +125,8 @@ describe 'libkv file plugin anonymous class' do
           'backend'  => 'test',
           'backends' => 'oops'
         }
-        expect { plugin_class.new('file/test', options) }.
-          to raise_error(/libkv plugin file\/test misconfigured/)
+        expect { plugin_class.new(@plugin_name, options) }.
+          to raise_error(/Plugin misconfigured/)
       end
 
       it "should fail when options 'backends' does not have the specified backend" do
@@ -160,8 +136,8 @@ describe 'libkv file plugin anonymous class' do
             'test1' => { 'id' => 'test', 'type' => 'consul'}
           }
         }
-        expect { plugin_class.new('file/test', options) }.
-          to raise_error(/libkv plugin file\/test misconfigured/)
+        expect { plugin_class.new(@plugin_name, options) }.
+          to raise_error(/Plugin misconfigured/)
       end
 
       it "should fail when the correct 'backends' element has no 'id' key" do
@@ -172,8 +148,8 @@ describe 'libkv file plugin anonymous class' do
             'test'  => {}
           }
         }
-        expect { plugin_class.new('file/test', options) }.
-          to raise_error(/libkv plugin file\/test misconfigured/)
+        expect { plugin_class.new(@plugin_name, options) }.
+          to raise_error(/Plugin misconfigured/)
       end
 
       it "should fail when the correct 'backends' element has no 'type' key" do
@@ -184,8 +160,8 @@ describe 'libkv file plugin anonymous class' do
             'test'  => { 'id' => 'test' }
           }
         }
-        expect { plugin_class.new('file/test', options) }.
-          to raise_error(/libkv plugin file\/test misconfigured/)
+        expect { plugin_class.new(@plugin_name, options) }.
+          to raise_error(/Plugin misconfigured/)
       end
 
       it "should fail when the correct 'backends' element has wrong 'type' value" do
@@ -196,8 +172,8 @@ describe 'libkv file plugin anonymous class' do
             'test'  => { 'id' => 'test', 'type' => 'filex' }
           }
         }
-        expect { plugin_class.new('file/test', options) }.
-          to raise_error(/libkv plugin file\/test misconfigured/)
+        expect { plugin_class.new(@plugin_name, options) }.
+          to raise_error(/Plugin misconfigured/)
       end
 
 
@@ -217,34 +193,15 @@ describe 'libkv file plugin anonymous class' do
         allow(FileUtils).to receive(:mkdir_p).with('/can/not/be/created').
           and_raise(Errno::EACCES, 'Permission denied')
 
-        expect { plugin_class.new('file/test', options) }.
-          to raise_error(/libkv plugin file\/test Error: Unable to create .* Permission denied/)
-      end
-
-      it 'should fail when root path permissions cannot be set' do
-        options = {
-          'backend'  => 'test',
-          'backends' => {
-            'test'  => {
-              'id'        => 'test',
-              'type'      => 'file',
-              'root_path' => @root_path
-            }
-          }
-        }
-
-        allow(FileUtils).to receive(:chmod).with(0770, @root_path).
-          and_raise(Errno::EACCES, 'Permission denied')
-
-        expect { plugin_class.new('file/test', options) }.
-          to raise_error(/libkv plugin file\/test Error: Unable to set permissions .* Permission denied/)
+        expect { plugin_class.new(@plugin_name, options) }.
+          to raise_error(/Unable to create configured root path/)
       end
     end
   end
 
   context 'public API' do
     before(:each) do
-      @plugin = plugin_class.new('file/test', @options)
+      @plugin = plugin_class.new(@plugin_name, @options)
     end
 
     describe 'delete' do
@@ -373,13 +330,13 @@ describe 'libkv file plugin anonymous class' do
       end
 
       it 'should return an unset :result and an :err_msg when the key file exists but is not accessible' do
-        # make a key file that is inaccessible
+        # mock a key file that is inaccessible
         key_file = File.join(@root_path, 'production/key1')
         allow(File).to receive(:open).with(key_file, 'r').
           and_raise(Errno::EACCES, 'Permission denied')
         result = @plugin.get('production/key1')
         expect( result[:result] ).to be_nil
-        expect( result[:err_msg] ).to match(/Key retrieval at '.*' failed/)
+        expect( result[:err_msg] ).to match(/Cannot read '#{Regexp.escape(key_file)}'/)
       end
     end
 
@@ -442,7 +399,7 @@ describe 'libkv file plugin anonymous class' do
 
     describe 'name' do
       it 'should return configured name' do
-        expect( @plugin.name ).to eq 'file/test'
+        expect( @plugin.name ).to eq @plugin_name
       end
     end
 
@@ -473,12 +430,18 @@ describe 'libkv file plugin anonymous class' do
         expect( File.stat(File.join(@root_path, 'production', 'gen_passwd')).mode & 0777 ).to eq 0770
       end
 
-      it 'should return :result=true when the key file exists and is accessible' do
+      it 'should fix permissions and return :result=true when the key file exists '\
+         'and is owned by user' do
         key = 'key1'
+        key_file = File.join(@root_path, key)
+        FileUtils.touch(key_file)
+        FileUtils.chmod(0640, key_file)
+
         value1 = 'value for key1 which is longer than second value'
         value2 = 'second value for key1'
         value3 = 'third value for key1 which is longer than second value'
         @plugin.put(key, value1)
+        expect( File.stat(key_file).mode & 0777 ).to eq 0660
 
         result = @plugin.put(key, value2)
         expect( result[:result] ).to be true
@@ -516,9 +479,210 @@ describe 'libkv file plugin anonymous class' do
 
         result = @plugin.put('key', 'value')
         expect( result[:result] ).to be false
-        expect( result[:err_msg] ).to match(/Key write to '.*' failed/)
+        expect( result[:err_msg] ).to match(/Cannot write to '#{Regexp.escape(key_file)}'/)
       end
     end
+  end
+
+  context 'internal methods' do
+    before(:each) do
+      @plugin = plugin_class.new(@plugin_name, @options)
+    end
+
+    describe 'ensure_folder_path' do
+      it 'should create folder path with correct permissions when not present' do
+        @plugin.ensure_folder_path('some/folder/path')
+        [
+          File.join(@root_path, 'some'),
+          File.join(@root_path, 'some', 'folder'),
+          File.join(@root_path, 'some', 'folder', 'path')
+        ].each do |path|
+          expect( Dir.exist?(path) ).to be true
+          stat = File.stat(path)
+          expect( stat.mode & 00777 ). to eq 0770
+        end
+      end
+
+      it 'should create missing subdirs of folder path' do
+        FileUtils.mkdir(File.join(@root_path, 'some'))
+        @plugin.ensure_folder_path('some/folder/path')
+        [
+          File.join(@root_path, 'some', 'folder'),
+          File.join(@root_path, 'some', 'folder', 'path')
+        ].each do |path|
+          expect( Dir.exist?(path) ).to be true
+          stat = File.stat(path)
+          expect( stat.mode & 00777 ). to eq 0770
+        end
+      end
+
+      it 'should call verify_dir_access on existing subdirs of folder path' do
+        FileUtils.mkdir_p(File.join(@root_path, 'some', 'folder', 'path'))
+        allow(@plugin).to receive(:verify_dir_access).with(any_args).and_call_original
+        [
+          'some',
+          File.join('some', 'folder'),
+          File.join('some', 'folder', 'path')
+        ].each do |path|
+          expect(@plugin).to receive(:verify_dir_access).with(path).and_return(nil)
+        end
+
+        @plugin.ensure_folder_path('some/folder/path')
+      end
+    end
+
+    describe 'ensure_root_path' do
+      let(:options) { {
+        'backend'  => 'test',
+        'backends' => {
+          'test'  => {
+            'id'        => 'test',
+            'type'      => 'file'
+          }
+        }
+      } }
+
+      context 'root_path config present' do
+        it 'should return configured root_path and call verify_dir_access when root_path exists' do
+          # @root_path was already created when @plugin was constructed
+          expect(@plugin).to receive(:verify_dir_access).with(@root_path).and_return(nil)
+          expect( @plugin.ensure_root_path(@options) ).to eq (@root_path)
+        end
+
+        it 'should return configured root_path and create the paths when it does not exists' do
+          root_path = File.join(@tmpdir, 'file')
+          opts = options.dup
+          opts['backends']['test']['root_path'] = root_path
+          expect( @plugin.ensure_root_path(opts) ).to eq (root_path)
+          expect( Dir.exist?(root_path) ).to be true
+          expect( File.stat(root_path).mode & 0777 ).to eq 0770
+        end
+
+        it 'should fail when configured root_path does not exist and cannot be created' do
+          root_path = File.join(@tmpdir, 'file', 'test')
+          opts = options.dup
+          opts['backends']['test']['root_path'] = root_path
+          allow(FileUtils).to receive(:mkdir_p).with(root_path)
+            .and_raise(Errno::EACCES, 'Permission denied')
+
+          expect{ @plugin.ensure_root_path(opts) }.to raise_error(
+            /Unable to create configured root path/)
+        end
+      end
+
+      context 'root_path config absent' do
+        before :each do
+          @vardir = File.join(@tmpdir, 'vardir')
+          @default_path = File.join('/', 'var', 'simp', 'libkv', @plugin_name)
+          @fallback_path = File.join(@vardir, 'simp', 'libkv', @plugin_name)
+          allow(Puppet).to receive(:settings).with(any_args).and_call_original
+          allow(Puppet).to receive_message_chain(:settings,:[]).with(:vardir).and_return(@vardir)
+        end
+
+        it 'should return default path in /var/simp and call verify_dir_access when path exists' do
+          expect(Dir).to receive(:exist?).with(@default_path).and_return(true).twice
+          expect(@plugin).to receive(:verify_dir_access).with(@default_path).and_return(nil)
+          expect( @plugin.ensure_root_path(options) ).to eq (@default_path)
+        end
+
+        it 'should return fallback path in Puppet vardir and call '\
+           'verify_dir_access when default path does not exist but fallback path does' do
+          expect(Dir).to receive(:exist?).with(@default_path).and_return(false)
+          expect(Dir).to receive(:exist?).with(@fallback_path).and_return(true).twice
+          expect(@plugin).to receive(:verify_dir_access).with(@fallback_path).and_return(nil)
+          expect( @plugin.ensure_root_path(options) ).to eq (@fallback_path)
+        end
+
+        it 'should create and return default path when neither default path exists' do
+          expect(Dir).to receive(:exist?).with(@default_path).and_return(false).twice
+          expect(Dir).to receive(:exist?).with(@fallback_path).and_return(false)
+          expect(FileUtils).to receive(:mkdir_p).with(@default_path).and_return(nil)
+          expect(FileUtils).to receive(:chmod).with(0770, @default_path).and_return(nil)
+          expect( @plugin.ensure_root_path(options) ).to eq (@default_path)
+        end
+
+        it 'should create and return fallback path when neither default path exists '\
+           'and primary default cannot be created' do
+          expect(Dir).to receive(:exist?).with(@default_path).and_return(false).twice
+          expect(Dir).to receive(:exist?).with(@fallback_path).and_return(false)
+          expect(FileUtils).to receive(:mkdir_p).with(@default_path)
+            .and_raise(Errno::EACCES, 'Permission denied')
+
+          expect( @plugin.ensure_root_path(options) ).to eq (@fallback_path)
+          expect( Dir.exist?(@fallback_path) ).to be true
+          expect( File.stat(@fallback_path).mode & 0777 ).to eq 0770
+        end
+
+        it 'should fail when neither default path exists and neither can be created' do
+          expect(Dir).to receive(:exist?).with(@default_path).and_return(false).twice
+          expect(Dir).to receive(:exist?).with(@fallback_path).and_return(false)
+          expect(FileUtils).to receive(:mkdir_p).with(@default_path)
+            .and_raise(Errno::EACCES, 'Permission denied')
+
+          expect(FileUtils).to receive(:mkdir_p).with(@fallback_path)
+            .and_raise(Errno::EACCES, 'Permission denied')
+
+          expect{ @plugin.ensure_root_path(options) }.to raise_error(
+            /Unable to create default root path/)
+        end
+      end
+    end
+
+    describe 'verify_dir_access' do
+      let(:dir) { 'some/folder/path' }
+      before :each do
+        allow(Dir).to receive(:entries).with(any_args).and_call_original
+        allow(File).to receive(:stat).with(any_args).and_call_original
+      end
+
+      it 'should succeed when process user owns directory can read and modify it' do
+        expect(Dir).to receive(:entries).with(dir).and_return([])
+        mock_stat = OpenStruct.new
+        mock_stat.uid = Process.uid
+        mock_stat.gid = Process.gid
+        mock_stat.mode = 00750
+        expect(File).to receive(:stat).with(dir).and_return(mock_stat)
+        expect(FileUtils).to receive(:chmod).with(0770, dir).and_return(nil)
+
+        expect{ @plugin.verify_dir_access(dir) }.to_not raise_error
+      end
+
+      it 'should succeed when process group can read and modify a dir it does not own' do
+        expect(Dir).to receive(:entries).with(dir).and_return([])
+
+        mock_stat = OpenStruct.new
+        mock_stat.uid = Process.uid + 1  # make sure there is a mismatch!
+        mock_stat.gid = Process.gid
+        mock_stat.mode = 00770
+        expect(File).to receive(:stat).with(dir).and_return(mock_stat)
+
+        allow(FileUtils).to receive(:chmod).with(0770, dir).and_return(nil)
+
+        expect{ @plugin.verify_dir_access(dir) }.to_not raise_error
+      end
+
+      it 'should fail when directory cannot be read' do
+        expect(Dir).to receive(:entries).with(dir).and_raise(
+          Errno::EACCES, 'Permission denied')
+
+        expect{ @plugin.verify_dir_access(dir) }.to raise_error(
+          /Cannot access '#{Regexp.escape(dir)}'/)
+      end
+
+      it 'should fail process group cannot modify directory' do
+        expect(Dir).to receive(:entries).with(dir).and_return([])
+
+        mock_stat = OpenStruct.new
+        mock_stat.uid = Process.uid + 1  # make sure there is a mismatch!
+        mock_stat.gid = Process.gid
+        mock_stat.mode = 00750
+        expect(File).to receive(:stat).with(dir).and_return(mock_stat)
+
+        expect{ @plugin.verify_dir_access(dir) }.to raise_error(
+          /Cannot modify '#{Regexp.escape(dir)}'/)
+      end
+    end
+
   end
 
 end
