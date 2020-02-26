@@ -1,4 +1,4 @@
-Files in this directory are for the consul libkv provider tests
+Files in this directory are for the consul simpkv provider tests
 (spec tests and what appears to be manual tests).  The files have
 been moved from the top directory to here, but
 

@@ -5,20 +5,20 @@
 
 **Functions**
 
-* [`libkv::delete`](#libkvdelete): Deletes a `key` from the configured backend.
-* [`libkv::deletetree`](#libkvdeletetree): Deletes a whole folder from the configured backend.
-* [`libkv::exists`](#libkvexists): Returns whether key or key folder exists in the configured backend.
-* [`libkv::get`](#libkvget): Retrieves the value and any metadata stored at `key` from the  configured backend.
-* [`libkv::list`](#libkvlist): Returns a listing of all keys and sub-folders in a folder.  The list operation does not recurse through any sub-folders. Only information abo
-* [`libkv::put`](#libkvput): Sets the data at `key` to the specified `value` in the configured backend. Optionally sets metadata along with the `value`.
-* [`libkv::support::config::merge`](#libkvsupportconfigmerge): Create merged backend configuration and then validate it.  The merge entails the following operations: * The `options` argument is merged wit
-* [`libkv::support::config::validate`](#libkvsupportconfigvalidate): Validate backend configuration
-* [`libkv::support::key::validate`](#libkvsupportkeyvalidate): Validates key conforms to the libkv key specification  * libkv key specification    * Key must contain only the following characters:      * 
-* [`libkv::support::load`](#libkvsupportload): Load libkv adapter and plugins and add libkv 'extension' to the catalog instance, if it is not present
+* [`simpkv::delete`](#simpkvdelete): Deletes a `key` from the configured backend.
+* [`simpkv::deletetree`](#simpkvdeletetree): Deletes a whole folder from the configured backend.
+* [`simpkv::exists`](#simpkvexists): Returns whether key or key folder exists in the configured backend.
+* [`simpkv::get`](#simpkvget): Retrieves the value and any metadata stored at `key` from the  configured backend.
+* [`simpkv::list`](#simpkvlist): Returns a listing of all keys and sub-folders in a folder.  The list operation does not recurse through any sub-folders. Only information abo
+* [`simpkv::put`](#simpkvput): Sets the data at `key` to the specified `value` in the configured backend. Optionally sets metadata along with the `value`.
+* [`simpkv::support::config::merge`](#simpkvsupportconfigmerge): Create merged backend configuration and then validate it.  The merge entails the following operations: * The `options` argument is merged wit
+* [`simpkv::support::config::validate`](#simpkvsupportconfigvalidate): Validate backend configuration
+* [`simpkv::support::key::validate`](#simpkvsupportkeyvalidate): Validates key conforms to the simpkv key specification  * simpkv key specification    * Key must contain only the following characters:      
+* [`simpkv::support::load`](#simpkvsupportload): Load simpkv adapter and plugins and add simpkv 'extension' to the catalog instance, if it is not present
 
 ## Functions
 
-### libkv::delete
+### simpkv::delete
 
 Type: Ruby 4.x API
 
@@ -29,16 +29,16 @@ Deletes a `key` from the configured backend.
 ##### Delete a key using the default backend
 
 ```puppet
-libkv::delete("hosts/${facts['fqdn']}")
+simpkv::delete("hosts/${facts['fqdn']}")
 ```
 
 ##### Delete a key using the backend servicing an application id
 
 ```puppet
-libkv::delete("hosts/${facts['fqdn']}", { 'app_id' => 'myapp' })
+simpkv::delete("hosts/${facts['fqdn']}", { 'app_id' => 'myapp' })
 ```
 
-#### `libkv::delete(String[1] $key, Optional[Hash] $options)`
+#### `simpkv::delete(String[1] $key, Optional[Hash] $options)`
 
 Deletes a `key` from the configured backend.
 
@@ -48,7 +48,7 @@ options
 
 Raises:
 * `ArgumentError` If the key or merged backend config is invalid
-* `LoadError` If the libkv adapter cannot be loaded
+* `LoadError` If the simpkv adapter cannot be loaded
 * `RuntimeError` If the backend operation fails, unless 'softfail' is `true` in the merged backend options.
 
 ##### Examples
@@ -56,13 +56,13 @@ Raises:
 ###### Delete a key using the default backend
 
 ```puppet
-libkv::delete("hosts/${facts['fqdn']}")
+simpkv::delete("hosts/${facts['fqdn']}")
 ```
 
 ###### Delete a key using the backend servicing an application id
 
 ```puppet
-libkv::delete("hosts/${facts['fqdn']}", { 'app_id' => 'myapp' })
+simpkv::delete("hosts/${facts['fqdn']}", { 'app_id' => 'myapp' })
 ```
 
 ##### `key`
@@ -84,8 +84,8 @@ The key to remove. Must conform to the following:
 
 Data type: `Optional[Hash]`
 
-libkv configuration that will be merged with
-`libkv::options`.  All keys are optional.
+simpkv configuration that will be merged with
+`simpkv::options`.  All keys are optional.
 
 Options:
 
@@ -94,7 +94,7 @@ configuration to use via fuzzy name matching, in the absence of the
 `backend` option.
 
   * More flexible option than `backend`.
-  * Useful for grouping together libkv function calls found in different
+  * Useful for grouping together simpkv function calls found in different
     catalog resources.
   * When specified and the `backend` option is absent, the backend will be
     selected preferring a backend in the merged `backends` option whose
@@ -128,7 +128,7 @@ configuration to use via fuzzy name matching, in the absence of the
   * Should only be set to an empty string when the key being accessed is
     truly global.
   * Defaults to the Puppet environment for the node.
-* **'softfail'** `Boolean`: Whether to ignore libkv operation failures.
+* **'softfail'** `Boolean`: Whether to ignore simpkv operation failures.
 
   * When `true`, this function will return a result even when the
     operation failed at the backend.
@@ -136,7 +136,7 @@ configuration to use via fuzzy name matching, in the absence of the
     failed.
   * Defaults to `false`.
 
-### libkv::deletetree
+### simpkv::deletetree
 
 Type: Ruby 4.x API
 
@@ -147,16 +147,16 @@ Deletes a whole folder from the configured backend.
 ##### Delete a key folder using the default backend
 
 ```puppet
-libkv::deletetree("hosts")
+simpkv::deletetree("hosts")
 ```
 
 ##### Delete a key folder using the backend servicing an appliction id
 
 ```puppet
-libkv::deletetree("hosts", { 'app_id' => 'myapp' })
+simpkv::deletetree("hosts", { 'app_id' => 'myapp' })
 ```
 
-#### `libkv::deletetree(String[1] $keydir, Optional[Hash] $options)`
+#### `simpkv::deletetree(String[1] $keydir, Optional[Hash] $options)`
 
 Deletes a whole folder from the configured backend.
 
@@ -166,7 +166,7 @@ options
 
 Raises:
 * `ArgumentError` If the key folder or merged backend config is invalid
-* `LoadError` If the libkv adapter cannot be loaded
+* `LoadError` If the simpkv adapter cannot be loaded
 * `RuntimeError` If the backend operation fails, unless 'softfail' is `true` in the merged backend options.
 
 ##### Examples
@@ -174,13 +174,13 @@ Raises:
 ###### Delete a key folder using the default backend
 
 ```puppet
-libkv::deletetree("hosts")
+simpkv::deletetree("hosts")
 ```
 
 ###### Delete a key folder using the backend servicing an appliction id
 
 ```puppet
-libkv::deletetree("hosts", { 'app_id' => 'myapp' })
+simpkv::deletetree("hosts", { 'app_id' => 'myapp' })
 ```
 
 ##### `keydir`
@@ -202,8 +202,8 @@ The key folder to remove. Must conform to the following:
 
 Data type: `Optional[Hash]`
 
-libkv configuration that will be merged with
-`libkv::options`.  All keys are optional.
+simpkv configuration that will be merged with
+`simpkv::options`.  All keys are optional.
 
 Options:
 
@@ -212,7 +212,7 @@ configuration to use via fuzzy name matching, in the absence of the
 `backend` option.
 
   * More flexible option than `backend`.
-  * Useful for grouping together libkv function calls found in different
+  * Useful for grouping together simpkv function calls found in different
     catalog resources.
   * When specified and the `backend` option is absent, the backend will be
     selected preferring a backend in the merged `backends` option whose
@@ -246,7 +246,7 @@ configuration to use via fuzzy name matching, in the absence of the
   * Should only be set to an empty string when the key being accessed is
     truly global.
   * Defaults to the Puppet environment for the node.
-* **'softfail'** `Boolean`: Whether to ignore libkv operation failures.
+* **'softfail'** `Boolean`: Whether to ignore simpkv operation failures.
 
   * When `true`, this function will return a result even when the
     operation failed at the backend.
@@ -254,7 +254,7 @@ configuration to use via fuzzy name matching, in the absence of the
     failed.
   * Defaults to `false`.
 
-### libkv::exists
+### simpkv::exists
 
 Type: Ruby 4.x API
 
@@ -265,7 +265,7 @@ Returns whether key or key folder exists in the configured backend.
 ##### Check for the existence of a key in the default backend
 
 ```puppet
-if libkv::exists("hosts/${facts['fqdn']}") {
+if simpkv::exists("hosts/${facts['fqdn']}") {
    notify { "hosts/${facts['fqdn']} exists": }
 }
 ```
@@ -273,7 +273,7 @@ if libkv::exists("hosts/${facts['fqdn']}") {
 ##### Check for the existence of a key in the backend servicing an application id
 
 ```puppet
-if libkv::exists("hosts/${facts['fqdn']}", { 'app_id' => 'myapp' }) {
+if simpkv::exists("hosts/${facts['fqdn']}", { 'app_id' => 'myapp' }) {
    notify { "hosts/${facts['fqdn']} exists": }
 }
 ```
@@ -281,12 +281,12 @@ if libkv::exists("hosts/${facts['fqdn']}", { 'app_id' => 'myapp' }) {
 ##### Check for the existence of a key folder in the default backend
 
 ```puppet
-if libkv::exists("hosts") {
+if simpkv::exists("hosts") {
    notify { 'hosts folder exists': }
 }
 ```
 
-#### `libkv::exists(String[1] $key, Optional[Hash] $options)`
+#### `simpkv::exists(String[1] $key, Optional[Hash] $options)`
 
 Returns whether key or key folder exists in the configured backend.
 
@@ -296,7 +296,7 @@ in the merged backend options, returns nil
 
 Raises:
 * `ArgumentError` If the key or merged backend config is invalid
-* `LoadError` If the libkv adapter cannot be loaded
+* `LoadError` If the simpkv adapter cannot be loaded
 * `RuntimeError` If the backend operation fails, unless 'softfail' is `true` in the merged backend options.
 
 ##### Examples
@@ -304,7 +304,7 @@ Raises:
 ###### Check for the existence of a key in the default backend
 
 ```puppet
-if libkv::exists("hosts/${facts['fqdn']}") {
+if simpkv::exists("hosts/${facts['fqdn']}") {
    notify { "hosts/${facts['fqdn']} exists": }
 }
 ```
@@ -312,7 +312,7 @@ if libkv::exists("hosts/${facts['fqdn']}") {
 ###### Check for the existence of a key in the backend servicing an application id
 
 ```puppet
-if libkv::exists("hosts/${facts['fqdn']}", { 'app_id' => 'myapp' }) {
+if simpkv::exists("hosts/${facts['fqdn']}", { 'app_id' => 'myapp' }) {
    notify { "hosts/${facts['fqdn']} exists": }
 }
 ```
@@ -320,7 +320,7 @@ if libkv::exists("hosts/${facts['fqdn']}", { 'app_id' => 'myapp' }) {
 ###### Check for the existence of a key folder in the default backend
 
 ```puppet
-if libkv::exists("hosts") {
+if simpkv::exists("hosts") {
    notify { 'hosts folder exists': }
 }
 ```
@@ -344,8 +344,8 @@ The key or key folder to check. Must conform to the following:
 
 Data type: `Optional[Hash]`
 
-libkv configuration that will be merged with
-`libkv::options`.  All keys are optional.
+simpkv configuration that will be merged with
+`simpkv::options`.  All keys are optional.
 
 Options:
 
@@ -354,7 +354,7 @@ configuration to use via fuzzy name matching, in the absence of the
 `backend` option.
 
   * More flexible option than `backend`.
-  * Useful for grouping together libkv function calls found in different
+  * Useful for grouping together simpkv function calls found in different
     catalog resources.
   * When specified and the `backend` option is absent, the backend will be
     selected preferring a backend in the merged `backends` option whose
@@ -388,7 +388,7 @@ configuration to use via fuzzy name matching, in the absence of the
   * Should only be set to an empty string when the key being accessed is
     truly global.
   * Defaults to the Puppet environment for the node.
-* **'softfail'** `Boolean`: Whether to ignore libkv operation failures.
+* **'softfail'** `Boolean`: Whether to ignore simpkv operation failures.
 
   * When `true`, this function will return a result even when the
     operation failed at the backend.
@@ -396,7 +396,7 @@ configuration to use via fuzzy name matching, in the absence of the
     failed.
   * Defaults to `false`.
 
-### libkv::get
+### simpkv::get
 
 Type: Ruby 4.x API
 
@@ -408,7 +408,7 @@ Retrieves the value and any metadata stored at `key` from the
 ##### Retrieve the value and any metadata for a key in the default backend
 
 ```puppet
-$result = libkv::get("database/${facts['fqdn']}")
+$result = simpkv::get("database/${facts['fqdn']}")
 class { 'wordpress':
   db_host => $result['value']
 }
@@ -417,13 +417,13 @@ class { 'wordpress':
 ##### Retrieve the value and any metadata for a key in the backend servicing an application id
 
 ```puppet
-$result = libkv::get("database/${facts['fqdn']}", { 'app_id' => 'myapp' })
+$result = simpkv::get("database/${facts['fqdn']}", { 'app_id' => 'myapp' })
 class { 'wordpress':
   db_host => $result['value']
 }
 ```
 
-#### `libkv::get(String[1] $key, Optional[Hash] $options)`
+#### `simpkv::get(String[1] $key, Optional[Hash] $options)`
 
 Retrieves the value and any metadata stored at `key` from the
  configured backend.
@@ -438,7 +438,7 @@ in the merged backend options
 
 Raises:
 * `ArgumentError` If the key or merged backend config is invalid
-* `LoadError` If the libkv adapter cannot be loaded
+* `LoadError` If the simpkv adapter cannot be loaded
 * `RuntimeError` If the backend operation fails, unless 'softfail' is `true` in the merged backend options.
 
 ##### Examples
@@ -446,7 +446,7 @@ Raises:
 ###### Retrieve the value and any metadata for a key in the default backend
 
 ```puppet
-$result = libkv::get("database/${facts['fqdn']}")
+$result = simpkv::get("database/${facts['fqdn']}")
 class { 'wordpress':
   db_host => $result['value']
 }
@@ -455,7 +455,7 @@ class { 'wordpress':
 ###### Retrieve the value and any metadata for a key in the backend servicing an application id
 
 ```puppet
-$result = libkv::get("database/${facts['fqdn']}", { 'app_id' => 'myapp' })
+$result = simpkv::get("database/${facts['fqdn']}", { 'app_id' => 'myapp' })
 class { 'wordpress':
   db_host => $result['value']
 }
@@ -480,8 +480,8 @@ The key to retrieve. Must conform to the following:
 
 Data type: `Optional[Hash]`
 
-libkv configuration that will be merged with
-`libkv::options`.  All keys are optional.
+simpkv configuration that will be merged with
+`simpkv::options`.  All keys are optional.
 
 Options:
 
@@ -490,7 +490,7 @@ configuration to use via fuzzy name matching, in the absence of the
 `backend` option.
 
   * More flexible option than `backend`.
-  * Useful for grouping together libkv function calls found in different
+  * Useful for grouping together simpkv function calls found in different
     catalog resources.
   * When specified and the `backend` option is absent, the backend will be
     selected preferring a backend in the merged `backends` option whose
@@ -524,7 +524,7 @@ configuration to use via fuzzy name matching, in the absence of the
   * Should only be set to an empty string when the key being accessed is
     truly global.
   * Defaults to the Puppet environment for the node.
-* **'softfail'** `Boolean`: Whether to ignore libkv operation failures.
+* **'softfail'** `Boolean`: Whether to ignore simpkv operation failures.
 
   * When `true`, this function will return a result even when the
     operation failed at the backend.
@@ -532,7 +532,7 @@ configuration to use via fuzzy name matching, in the absence of the
     failed.
   * Defaults to `false`.
 
-### libkv::list
+### simpkv::list
 
 Type: Ruby 4.x API
 
@@ -546,7 +546,7 @@ about the specified key folder is returned.
 ##### Retrieve the list of key info for a key folder in the default backend
 
 ```puppet
-$result = libkv::list('hosts')
+$result = simpkv::list('hosts')
 $result['keys'].each |$host, $info | {
   host { $host:
     ip => $info['value'],
@@ -557,7 +557,7 @@ $result['keys'].each |$host, $info | {
 ##### Retrieve the list of key info for a key folder in the backend servicing an application id
 
 ```puppet
-$result = libkv::list('hosts', { 'app_id' => 'myapp' })
+$result = simpkv::list('hosts', { 'app_id' => 'myapp' })
 $result['keys'].each |$host, $info | {
   host { $host:
     ip => $info['value'],
@@ -568,23 +568,23 @@ $result['keys'].each |$host, $info | {
 ##### Retrieve the list of sub-folders in a key folder in the default backend
 
 ```puppet
-$result = libkv::list('applications')
+$result = simpkv::list('applications')
 notice("Supported applications: ${join($result['folders'], ' ')}")
 ```
 
 ##### Retrieve the top folder list for the environment in the default backend
 
 ```puppet
-$result = libkv::list('/')
+$result = simpkv::list('/')
 ```
 
 ##### Retrieve the list of environments supported by the default backend
 
 ```puppet
-$result = libkv::list('/', { 'environment' => '' })
+$result = simpkv::list('/', { 'environment' => '' })
 ```
 
-#### `libkv::list(String[1] $keydir, Optional[Hash] $options)`
+#### `simpkv::list(String[1] $keydir, Optional[Hash] $options)`
 
 Returns a listing of all keys and sub-folders in a folder.
 
@@ -603,7 +603,7 @@ sub-folders upon success; Undef when the backend operation fails and
 
 Raises:
 * `ArgumentError` If the key folder or merged backend config is invalid
-* `LoadError` If the libkv adapter cannot be loaded
+* `LoadError` If the simpkv adapter cannot be loaded
 * `RuntimeError` If the backend operation fails, unless 'softfail' is `true` in the merged backend options.
 
 ##### Examples
@@ -611,7 +611,7 @@ Raises:
 ###### Retrieve the list of key info for a key folder in the default backend
 
 ```puppet
-$result = libkv::list('hosts')
+$result = simpkv::list('hosts')
 $result['keys'].each |$host, $info | {
   host { $host:
     ip => $info['value'],
@@ -622,7 +622,7 @@ $result['keys'].each |$host, $info | {
 ###### Retrieve the list of key info for a key folder in the backend servicing an application id
 
 ```puppet
-$result = libkv::list('hosts', { 'app_id' => 'myapp' })
+$result = simpkv::list('hosts', { 'app_id' => 'myapp' })
 $result['keys'].each |$host, $info | {
   host { $host:
     ip => $info['value'],
@@ -633,20 +633,20 @@ $result['keys'].each |$host, $info | {
 ###### Retrieve the list of sub-folders in a key folder in the default backend
 
 ```puppet
-$result = libkv::list('applications')
+$result = simpkv::list('applications')
 notice("Supported applications: ${join($result['folders'], ' ')}")
 ```
 
 ###### Retrieve the top folder list for the environment in the default backend
 
 ```puppet
-$result = libkv::list('/')
+$result = simpkv::list('/')
 ```
 
 ###### Retrieve the list of environments supported by the default backend
 
 ```puppet
-$result = libkv::list('/', { 'environment' => '' })
+$result = simpkv::list('/', { 'environment' => '' })
 ```
 
 ##### `keydir`
@@ -668,8 +668,8 @@ The key folder to list. Must conform to the following:
 
 Data type: `Optional[Hash]`
 
-libkv configuration that will be merged with
-`libkv::options`.  All keys are optional.
+simpkv configuration that will be merged with
+`simpkv::options`.  All keys are optional.
 
 Options:
 
@@ -678,7 +678,7 @@ configuration to use via fuzzy name matching, in the absence of the
 `backend` option.
 
   * More flexible option than `backend`.
-  * Useful for grouping together libkv function calls found in different
+  * Useful for grouping together simpkv function calls found in different
     catalog resources.
   * When specified and the `backend` option is absent, the backend will be
     selected preferring a backend in the merged `backends` option whose
@@ -712,7 +712,7 @@ configuration to use via fuzzy name matching, in the absence of the
   * Should only be set to an empty string when the key being accessed is
     truly global.
   * Defaults to the Puppet environment for the node.
-* **'softfail'** `Boolean`: Whether to ignore libkv operation failures.
+* **'softfail'** `Boolean`: Whether to ignore simpkv operation failures.
 
   * When `true`, this function will return a result even when the
     operation failed at the backend.
@@ -720,7 +720,7 @@ configuration to use via fuzzy name matching, in the absence of the
     failed.
   * Defaults to `false`.
 
-### libkv::put
+### simpkv::put
 
 Type: Ruby 4.x API
 
@@ -732,14 +732,14 @@ Optionally sets metadata along with the `value`.
 ##### Set a key using the default backend
 
 ```puppet
-libkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'])
+simpkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'])
 ```
 
 ##### Set a key with metadata using the default backend
 
 ```puppet
 $meta = { 'rack_id' => 183 }
-libkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'], $meta)
+simpkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'], $meta)
 ```
 
 ##### Set a key with metadata using the backend servicing an application id
@@ -747,10 +747,10 @@ libkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'], $meta)
 ```puppet
 $meta = { 'rack_id' => 183 }
 $opts = { 'app_id' => 'myapp' }
-libkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'], $meta, $opts)
+simpkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'], $meta, $opts)
 ```
 
-#### `libkv::put(String[1] $key, NotUndef $value, Optional[Hash] $metadata, Optional[Hash] $options)`
+#### `simpkv::put(String[1] $key, NotUndef $value, Optional[Hash] $metadata, Optional[Hash] $options)`
 
 Sets the data at `key` to the specified `value` in the configured backend.
 Optionally sets metadata along with the `value`.
@@ -761,7 +761,7 @@ options
 
 Raises:
 * `ArgumentError` If the key or merged backend config is invalid
-* `LoadError` If the libkv adapter cannot be loaded
+* `LoadError` If the simpkv adapter cannot be loaded
 * `RuntimeError` If the backend operation fails, unless 'softfail' is `true` in the merged backend options.
 
 ##### Examples
@@ -769,14 +769,14 @@ Raises:
 ###### Set a key using the default backend
 
 ```puppet
-libkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'])
+simpkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'])
 ```
 
 ###### Set a key with metadata using the default backend
 
 ```puppet
 $meta = { 'rack_id' => 183 }
-libkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'], $meta)
+simpkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'], $meta)
 ```
 
 ###### Set a key with metadata using the backend servicing an application id
@@ -784,7 +784,7 @@ libkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'], $meta)
 ```puppet
 $meta = { 'rack_id' => 183 }
 $opts = { 'app_id' => 'myapp' }
-libkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'], $meta, $opts)
+simpkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'], $meta, $opts)
 ```
 
 ##### `key`
@@ -818,8 +818,8 @@ Additional information to be persisted
 
 Data type: `Optional[Hash]`
 
-libkv configuration that will be merged with
-`libkv::options`.  All keys are optional.
+simpkv configuration that will be merged with
+`simpkv::options`.  All keys are optional.
 
 Options:
 
@@ -828,7 +828,7 @@ configuration to use via fuzzy name matching, in the absence of the
 `backend` option.
 
   * More flexible option than `backend`.
-  * Useful for grouping together libkv function calls found in different
+  * Useful for grouping together simpkv function calls found in different
     catalog resources.
   * When specified and the `backend` option is absent, the backend will be
     selected preferring a backend in the merged `backends` option whose
@@ -862,7 +862,7 @@ configuration to use via fuzzy name matching, in the absence of the
   * Should only be set to an empty string when the key being accessed is
     truly global.
   * Defaults to the Puppet environment for the node.
-* **'softfail'** `Boolean`: Whether to ignore libkv operation failures.
+* **'softfail'** `Boolean`: Whether to ignore simpkv operation failures.
 
   * When `true`, this function will return a result even when the
     operation failed at the backend.
@@ -870,15 +870,15 @@ configuration to use via fuzzy name matching, in the absence of the
     failed.
   * Defaults to `false`.
 
-### libkv::support::config::merge
+### simpkv::support::config::merge
 
 Type: Ruby 4.x API
 
 Create merged backend configuration and then validate it.
 
 The merge entails the following operations:
-* The `options` argument is merged with `libkv::options` Hiera and global
-  libkv defaults.
+* The `options` argument is merged with `simpkv::options` Hiera and global
+  simpkv defaults.
 
 * If the `backend` options is missing in the merged options, it is set to
   a value determined as follows:
@@ -895,20 +895,20 @@ The merge entails the following operations:
 
 * If the `backends` option is missing in the merged options, it is set to
   a Hash containing a single entry, `default`, that has configuration for
-  the libkv 'file' backend.
+  the simpkv 'file' backend.
 
 Validation includes the following checks:
 * configuration for the selected backend exists
 * the plugin for the selected backend has been loaded
 * different configuration for a specific plugin instance does not exist
 
-#### `libkv::support::config::merge(Hash $options, Array $backends)`
+#### `simpkv::support::config::merge(Hash $options, Array $backends)`
 
 Create merged backend configuration and then validate it.
 
 The merge entails the following operations:
-* The `options` argument is merged with `libkv::options` Hiera and global
-  libkv defaults.
+* The `options` argument is merged with `simpkv::options` Hiera and global
+  simpkv defaults.
 
 * If the `backend` options is missing in the merged options, it is set to
   a value determined as follows:
@@ -925,14 +925,14 @@ The merge entails the following operations:
 
 * If the `backends` option is missing in the merged options, it is set to
   a Hash containing a single entry, `default`, that has configuration for
-  the libkv 'file' backend.
+  the simpkv 'file' backend.
 
 Validation includes the following checks:
 * configuration for the selected backend exists
 * the plugin for the selected backend has been loaded
 * different configuration for a specific plugin instance does not exist
 
-Returns: `Hash` merged libkv options that will have the backend to use
+Returns: `Hash` merged simpkv options that will have the backend to use
 specified by 'backend'
 
 Raises:
@@ -942,8 +942,8 @@ Raises:
 
 Data type: `Hash`
 
-Hash that specifies libkv backend options to be merged with
-`libkv::options`.
+Hash that specifies simpkv backend options to be merged with
+`simpkv::options`.
 
 ##### `backends`
 
@@ -952,13 +952,13 @@ Data type: `Array`
 List of backends for which plugins have been successfully
 loaded.
 
-### libkv::support::config::validate
+### simpkv::support::config::validate
 
 Type: Ruby 4.x API
 
 Validate backend configuration
 
-#### `libkv::support::config::validate(Hash $options, Array $backends)`
+#### `simpkv::support::config::validate(Hash $options, Array $backends)`
 
 Validate backend configuration
 
@@ -971,7 +971,7 @@ Raises:
 
 Data type: `Hash`
 
-Hash that specifies libkv backend options
+Hash that specifies simpkv backend options
 
 ##### `backends`
 
@@ -980,13 +980,13 @@ Data type: `Array`
 List of backends for which plugins have been successfully
 loaded.
 
-### libkv::support::key::validate
+### simpkv::support::key::validate
 
 Type: Ruby 4.x API
 
-Validates key conforms to the libkv key specification
+Validates key conforms to the simpkv key specification
 
-* libkv key specification
+* simpkv key specification
 
   * Key must contain only the following characters:
 
@@ -1004,24 +1004,24 @@ Validates key conforms to the libkv key specification
 ##### Passing
 
 ```puppet
-libkv::support::key::validate('looks/like/a/file/path')
-libkv::support::key::validate('looks/like/a/directory/path/')
-libkv::support::key::validate('simp-simp_snmpd:password.auth')
+simpkv::support::key::validate('looks/like/a/file/path')
+simpkv::support::key::validate('looks/like/a/directory/path/')
+simpkv::support::key::validate('simp-simp_snmpd:password.auth')
 ```
 
 ##### Failing
 
 ```puppet
-libkv::support::key::validate('${special}/chars/not/allowed!'}
-libkv::support::key::validate('looks/like/an/./unexpanded/linux/path')
-libkv::support::key::validate('looks/like/another/../unexpanded/linux/path')
+simpkv::support::key::validate('${special}/chars/not/allowed!'}
+simpkv::support::key::validate('looks/like/an/./unexpanded/linux/path')
+simpkv::support::key::validate('looks/like/another/../unexpanded/linux/path')
 ```
 
-#### `libkv::support::key::validate(String[1] $key)`
+#### `simpkv::support::key::validate(String[1] $key)`
 
-Validates key conforms to the libkv key specification
+Validates key conforms to the simpkv key specification
 
-* libkv key specification
+* simpkv key specification
 
   * Key must contain only the following characters:
 
@@ -1044,39 +1044,39 @@ Raises:
 ###### Passing
 
 ```puppet
-libkv::support::key::validate('looks/like/a/file/path')
-libkv::support::key::validate('looks/like/a/directory/path/')
-libkv::support::key::validate('simp-simp_snmpd:password.auth')
+simpkv::support::key::validate('looks/like/a/file/path')
+simpkv::support::key::validate('looks/like/a/directory/path/')
+simpkv::support::key::validate('simp-simp_snmpd:password.auth')
 ```
 
 ###### Failing
 
 ```puppet
-libkv::support::key::validate('${special}/chars/not/allowed!'}
-libkv::support::key::validate('looks/like/an/./unexpanded/linux/path')
-libkv::support::key::validate('looks/like/another/../unexpanded/linux/path')
+simpkv::support::key::validate('${special}/chars/not/allowed!'}
+simpkv::support::key::validate('looks/like/an/./unexpanded/linux/path')
+simpkv::support::key::validate('looks/like/another/../unexpanded/linux/path')
 ```
 
 ##### `key`
 
 Data type: `String[1]`
 
-libkv key
+simpkv key
 
-### libkv::support::load
+### simpkv::support::load
 
 Type: Ruby 4.x API
 
-Load libkv adapter and plugins and add libkv 'extension' to the catalog
+Load simpkv adapter and plugins and add simpkv 'extension' to the catalog
 instance, if it is not present
 
-#### `libkv::support::load()`
+#### `simpkv::support::load()`
 
-Load libkv adapter and plugins and add libkv 'extension' to the catalog
+Load simpkv adapter and plugins and add simpkv 'extension' to the catalog
 instance, if it is not present
 
 Returns: `Nil`
 
 Raises:
-* `LoadError` if libkv adapter software fails to load
+* `LoadError` if simpkv adapter software fails to load
 

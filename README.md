@@ -1,8 +1,8 @@
 [![License](https://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/73/badge)](https://bestpractices.coreinfrastructure.org/projects/73)
-[![Puppet Forge](https://img.shields.io/puppetforge/v/simp/libkv.svg)](https://forge.puppetlabs.com/simp/libkv)
-[![Puppet Forge Downloads](https://img.shields.io/puppetforge/dt/simp/libkv.svg)](https://forge.puppetlabs.com/simp/libkv)
-[![Build Status](https://travis-ci.org/simp/pupmod-simp-libkv.svg)](https://travis-ci.org/simp/pupmod-simp-libkv)
+[![Puppet Forge](https://img.shields.io/puppetforge/v/simp/simpkv.svg)](https://forge.puppetlabs.com/simp/simpkv)
+[![Puppet Forge Downloads](https://img.shields.io/puppetforge/dt/simp/simpkv.svg)](https://forge.puppetlabs.com/simp/simpkv)
+[![Build Status](https://travis-ci.org/simp/pupmod-simp-simpkv.svg)](https://travis-ci.org/simp/pupmod-simp-simpkv)
 
 #### Table of Contents
 
@@ -17,13 +17,13 @@
   * [Multiple Backends Example](#multiple-backends-example)
   * [Binary Value Example](#binary-value-example)
   * [Auto-Default Backend](#auto-default-backend)
-  * [libkv Configuration Reference](#libkv-configuration-reference)
+  * [simpkv Configuration Reference](#simpkv-configuration-reference)
 * [File Store and Plugin](#file-store-and-plugin)
 * [Limitations](#limitations)
 * [Plugin Development](#plugin-development)
   * [Plugin Loading](#plugin-loading)
   * [Implementing the Store Interface API](#implementing-the-store-interface-api)
-* [libkv Development](#libkv-development)
+* [simpkv Development](#simpkv-development)
   * [Unit tests](#unit-tests)
   * [Acceptance tests](#acceptance-tests)
 
@@ -49,14 +49,14 @@ This module provides
 
 * a standard Puppet language API (functions) for using key/value stores
 
-  * The API is modeled after https://github.com/docker/libkv#interface.
+  * The API is modeled after https://github.com/docker/simpkv#interface.
   * See [REFERENCE.md](REFERENCE.md) for more details on the available
     functions.
 
 * a configuration scheme that allows users to specify per-application use
   of different key/value store instances
 * adapter software that loads and uses store-specific interface software
-  provided by the libkv module itself and other modules
+  provided by the simpkv module itself and other modules
 * a Ruby API for the store interface software that developers can implement
   to provide their own store interface
 * a file-based store on the local filesystem and its interface software.
@@ -73,17 +73,17 @@ The following terminology will be used throughout this document:
 * backend - A specific key/value store, e.g., files on a local filesystem,
   Consul, Etcd, Zookeeper.
 * plugin - Ruby software that interfaces with a specific backend to
-  affect the operations requested in libkv Puppet functions.
+  affect the operations requested in simpkv Puppet functions.
 * plugin instance - Instance of the plugin that handles a unique backend
   configuration.
 * plugin adapter - Ruby software that loads, selects, and executes the
-  appropriate plugin software for a libkv function call.
+  appropriate plugin software for a simpkv function call.
 
 ## Usage
 
-Using `libkv` is simple:
+Using `simpkv` is simple:
 
-* Use `libkv` functions to store and retrieve key/value pairs in your Puppet
+* Use `simpkv` functions to store and retrieve key/value pairs in your Puppet
   code.
 * Configure the backend(s) to use in Hieradata.
 * Reconfigure the backend(s) in Hieradata, as your needs change.
@@ -91,27 +91,27 @@ Using `libkv` is simple:
   * No changes to your Puppet code will be required.
   * Just transfer your data from the old key/value store to the new one.
 
-The backend configuration of `libkv` can be as simple as you want (one backend)
+The backend configuration of `simpkv` can be as simple as you want (one backend)
 or complex (multiple backends servicing different applications).  Examples of
 both scenarios will be shown in this section, along with a configuration
 reference.
 
 ### Single Backend Example
 
-This example will store and retrieve host information using libkv function
+This example will store and retrieve host information using simpkv function
 signatures that assume the default backend and hieradata that only configures
 the default backend.
 
 To store a node's hostname and IP address:
 
 ```puppet
-libkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'])
+simpkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'])
 ```
 
 To create a hosts file using the list of stored host information:
 
 ```puppet
-$result = libkv::list('hosts')
+$result = simpkv::list('hosts')
 $result['keys'].each |$host, $info | {
   host { $host:
     ip => $info['value'],
@@ -119,30 +119,30 @@ $result['keys'].each |$host, $info | {
 }
 ```
 
-In hieradata, configure the default backend in the ``libkv::options`` Hash.  This
-example, will configure libkv's file backend.
+In hieradata, configure the default backend in the ``simpkv::options`` Hash.  This
+example, will configure simpkv's file backend.
 
 ```yaml
-libkv::options:
+simpkv::options:
 
   # Hash of backend configurations.
   # - We have only the required 'default' entry which will apply to
-  #   all libkv calls.
+  #   all simpkv calls.
   backends:
     default:
-      # This is the advertised type for libkv's file plugin.
+      # This is the advertised type for simpkv's file plugin.
       type: file
       # This is a unique id for this configuration of the 'file' plugin.
       id: file
 
       # plugin-specific configuration
-      root_path: "/var/simp/libkv/file"
+      root_path: "/var/simp/simpkv/file"
       lock_timeout_seconds: 30
 ```
 
 ### Multiple Backends Example
 
-This example will store and retrieve host information using libkv function
+This example will store and retrieve host information using simpkv function
 signatures that request a backend based on an application id and multi-backend
 hieradata that supports the request.  The function signatures and hieradata are
 a little more complicated, but still relatively straightforward to understand.
@@ -150,17 +150,17 @@ a little more complicated, but still relatively straightforward to understand.
 To store a node's hostname and IP address using the backend servicing `myapp1`:
 
 ```puppet
-$libkv_options = { 'app_id' => 'myapp1' }
+$simpkv_options = { 'app_id' => 'myapp1' }
 $empty_metadata = {}
-libkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'], $empty_metadata, $libkv_options)
+simpkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'], $empty_metadata, $simpkv_options)
 ```
 
 To create a hosts file using the list of stored host information using the
 backend servicing `myapp1`:
 
 ```puppet
-$libkv_options = { 'app_id' => 'myapp1' }
-$result = libkv::list('hosts', $libkv_options)
+$simpkv_options = { 'app_id' => 'myapp1' }
+$result = simpkv::list('hosts', $simpkv_options)
 $result['keys'].each |$host, $info | {
   host { $host:
     ip => $info['value'],
@@ -168,49 +168,49 @@ $result['keys'].each |$host, $info | {
 }
 ```
 
-In hieradata, configure multiple backends in the ``libkv::options`` Hash.
-This example will configure multiple instances of libkv's file backend.
+In hieradata, configure multiple backends in the ``simpkv::options`` Hash.
+This example will configure multiple instances of simpkv's file backend.
 
 ```yaml
-# The backend configurations here will be inserted into libkv::options
+# The backend configurations here will be inserted into simpkv::options
 # below via the alias function.
 
-libkv::backend::file_default:
+simpkv::backend::file_default:
   type: file
   id: default
-  root_path: "/var/simp/libkv/file"
+  root_path: "/var/simp/simpkv/file"
 
-libkv::backend::file_myapp:
+simpkv::backend::file_myapp:
   type: file
   id: myapp
   root_path: "/path/to/myapp"
 
-libkv::backend::file_yourapp:
+simpkv::backend::file_yourapp:
   type: file
   id: yourapp
   root_path: "/path/to/yourapp"
 
 
-libkv::options:
+simpkv::options:
   # Hash of backend configurations.
   # * Includes application-specific backends and the required default backend.
-  # * libkv will use the appropriate backend for each libkv function call.
+  # * simpkv will use the appropriate backend for each simpkv function call.
   backends:
     # backend for specific myapp application
-    "myapp_special_snowflake": "%{alias('libkv::backend::file_default')}"
+    "myapp_special_snowflake": "%{alias('simpkv::backend::file_default')}"
 
     # backend for remaining myapp* applications, including myapp1
-    "myapp":                   "%{alias('libkv::backend::file_myapp')}"
+    "myapp":                   "%{alias('simpkv::backend::file_myapp')}"
 
     # backend for all yourapp* applications
-    "yourapp":                 "%{alias('libkv::backend::file_yourapp')}"
+    "yourapp":                 "%{alias('simpkv::backend::file_yourapp')}"
 
     # required default backend
-    "default":                 "%{alias('libkv::backend::file_default')}"
+    "default":                 "%{alias('simpkv::backend::file_default')}"
 ```
 
 In this example, we are setting the application identifier to `myapp1` in
-our libkv function calls.  libkv selects `myapp` as the backend to use for
+our simpkv function calls.  simpkv selects `myapp` as the backend to use for
 `myapp1` using the following simple search algorithm:
 
 * First, it looks for a backend named for the application id.
@@ -220,15 +220,15 @@ our libkv function calls.  libkv selects `myapp` as the backend to use for
 
 ### Binary Value Example
 
-libkv is able to store and retrieve binary values, provided the Puppet code
+simpkv is able to store and retrieve binary values, provided the Puppet code
 uses the appropriate configuration and functions/types for binary data.
 
   * **IMPORTANT**:  Puppet 5 does not fully support binary data.  So,
-    although libkv will properly serialize and deserialize the data, the
+    although simpkv will properly serialize and deserialize the data, the
     binary data can only be used for Puppet `file` resources when applied
     with `puppet apply`, not `puppet agent`.
 
-Below is an example of using libkv for a binary value.
+Below is an example of using simpkv for a binary value.
 
 To store the content of a generated keytab file:
 
@@ -237,14 +237,14 @@ To store the content of a generated keytab file:
 $original_binary_content = binary_file('/path/to/keytabs/app.keytab')
 
 # Set a key/value pair with the binary content
-libkv::put('app/keytab', $original_binary_content)
+simpkv::put('app/keytab', $original_binary_content)
 ```
 
 To retrieve the keytab binary content and use it in a `file` resource:
 
 ```puppet
 # Retrieve a binary value from a key/value store and set a Binary variable
-$retrieved_result = libkv::get('app/keytab')
+$retrieved_result = simpkv::get('app/keytab')
 $retrieved_binary_content = Binary.new($retrieved_result['value'], '%r')
 
 # Persist binary data to another file
@@ -256,15 +256,15 @@ file { '/different/path/to/keytabs/app.keytab':
 
 ### Auto-Default Backend
 
-libkv is intended to be configured via ``libkv::options`` and any
-application-specific configuration passed to the libkv Puppet functions.
-However, to facilitate rollout of libkv capabilities, (specifically
-use of libkv internally in ``simplib::passgen``), when ``libkv::options``
-is not set in hieradata, libkv will automatically use the libkv file store with
+simpkv is intended to be configured via ``simpkv::options`` and any
+application-specific configuration passed to the simpkv Puppet functions.
+However, to facilitate rollout of simpkv capabilities, (specifically
+use of simpkv internally in ``simplib::passgen``), when ``simpkv::options``
+is not set in hieradata, simpkv will automatically use the simpkv file store with
 the configuration that is equivalent to the following hieradata:
 
 ```yaml
-libkv::options:
+simpkv::options:
   environment: "%{server_facts.environment}"
   softfail: false
   backend: default
@@ -274,25 +274,25 @@ libkv::options:
       id: auto_default
 ```
 
-### libkv Configuration Reference
+### simpkv Configuration Reference
 
-The libkv configuration used for each libkv function call is comprised of
+The simpkv configuration used for each simpkv function call is comprised of
 a merge of a function-provided options Hash, Hiera configuration specified
-by the `libkv::options` Hash, and global configuration defaults.  The merge
+by the `simpkv::options` Hash, and global configuration defaults.  The merge
 is executed in a fashion to ensure the function-provided options take
-precedence over the `libkv::options` Hiera values.
+precedence over the `simpkv::options` Hiera values.
 
-The merged libkv configuration contains global and backend-specific
+The merged simpkv configuration contains global and backend-specific
 configurations, along with an optional application identifier. The primary
 keys in this Hash are as follows:
 
-* `app_id`: Optional String in libkv function calls, only. Specifies an
+* `app_id`: Optional String in simpkv function calls, only. Specifies an
   application name that can be used to identify which backend configuration
   to use via fuzzy name matching, in the absence of the `backend` option.
   (See [Backend Selection](#backend-selection)).
 
   * More flexible option than `backend`.
-  * Useful for grouping together libkv function calls found in different
+  * Useful for grouping together simpkv function calls found in different
     catalog resources.
 
 * `backend`: Optional String. Specifies a definitive backend configuration
@@ -301,7 +301,7 @@ keys in this Hash are as follows:
   * Takes precedence over `app_id`.
   * When present, must match a key in `backends` and will be used unequivocally.
 
-    * If that backend does not exist in `backends`, the libkv function will fail.
+    * If that backend does not exist in `backends`, the simpkv function will fail.
 
   * When absent, the backend configuration will be selected from the set of
     entries in `backends`, using the `app_id` option if specified.
@@ -325,11 +325,11 @@ keys in this Hash are as follows:
     global.
   * Defaults to the Puppet environment for the node when absent.
 
-* `softfail`: Optional Boolean. Whether to ignore libkv operation failures.
+* `softfail`: Optional Boolean. Whether to ignore simpkv operation failures.
 
-  * When `true`, each libkv function will return a result object even when the
+  * When `true`, each simpkv function will return a result object even when the
     operation failed at the backend.
-  * When `false`, each libkv function will fail when the backend operation
+  * When `false`, each simpkv function will fail when the backend operation
     failed.
   * Defaults to `false` when absent.
 
@@ -346,18 +346,18 @@ configuration.
 
 #### Backend Selection
 
-The backend to use for a libkv Puppet function call will be determined from
-the merged libkv options Hash as follows:
+The backend to use for a simpkv Puppet function call will be determined from
+the merged simpkv options Hash as follows:
 
-* If a specific backend is requested via the `backend` key in the merged libkv
+* If a specific backend is requested via the `backend` key in the merged simpkv
   options Hash, that backend will be selected.
 
-  * If that backend does not exist in `backends`, the libkv function will fail.
+  * If that backend does not exist in `backends`, the simpkv function will fail.
 
-* Otherwise, if an `app_id` option is specified in the merged libkv options
+* Otherwise, if an `app_id` option is specified in the merged simpkv options
   Hash and it matches a key in the `backends` Hash, exactly, that backend will
   be selected.
-* Otherwise, if an `app_id` option is specified in the merged libkv options
+* Otherwise, if an `app_id` option is specified in the merged simpkv options
   Hash and it starts with the key in the `backends` Hash, that backend will be
   selected.
 
@@ -369,14 +369,14 @@ the merged libkv options Hash as follows:
 
 ## File Store and Plugin
 
-libkv provides a file-based key/value store and its plugin.  This file store
+simpkv provides a file-based key/value store and its plugin.  This file store
 maintains individual key files on a local filesystem, has a backend type `file`,
 and supports the following plugin-specific configuration parameters.
 
 * `root_path`: Root directory path for the key files
 
-  * Defaults to `/var/simp/libkv/file/<id>` when that directory can be created
-    or '<Puppet[:vardir]>/simp/libkv/<name>' otherwise.
+  * Defaults to `/var/simp/simpkv/file/<id>` when that directory can be created
+    or '<Puppet[:vardir]>/simp/simpkv/<name>' otherwise.
 
 * `lock_timeout_seconds`: Maximum number of seconds to wait for an exclusive
   file lock on a file modifying operation before failing the operation.
@@ -388,10 +388,10 @@ and supports the following plugin-specific configuration parameters.
 * SIMP Puppet modules are generally intended to be used on a Red Hat Enterprise
   Linux-compatible distribution such as EL6 and EL7.
 
-* libkv's file plugin is only guaranteed to work on local filesystems.  It may not
+* simpkv's file plugin is only guaranteed to work on local filesystems.  It may not
   work on shared filesystems, such as NFS.
 
-* `libkv` only supports the use of binary data for the value when that data is
+* `simpkv` only supports the use of binary data for the value when that data is
    a Puppet `Binary`. It does not support binary data which is a sub-element of
    a more complex value type (e.g.  `Array[Binary]` or `Hash` that has a key or
    value that is a `Binary`).
@@ -402,7 +402,7 @@ and supports the following plugin-specific configuration parameters.
 
 Each plugin (store interface) is written in pure Ruby and, to prevent
 cross-environment contamination, is implemented as an anonymous class
-that is automatically loaded by the libkv adapter with each Puppet compile.
+that is automatically loaded by the simpkv adapter with each Puppet compile.
 You do not have to do anything special to have your plugin loaded, provided
 you follow the instructions in the next section.
 
@@ -410,26 +410,26 @@ you follow the instructions in the next section.
 
 To create your own plugin
 
-* Create a `lib/puppet_x/libkv` directory within your store plugin module.
-* Copy `lib/puppet_x/libkv/plugin_template.rb` from the libkv module into that
+* Create a `lib/puppet_x/simpkv` directory within your store plugin module.
+* Copy `lib/puppet_x/simpkv/plugin_template.rb` from the simpkv module into that
   directory with a name `<your plugin name>_plugin.rb`.  For example,
   `nfs_file_plugin.rb`.
 * **READ** all the documentation in your plugin skeleton, paying close attention
   the `IMPORTANT NOTES` discussion.
 * Implement the body of each method as identified by a `FIXME`. Be sure to
   conform to the API for the method.
-* Write unit tests for your plugin, using the unit tests for libkv's file
-  plugin, `spec/unit/puppet_x/libkv/file_plugin_spec.rb` as an example.  That
+* Write unit tests for your plugin, using the unit tests for simpkv's file
+  plugin, `spec/unit/puppet_x/simpkv/file_plugin_spec.rb` as an example.  That
   test shows you how to instantiate an object of your plugin for testing
   purposes.
 * Write acceptance tests for your plugin, using the acceptance tests for
-  libkv's file plugin, `spec/acceptances/suites/default/file_plugin_spec.rb`,
-  as an example.  That test uses a test module, `spec/support/libkv_test` to
-  exercise the the libkv API and verify its operation.
+  simpkv's file plugin, `spec/acceptances/suites/default/file_plugin_spec.rb`,
+  as an example.  That test uses a test module, `spec/support/simpkv_test` to
+  exercise the the simpkv API and verify its operation.
 * Document your plugin's type and configuration parameters in the README.md for
   your store plugin module.
 
-## libkv Development
+## simpkv Development
 
 Please read our [Contribution Guide] (https://simp.readthedocs.io/en/stable/contributors_guide/index.html).
 

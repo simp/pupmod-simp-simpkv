@@ -1,43 +1,43 @@
 require 'spec_helper_acceptance'
 
-test_name 'libkv file plugin'
+test_name 'simpkv file plugin'
 
-describe 'libkv file plugin' do
+describe 'simpkv file plugin' do
 
   let(:hieradata) {{
 
-    'libkv::backend::file_class' => {
+    'simpkv::backend::file_class' => {
       'type'      => 'file',
       'id'        => 'class',
-      'root_path' => '/var/simp/libkv/file/class'
+      'root_path' => '/var/simp/simpkv/file/class'
     },
 
-    'libkv::backend::file_define_instance' => {
+    'simpkv::backend::file_define_instance' => {
       'type'      => 'file',
       'id'        => 'define_instance',
-      'root_path' => '/var/simp/libkv/file/define_instance'
+      'root_path' => '/var/simp/simpkv/file/define_instance'
     },
 
-    'libkv::backend::file_define_type' => {
+    'simpkv::backend::file_define_type' => {
       'type'      => 'file',
       'id'        => 'define_type',
-      'root_path' => '/var/simp/libkv/file/define_type'
+      'root_path' => '/var/simp/simpkv/file/define_type'
     },
 
-    'libkv::backend::file_default' => {
+    'simpkv::backend::file_default' => {
       'type'      => 'file',
       'id'        => 'default',
-      'root_path' => '/var/simp/libkv/file/default'
+      'root_path' => '/var/simp/simpkv/file/default'
     },
 
-   'libkv::options' => {
+   'simpkv::options' => {
       'environment' => '%{server_facts.environment}',
       'softfail'    => false,
       'backends' => {
-      'libkv_test_class'                  => "%{alias('libkv::backend::file_class')}",
-      'Libkv_test::Defines::Put[define2]' => "%{alias('libkv::backend::file_define_instance')}",
-      'Libkv_test::Defines::Put'          => "%{alias('libkv::backend::file_define_type')}",
-      'default'                           => "%{alias('libkv::backend::file_default')}",
+      'simpkv_test_class'                  => "%{alias('simpkv::backend::file_class')}",
+      'Simpkv_test::Defines::Put[define2]' => "%{alias('simpkv::backend::file_define_instance')}",
+      'Simpkv_test::Defines::Put'          => "%{alias('simpkv::backend::file_define_type')}",
+      'default'                           => "%{alias('simpkv::backend::file_default')}",
       }
 
     }
@@ -45,29 +45,29 @@ describe 'libkv file plugin' do
   }}
 
   hosts.each do |host|
-    context 'with libkv configuration via libkv::options' do
+    context 'with simpkv configuration via simpkv::options' do
 
-      context 'libkv put operation' do
+      context 'simpkv put operation' do
         let(:manifest) {
            <<-EOS
-        file {'/var/simp/libkv':
+        file {'/var/simp/simpkv':
           ensure => directory
         }
 
-        # Calls libkv::put directly and via a Puppet-language function
+        # Calls simpkv::put directly and via a Puppet-language function
         # * Stores values of different types.  Binary content is handled
         #   via a separate test.
         # * One of the calls to the Puppet-language function will go to the
         #   default backend
-        class { 'libkv_test::put': }
+        class { 'simpkv_test::put': }
 
-        # These two defines call libkv::put directly and via the Puppet-language
+        # These two defines call simpkv::put directly and via the Puppet-language
         # function
         # * The 'define1' put operations should use the 'file/define_instance'
         #   backend instance.
         # * The 'define2' put operations should use the 'file/define_type'
-        libkv_test::defines::put { 'define1': }
-        libkv_test::defines::put { 'define2': }
+        simpkv_test::defines::put { 'define1': }
+        simpkv_test::defines::put { 'define2': }
           EOS
         }
 
@@ -77,29 +77,29 @@ describe 'libkv file plugin' do
         end
 
         [
-          '/var/simp/libkv/file/class/production/from_class/boolean',
-          '/var/simp/libkv/file/class/production/from_class/string',
-          '/var/simp/libkv/file/class/production/from_class/integer',
-          '/var/simp/libkv/file/class/production/from_class/float',
-          '/var/simp/libkv/file/class/production/from_class/array_strings',
-          '/var/simp/libkv/file/class/production/from_class/array_integers',
-          '/var/simp/libkv/file/class/production/from_class/hash',
+          '/var/simp/simpkv/file/class/production/from_class/boolean',
+          '/var/simp/simpkv/file/class/production/from_class/string',
+          '/var/simp/simpkv/file/class/production/from_class/integer',
+          '/var/simp/simpkv/file/class/production/from_class/float',
+          '/var/simp/simpkv/file/class/production/from_class/array_strings',
+          '/var/simp/simpkv/file/class/production/from_class/array_integers',
+          '/var/simp/simpkv/file/class/production/from_class/hash',
 
-          '/var/simp/libkv/file/class/production/from_class/boolean_with_meta',
-          '/var/simp/libkv/file/class/production/from_class/string_with_meta',
-          '/var/simp/libkv/file/class/production/from_class/integer_with_meta',
-          '/var/simp/libkv/file/class/production/from_class/float_with_meta',
-          '/var/simp/libkv/file/class/production/from_class/array_strings_with_meta',
-          '/var/simp/libkv/file/class/production/from_class/array_integers_with_meta',
-          '/var/simp/libkv/file/class/production/from_class/hash_with_meta',
+          '/var/simp/simpkv/file/class/production/from_class/boolean_with_meta',
+          '/var/simp/simpkv/file/class/production/from_class/string_with_meta',
+          '/var/simp/simpkv/file/class/production/from_class/integer_with_meta',
+          '/var/simp/simpkv/file/class/production/from_class/float_with_meta',
+          '/var/simp/simpkv/file/class/production/from_class/array_strings_with_meta',
+          '/var/simp/simpkv/file/class/production/from_class/array_integers_with_meta',
+          '/var/simp/simpkv/file/class/production/from_class/hash_with_meta',
 
-          '/var/simp/libkv/file/class/production/from_class/boolean_from_pfunction',
-          '/var/simp/libkv/file/default/production/from_class/boolean_from_pfunction_no_app_id',
+          '/var/simp/simpkv/file/class/production/from_class/boolean_from_pfunction',
+          '/var/simp/simpkv/file/default/production/from_class/boolean_from_pfunction_no_app_id',
 
-          '/var/simp/libkv/file/define_instance/production/from_define/define2/string',
-          '/var/simp/libkv/file/define_instance/production/from_define/define2/string_from_pfunction',
-          '/var/simp/libkv/file/define_type/production/from_define/define1/string',
-          '/var/simp/libkv/file/define_type/production/from_define/define1/string_from_pfunction'
+          '/var/simp/simpkv/file/define_instance/production/from_define/define2/string',
+          '/var/simp/simpkv/file/define_instance/production/from_define/define2/string_from_pfunction',
+          '/var/simp/simpkv/file/define_type/production/from_define/define1/string',
+          '/var/simp/simpkv/file/define_type/production/from_define/define1/string_from_pfunction'
         ].each do |file|
           # validation of content will be done in 'get' test
           it "should create #{file}" do
@@ -108,13 +108,13 @@ describe 'libkv file plugin' do
         end
       end
 
-      context 'libkv exists operation' do
+      context 'simpkv exists operation' do
         let(:manifest) {
           <<-EOS
-          # class uses libkv::exists to verify the existence of keys in
-          # the 'file/class' backend; fails compilation if any libkv::exists
+          # class uses simpkv::exists to verify the existence of keys in
+          # the 'file/class' backend; fails compilation if any simpkv::exists
           # result doesn't match expected
-          class { 'libkv_test::exists': }
+          class { 'simpkv_test::exists': }
           EOS
         }
 
@@ -123,13 +123,13 @@ describe 'libkv file plugin' do
         end
       end
 
-      context 'libkv get operation' do
+      context 'simpkv get operation' do
         let(:manifest) {
           <<-EOS
-          # class uses libkv::get to retrieve values with/without metadata for
+          # class uses simpkv::get to retrieve values with/without metadata for
           # keys in the 'file/class' backend; fails compilation if any
           # retrieved info does match expected
-          class { 'libkv_test::get': }
+          class { 'simpkv_test::get': }
           EOS
         }
 
@@ -139,13 +139,13 @@ describe 'libkv file plugin' do
 
       end
 
-      context 'libkv list operation' do
+      context 'simpkv list operation' do
         let(:manifest) {
           <<-EOS
-          # class uses libkv::list to retrieve list of keys/values/metadata tuples
+          # class uses simpkv::list to retrieve list of keys/values/metadata tuples
           # for keys in the 'file/class' backend; fails compilation if the
           # retrieved info does match expected
-          class { 'libkv_test::list': }
+          class { 'simpkv_test::list': }
           EOS
         }
 
@@ -155,14 +155,14 @@ describe 'libkv file plugin' do
 
       end
 
-      context 'libkv delete operation' do
+      context 'simpkv delete operation' do
         let(:manifest) {
           <<-EOS
-          # class uses libkv::delete to remove a subset of keys in the 'file/class'
-          # backend and the libkv::exists to verify they are gone but the other keys
+          # class uses simpkv::delete to remove a subset of keys in the 'file/class'
+          # backend and the simpkv::exists to verify they are gone but the other keys
           # are still present; fails compilation if any removed keys still exist or
           # any preserved keys have been removed
-          class { 'libkv_test::delete': }
+          class { 'simpkv_test::delete': }
           EOS
         }
 
@@ -171,13 +171,13 @@ describe 'libkv file plugin' do
         end
 
         [
-          '/var/simp/libkv/file/class/production/from_class/boolean',
-          '/var/simp/libkv/file/class/production/from_class/string',
-          '/var/simp/libkv/file/class/production/from_class/integer',
-          '/var/simp/libkv/file/class/production/from_class/float',
-          '/var/simp/libkv/file/class/production/from_class/array_strings',
-          '/var/simp/libkv/file/class/production/from_class/array_integers',
-          '/var/simp/libkv/file/class/production/from_class/hash',
+          '/var/simp/simpkv/file/class/production/from_class/boolean',
+          '/var/simp/simpkv/file/class/production/from_class/string',
+          '/var/simp/simpkv/file/class/production/from_class/integer',
+          '/var/simp/simpkv/file/class/production/from_class/float',
+          '/var/simp/simpkv/file/class/production/from_class/array_strings',
+          '/var/simp/simpkv/file/class/production/from_class/array_integers',
+          '/var/simp/simpkv/file/class/production/from_class/hash',
         ].each do |file|
           it "should remove #{file}" do
             expect( file_exists_on(host, file) ).to be false
@@ -187,13 +187,13 @@ describe 'libkv file plugin' do
 
       end
 
-      context 'libkv deletetree operation' do
+      context 'simpkv deletetree operation' do
         let(:manifest) {
           <<-EOS
-          # class uses libkv::deletetree to remove the remaining keys in the 'file/class'
-          # backend and the libkv::exists to verify all keys are gone; fails compilation
+          # class uses simpkv::deletetree to remove the remaining keys in the 'file/class'
+          # backend and the simpkv::exists to verify all keys are gone; fails compilation
           # if any keys remain
-          class { 'libkv_test::deletetree': }
+          class { 'simpkv_test::deletetree': }
           EOS
         }
 
@@ -202,11 +202,11 @@ describe 'libkv file plugin' do
         end
 
         it 'should remove specified folder' do
-          expect( file_exists_on(host, '/var/simp/libkv/file/class/production/from_class/') ).to be false
+          expect( file_exists_on(host, '/var/simp/simpkv/file/class/production/from_class/') ).to be false
         end
       end
 
-      context 'libkv operations for binary data' do
+      context 'simpkv operations for binary data' do
         context 'prep' do
           it 'should create a binary file for test' do
             on(host, 'mkdir /root/binary_data')
@@ -214,12 +214,12 @@ describe 'libkv file plugin' do
           end
         end
 
-        context 'libkv put operation for Binary type' do
+        context 'simpkv put operation for Binary type' do
           let(:manifest) {
             <<-EOS
-            # class uses libkv::put to store binary data from binary_file() in
+            # class uses simpkv::put to store binary data from binary_file() in
             # a Binary type
-            class { 'libkv_test::binary_put': }
+            class { 'simpkv_test::binary_put': }
             EOS
           }
 
@@ -228,8 +228,8 @@ describe 'libkv file plugin' do
           end
 
           [
-            '/var/simp/libkv/file/default/production/from_class/binary',
-            '/var/simp/libkv/file/default/production/from_class/binary_with_meta'
+            '/var/simp/simpkv/file/default/production/from_class/binary',
+            '/var/simp/simpkv/file/default/production/from_class/binary_with_meta'
           ].each do |file|
             it "should create #{file}" do
               expect( file_exists_on(host, file) ).to be true
@@ -237,13 +237,13 @@ describe 'libkv file plugin' do
           end
         end
 
-        context 'libkv get operation for Binary type' do
+        context 'simpkv get operation for Binary type' do
           let(:manifest) {
             <<-EOS
-            # class uses libkv::get to retrieve binary data for Binary type variables
+            # class uses simpkv::get to retrieve binary data for Binary type variables
             # and to persist new files with binary content; fails compilation if any
             # retrieved info does match expected
-            class { 'libkv_test::binary_get': }
+            class { 'simpkv_test::binary_get': }
             EOS
           }
 
@@ -263,26 +263,26 @@ describe 'libkv file plugin' do
       end
     end
 
-    context 'without libkv configuration' do
+    context 'without simpkv configuration' do
       let(:manifest) {
         <<-EOS
-          libkv_test::defines::put { 'define1': }
-          libkv_test::defines::put { 'define2': }
+          simpkv_test::defines::put { 'define1': }
+          simpkv_test::defines::put { 'define2': }
         EOS
       }
 
       it 'should work with no errors' do
-        # clear out hieradata that contained libkv::options
+        # clear out hieradata that contained simpkv::options
         set_hieradata_on(host, {})
         apply_manifest_on(host, manifest, :catch_failures => true)
       end
 
       it 'should store keys in auto-default backend' do
         [
-          '/var/simp/libkv/file/auto_default/production/from_define/define2/string',
-          '/var/simp/libkv/file/auto_default/production/from_define/define2/string_from_pfunction',
-          '/var/simp/libkv/file/auto_default/production/from_define/define1/string',
-          '/var/simp/libkv/file/auto_default/production/from_define/define1/string_from_pfunction'
+          '/var/simp/simpkv/file/auto_default/production/from_define/define2/string',
+          '/var/simp/simpkv/file/auto_default/production/from_define/define2/string_from_pfunction',
+          '/var/simp/simpkv/file/auto_default/production/from_define/define1/string',
+          '/var/simp/simpkv/file/auto_default/production/from_define/define1/string_from_pfunction'
         ].each do |file|
           expect( file_exists_on(host, file) ).to be true
         end
