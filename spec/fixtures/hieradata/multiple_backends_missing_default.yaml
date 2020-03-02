@@ -1,32 +1,32 @@
 ---
-  # The backend configurations here will be inserted into libkv::options
+  # The backend configurations here will be inserted into simpkv::options
   # below via the alias function.
-  libkv::backend::file:
+  simpkv::backend::file:
     type: file
     id: file
 
     # plugin-specific configuration
-    root_path: "/var/simp/libkv/file"
+    root_path: "/var/simp/simpkv/file"
     lock_timeout_seconds: 30
 
-  libkv::backend::alt_file:
+  simpkv::backend::alt_file:
     type: file
     id: alt_file
     root_path: "/some/other/path"
 
-  libkv::options:
+  simpkv::options:
     # global options
     environment: "myenv"
     softfail: false
 
     # Hash of backend configuration to be used to lookup the appropriate
-    # backend to use in libkv functions.
+    # backend to use in simpkv functions.
     backends:
       # backend for a specific myapp application
-      "myapp1_special_snowflake": "%{alias('libkv::backend::file')}"
+      "myapp1_special_snowflake": "%{alias('simpkv::backend::file')}"
 
       # backend for a myapp1* subset of myapp applications
-      "myapp1":                   "%{alias('libkv::backend::file')}"
+      "myapp1":                   "%{alias('simpkv::backend::file')}"
 
       # backend for remaining myapp* applications
-      "myapp":                    "%{alias('libkv::backend::alt_file')}"
+      "myapp":                    "%{alias('simpkv::backend::alt_file')}"

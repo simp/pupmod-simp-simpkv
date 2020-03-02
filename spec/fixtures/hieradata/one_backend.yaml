@@ -1,5 +1,5 @@
 ---
-libkv::options:
+simpkv::options:
   # global options
   environment: "myenv"
   softfail: false
@@ -14,6 +14,6 @@ libkv::options:
       id: file
 
       # plugin-specific configuration
-      root_path: "/var/simp/libkv/file"
+      root_path: "/var/simp/simpkv/file"
       lock_timeout_seconds: 30
 
