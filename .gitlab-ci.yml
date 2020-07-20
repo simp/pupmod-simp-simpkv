@@ -1,15 +1,16 @@
+# ------------------------------------------------------------------------------
+#             NOTICE: **This file is maintained with puppetsync**
+# ------------------------------------------------------------------------------
 # The testing matrix considers ruby/puppet versions supported by SIMP and PE:
 #
-# https://puppet.com/docs/pe/2019.0/component_versions_in_recent_pe_releases.html
+# https://puppet.com/docs/pe/2019.8/component_versions_in_recent_pe_releases.html
 # https://puppet.com/misc/puppet-enterprise-lifecycle
 # https://puppet.com/docs/pe/2018.1/overview/getting_support_for_pe.html
 # ------------------------------------------------------------------------------
-# Release       Puppet   Ruby   EOL
-# SIMP 6.3      5.5.10   2.4.5  TBD***
-# PE 2018.1     5.5.8    2.4.5  2020-05 (LTS)***
-# PE 2019.0     6.0      2.5.1  2019-08-31^^^
-#
-# *** = Modules created for SIMP 6.3+ are not required to support Puppet < 5.5
+# Release       Puppet   Ruby    EOL
+# SIMP 6.4      5.5      2.4.10  TBD
+# PE 2018.1     5.5      2.4.10  2021-01 (LTS overlap)
+# PE 2019.8     6.16     2.5.7   2021-11 (LTS)
 ---
 stages:
   - 'sanity'
@@ -21,6 +22,8 @@ stages:
 variables:
   PUPPET_VERSION:    'UNDEFINED' # <- Matrixed jobs MUST override this (or fail)
   BUNDLER_VERSION:   '1.17.1'
+  SIMP_MATRIX_LEVEL: '1'
+  SIMP_FORCE_RUN_MATRIX: 'no'
 
   # Force dependencies into a path the gitlab-runner user can write to.
   # (This avoids some failures on Runners with misconfigured ruby environments.)
@@ -38,7 +41,6 @@ variables:
 # --------------------------------------
 .setup_bundler_env: &setup_bundler_env
   cache:
-    untracked: true
     key: "${CI_PROJECT_NAMESPACE}_ruby-${MATRIX_RUBY_VERSION}_bundler"
     paths:
       - '.vendor'
@@ -52,12 +54,85 @@ variables:
     - 'rm -rf pkg/ || :'
     - 'bundle check || rm -f Gemfile.lock && ("${BUNDLER_INSTALL_CMD[@]}" --local || "${BUNDLER_INSTALL_CMD[@]}" || bundle pristine ||  "${BUNDLER_INSTALL_CMD[@]}") || { echo "PIPELINE: Bundler could not install everything (see log output above)" && exit 99 ; }'
 
-# To avoid running a prohibitive number of tests every commit,
-# don't set this env var in your gitlab instance
-.only_with_SIMP_FULL_MATRIX: &only_with_SIMP_FULL_MATRIX
-  only:
-    variables:
-      - $SIMP_FULL_MATRIX == "yes"
+# Assign a matrix level when your test will run.  Heavier jobs get higher numbers
+# NOTE: To skip all jobs with a SIMP_MATRIX_LEVEL, set SIMP_MATRIX_LEVEL=0
+
+.meets_spec_test_criteria: &meets_spec_test_criteria
+  changes:
+    - .gitlab-ci.yml
+    - .fixtures.yml
+    - "spec/spec_helper.rb"
+    - "spec/{classes,unit,defines,type_aliases,types,hosts}/**/*.rb"
+    - "{manifests,files,types}/**/*"
+    - "templates/*.{erb,epp}"
+    - "lib/**/*"
+  exists:
+    - "spec/{classes,unit,defines,type_aliases,types,hosts}/**/*_spec.rb"
+
+.meets_acceptance_test_criteria: &meets_acceptance_test_criteria
+  changes:
+    - .gitlab-ci.yml
+    - "spec/spec_helper_acceptance.rb"
+    - "spec/acceptance/**/*"
+    - "{manifests,files,types}/**/*"
+    - "templates/*.{erb,epp}"
+    - "lib/**/*"
+  exists:
+    - "spec/acceptance/**/*_spec.rb"
+
+# SIMP_MATRIX_LEVEL=1: Intended to run every commit
+.with_SIMP_ACCEPTANCE_MATRIX_LEVEL_1: &with_SIMP_ACCEPTANCE_MATRIX_LEVEL_1
+  rules:
+    - when: on_success
+      if: '$CI_COMMIT_MESSAGE =~ /^CI: MATRIX LEVEL [123]/'
+    - when: on_success
+      if: '$SIMP_FORCE_RUN_MATRIX == "yes" && $SIMP_MATRIX_LEVEL =~ /^[123]$/'
+    - when: on_success
+      if: '$SIMP_MATRIX_LEVEL =~ /^[123]$/ && $CI_COMMIT_MESSAGE !~ /^CI: (SKIP MATRIX|MATRIX LEVEL 0)/'
+      <<: *meets_acceptance_test_criteria
+
+.with_SIMP_SPEC_MATRIX_LEVEL_1: &with_SIMP_SPEC_MATRIX_LEVEL_1
+  rules:
+    - when: on_success
+      if: '$CI_COMMIT_MESSAGE =~ /^CI: MATRIX LEVEL [123]/'
+    - when: on_success
+      if: '$SIMP_FORCE_RUN_MATRIX == "yes" && $SIMP_MATRIX_LEVEL =~ /^[123]$/'
+    - when: on_success
+      if: '$SIMP_MATRIX_LEVEL =~ /^[123]$/ && $CI_COMMIT_MESSAGE !~ /^CI: (SKIP MATRIX|MATRIX LEVEL 0)/'
+      <<: *meets_spec_test_criteria
+
+# SIMP_MATRIX_LEVEL=2: Resource-heavy or redundant jobs
+.with_SIMP_ACCEPTANCE_MATRIX_LEVEL_2: &with_SIMP_ACCEPTANCE_MATRIX_LEVEL_2
+  rules:
+    - when: on_success
+      if: '$CI_COMMIT_MESSAGE =~ /^CI: MATRIX LEVEL [23]/'
+    - when: on_success
+      if: '$SIMP_FORCE_RUN_MATRIX == "yes" && $SIMP_MATRIX_LEVEL =~ /^[23]$/'
+    - when: on_success
+      if: '$SIMP_MATRIX_LEVEL =~ /^[23]$/ && $CI_COMMIT_MESSAGE !~ /^CI: (SKIP MATRIX|MATRIX LEVEL 0)/'
+      <<: *meets_acceptance_test_criteria
+
+.with_SIMP_SPEC_MATRIX_LEVEL_2: &with_SIMP_SPEC_MATRIX_LEVEL_2
+  rules:
+    - when: on_success
+      if: '$CI_COMMIT_MESSAGE =~ /^CI: MATRIX LEVEL [23]/'
+    - when: on_success
+      if: '$SIMP_FORCE_RUN_MATRIX == "yes" && $SIMP_MATRIX_LEVEL =~ /^[23]$/'
+    - when: on_success
+      if: '$SIMP_MATRIX_LEVEL =~ /^[23]$/ && $CI_COMMIT_MESSAGE !~ /^CI: (SKIP MATRIX|MATRIX LEVEL 0)/'
+      <<: *meets_spec_test_criteria
+
+# SIMP_MATRIX_LEVEL=3: Reserved for FULL matrix testing
+.with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3: &with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
+  rules:
+    - when: on_success
+      if: '$CI_COMMIT_MESSAGE =~ /^CI: MATRIX LEVEL 3/'
+    - when: on_success
+      if: '$SIMP_FORCE_RUN_MATRIX == "yes" && $SIMP_MATRIX_LEVEL == "3"'
+    - when: on_success
+      if: '$SIMP_MATRIX_LEVEL =~ /^3$/ && $CI_COMMIT_MESSAGE !~ /^CI: (SKIP MATRIX|MATRIX LEVEL 0)/'
+      <<: *meets_acceptance_test_criteria
+
 
 # Puppet Versions
 #-----------------------------------------------------------------------
@@ -69,10 +144,10 @@ variables:
     BEAKER_PUPPET_COLLECTION: 'puppet5'
     MATRIX_RUBY_VERSION: '2.4'
 
-.pup_5_5_10: &pup_5_5_10
+.pup_5_5_17: &pup_5_5_17
   image: 'ruby:2.4'
   variables:
-    PUPPET_VERSION: '5.5.10'
+    PUPPET_VERSION: '5.5.17'
     BEAKER_PUPPET_COLLECTION: 'puppet5'
     MATRIX_RUBY_VERSION: '2.4'
 
@@ -80,6 +155,13 @@ variables:
   image: 'ruby:2.5'
   variables:
     PUPPET_VERSION: '~> 6.0'
+    BEAKER_PUPPET_COLLECTION: 'puppet6'
+    MATRIX_RUBY_VERSION: '2.5'
+
+.pup_6_16_0: &pup_6_16_0
+  image: 'ruby:2.5'
+  variables:
+    PUPPET_VERSION: '6.16.0'
     BEAKER_PUPPET_COLLECTION: 'puppet6'
     MATRIX_RUBY_VERSION: '2.5'
 
@@ -99,6 +181,7 @@ variables:
   stage: 'validation'
   tags: ['docker']
   <<: *setup_bundler_env
+  <<: *with_SIMP_SPEC_MATRIX_LEVEL_1
   script:
     - 'bundle exec rake spec'
 
@@ -106,11 +189,13 @@ variables:
   stage: 'acceptance'
   tags: ['beaker']
   <<: *setup_bundler_env
+  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_1
 
 .compliance_base: &compliance_base
   stage: 'compliance'
   tags: ['beaker']
   <<: *setup_bundler_env
+  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_1
 
 
 # Pipeline / testing matrix
@@ -149,38 +234,43 @@ pup5-unit:
   <<: *pup_5
   <<: *unit_tests
 
-pup5.5.10-unit:
-  <<: *pup_5_5_10
+pup5.5.17-unit:
+  <<: *pup_5_5_17
   <<: *unit_tests
 
 pup6-unit:
   <<: *pup_6
   <<: *unit_tests
 
-# Acceptance tests
+pup6.16.0-unit:
+  <<: *pup_6_16_0
+  <<: *unit_tests
+
+# Repo-specific content
 # ==============================================================================
-pup5.5.10:
-  <<: *pup_5_5_10
+
+pup5.5.17:
+  <<: *pup_5_5_17
   <<: *acceptance_base
   script:
     - 'bundle exec rake beaker:suites'
 
-pup5.5.10-fips:
-  <<: *pup_5_5_10
+pup5.5.17-fips:
+  <<: *pup_5_5_17
   <<: *acceptance_base
   script:
     - 'BEAKER_fips=yes bundle exec rake beaker:suites'
 
-pup5.5.10-oel:
-  <<: *pup_5_5_10
+pup5.5.17-oel:
+  <<: *pup_5_5_17
   <<: *acceptance_base
   script:
     - 'bundle exec rake beaker:suites[default,oel]'
 
-pup5.5.10-oel-fips:
-  <<: *pup_5_5_10
+pup5.5.17-oel-fips:
+  <<: *pup_5_5_17
   <<: *acceptance_base
-  <<: *only_with_SIMP_FULL_MATRIX
+  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
   script:
     - 'BEAKER_fips=yes bundle exec rake beaker:suites[default,oel]'
 
@@ -195,3 +285,28 @@ pup6-fips:
   <<: *acceptance_base
   script:
     - 'BEAKER_fips=yes bundle exec rake beaker:suites'
+
+pup6.16.0:
+  <<: *pup_6_16_0
+  <<: *acceptance_base
+  script:
+    - 'bundle exec rake beaker:suites'
+
+pup6.16.0-fips:
+  <<: *pup_6_16_0
+  <<: *acceptance_base
+  script:
+    - 'BEAKER_fips=yes bundle exec rake beaker:suites'
+
+pup6.16.0-oel:
+  <<: *pup_6_16_0
+  <<: *acceptance_base
+  script:
+    - 'bundle exec rake beaker:suites[default,oel]'
+
+pup6.16.0-oel-fips:
+  <<: *pup_6_16_0
+  <<: *acceptance_base
+  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
+  script:
+    - 'BEAKER_fips=yes bundle exec rake beaker:suites[default,oel]'
