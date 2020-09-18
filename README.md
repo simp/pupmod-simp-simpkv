@@ -49,7 +49,7 @@ This module provides
 
 * a standard Puppet language API (functions) for using key/value stores
 
-  * The API is modeled after https://github.com/docker/simpkv#interface.
+  * The API is modeled after https://github.com/docker/libkv#interface.
   * See [REFERENCE.md](REFERENCE.md) for more details on the available
     functions.
 
