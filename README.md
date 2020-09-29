@@ -17,6 +17,7 @@
   * [Multiple Backends Example](#multiple-backends-example)
   * [Binary Value Example](#binary-value-example)
   * [Auto-Default Backend](#auto-default-backend)
+  * [Backend Folder Layout](#backend-folder-layout)
   * [simpkv Configuration Reference](#simpkv-configuration-reference)
 * [File Store and Plugin](#file-store-and-plugin)
 * [Limitations](#limitations)
@@ -274,6 +275,52 @@ simpkv::options:
       id: auto_default
 ```
 
+### Backend Folder Layout
+
+The storage in a simpkv backend can be notionally represented as a folder
+tree with key files at terminal nodes. simpkv automatically sets up the
+folder layout at the top level and the user specifies key files below that.
+Specifically,
+
+* simpkv stores global keys directly off the root folder.
+* simpkv stores all other keys in a sub-folder named for the Puppet
+  environment in which the key was created.
+* Further sub-folder trees are allowed for the global or environment-specific
+  keys.
+
+  * A relative paths in a key name indicates a sub-folder tree.
+
+* The actual representation of the root folder is backend specific.
+
+  * For the 'file' backend, the root folder is a directory on the local file
+    system of the Puppet server.
+
+Below is an example of a folder tree for the `file` backend configured
+with an `id` of `default`:
+
+```
+/var/simp/simpkv/file/default
+│
+├── app1/ ............. Folder for 'app1' global keys
+│   └── global_keyQ ... simpkv::put('app1/global_keyQ', { 'env'=>'' }) in any environment
+│
+├── dev/ .............. Folder for 'dev' Puppet environment keys
+│   └── app1/
+│       └── keyA ...... simpkv::put('app1/keyA') in a 'dev' node
+│
+├── production/ ....... Folder for 'production' Puppet environment keys
+│   ├── app1/
+│   │   └── keyA ...... simpkv::put('app1/keyA') in a 'production' node
+│   ├── app2/
+│   │   ├── groupX/
+│   │   │   └── keyB
+│   │   └── groupY/
+│   │       └── keyC .. simpkv::put('app2/groupY/keyC') in a 'production' node
+│   └── keyD .......... simpkv::put('keyD') in a 'production' node
+│
+└── global_keyR ....... simpkv::put('global_keyR', { 'env'=>'' }) in any environment.
+```
+
 ### simpkv Configuration Reference
 
 The simpkv configuration used for each simpkv function call is comprised of
@@ -370,7 +417,7 @@ the merged simpkv options Hash as follows:
 ## File Store and Plugin
 
 simpkv provides a file-based key/value store and its plugin.  This file store
-maintains individual key files on a local filesystem, has a backend type `file`,
+maintains individual key files on a **local** filesystem, has a backend type `file`,
 and supports the following plugin-specific configuration parameters.
 
 * `root_path`: Root directory path for the key files
