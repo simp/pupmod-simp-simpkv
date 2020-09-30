@@ -1,4 +1,5 @@
 * Fri Sep 18 2020 Liz Nemsick <lnemsick.simp@gmail.com> - 0.7.1
+- Advertise EL8 support in metadata.json
 - Fixed bad URL to docker's libkv project
 
 * Wed Feb 26 2020 Trevor Vaughan <tvaughan@onyxpoint.com> - 0.7.0
