@@ -1,0 +1,1 @@
+../default/00_file_plugin_setup_spec.rb

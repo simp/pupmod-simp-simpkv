@@ -332,21 +332,34 @@ pup7.x-unit:
 # Repo-specific content
 # ==============================================================================
 
+# default suite:    Exercises the file plugin with file plugin-specific
+#                   validation and special cases
+# ldap_suite:       Exercises the ldap_plugin with ldap plugin-specific
+#                   validation and special cases
+# multiple_plugins: Exercises both the file and ldap plugins simultaneously with
+#                   their respective plugin-specific validation:
+#                   - Test configures the simpkv backend configuration to have
+#                     both plugins
+#                   - Test ensures both plugins are used in individual catalog
+#                     runs
+#                   - Test does NOT include plugin special cases found in the
+#                     individual plugin suites
+#
+#---- default suite ----
+# Nodesets: default -> CentOS8
+#           oel     -> OEL8
+#           centos7 -> CentOS7
+#           oel7    -> OEL7
 pup6.x:
   <<: *pup_6_x
   <<: *acceptance_base
   script:
     - 'bundle exec rake beaker:suites[default,default]'
 
-pup6.x-fips:
-  <<: *pup_6_x
-  <<: *acceptance_base
-  script:
-    - 'BEAKER_fips=yes bundle exec rake beaker:suites[default,default]'
-
 pup6.pe:
   <<: *pup_6_pe
   <<: *acceptance_base
+  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
   script:
     - 'bundle exec rake beaker:suites[default,default]'
 
@@ -357,23 +370,9 @@ pup6.pe-fips:
   script:
     - 'BEAKER_fips=yes bundle exec rake beaker:suites[default,default]'
 
-pup6.x.centos7:
-  <<: *pup_6_x
-  <<: *acceptance_base
-  script:
-    - 'bundle exec rake beaker:suites[default,centos7]'
-
-pup6.x.centos7-fips:
-  <<: *pup_6_x
-  <<: *acceptance_base
-  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
-  script:
-    - 'BEAKER_fips=yes bundle exec rake beaker:suites[default,centos7]'
-
-pup6.pe.centos7:
+pup6.pe-centos7:
   <<: *pup_6_pe
   <<: *acceptance_base
-  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
   script:
     - 'bundle exec rake beaker:suites[default,centos7]'
 
@@ -383,26 +382,12 @@ pup6.pe-oel:
   script:
     - 'bundle exec rake beaker:suites[default,oel]'
 
-pup6.pe-oel-fips:
-  <<: *pup_6_pe
-  <<: *acceptance_base
-  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
-  script:
-    - 'BEAKER_fips=yes bundle exec rake beaker:suites[default,oel]'
-
-pup6.pe.centos7-oel:
+pup6.pe-oel7:
   <<: *pup_6_pe
   <<: *acceptance_base
   <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
   script:
     - 'bundle exec rake beaker:suites[default,oel7]'
-
-pup6.pe.centos7-oel-fips:
-  <<: *pup_6_pe
-  <<: *acceptance_base
-  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
-  script:
-    - 'BEAKER_fips=yes bundle exec rake beaker:suites[default,oel7]'
 
 pup7.x:
   <<: *pup_7_x
@@ -410,9 +395,73 @@ pup7.x:
   script:
     - 'bundle exec rake beaker:suites[default,default]'
 
-pup7.x.centos7:
+pup7.x-centos7:
   <<: *pup_7_x
   <<: *acceptance_base
   <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
   script:
     - 'bundle exec rake beaker:suites[default,centos7]'
+
+#---- ldap_plugin suite ----
+# Nodesets: default -> CentOS8 + CentOS7
+#           oel     -> OEL8 + OEL7
+pup6.x-ldap_plugin:
+  <<: *pup_6_x
+  <<: *acceptance_base
+  script:
+    - 'bundle exec rake beaker:suites[ldap_plugin,default]'
+
+pup6.pe-ldap_plugin:
+  <<: *pup_6_pe
+  <<: *acceptance_base
+  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
+  script:
+    - 'bundle exec rake beaker:suites[ldap_plugin,default]'
+
+pup6.pe-ldap_plugin-fips:
+  <<: *pup_6_pe
+  <<: *acceptance_base
+  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
+  script:
+    - 'BEAKER_fips=yes bundle exec rake beaker:suites[ldap_plugin,default]'
+
+pup6.pe-ldap_plugin-oel:
+  <<: *pup_6_pe
+  <<: *acceptance_base
+  script:
+    - 'bundle exec rake beaker:suites[ldap_plugin,oel]'
+
+pup7.x-ldap_plugin:
+  <<: *pup_7_x
+  <<: *acceptance_base
+  script:
+    - 'bundle exec rake beaker:suites[ldap_plugin,default]'
+
+#---- multiple_plugins suite ----
+# Nodesets: default -> CentOS8
+#           oel     -> OEL8
+pup6.x-multiple_plugin:
+  <<: *pup_6_x
+  <<: *acceptance_base
+  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
+  script:
+    - 'bundle exec rake beaker:suites[multiple_plugin,default]'
+
+pup6.pe-multiple_plugins:
+  <<: *pup_6_pe
+  <<: *acceptance_base
+  script:
+    - 'bundle exec rake beaker:suites[multiple_plugins,default]'
+
+pup6.pe.multiple_plugins-fips:
+  <<: *pup_6_pe
+  <<: *acceptance_base
+  script:
+    - 'BEAKER_fips=yes bundle exec rake beaker:suites[multiple_plugins,default]'
+
+pup7.x.multiple_plugins:
+  <<: *pup_7_x
+  <<: *acceptance_base
+  script:
+    - 'bundle exec rake beaker:suites[multiple_plugins,default]'
+

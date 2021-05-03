@@ -12,15 +12,17 @@
 #
 # - The plugin code must implement the API in this template.
 #
-# - The plugin code must protect from cross-puppet-environment contamination.
+# - The plugin code **must** protect from cross-puppet-environment contamination.
 #   Different versions of the module containing this plugin may be loaded
 #   into the puppetserver at the same time. So, unlike normal Ruby library
 #   code for which only one version will be loaded at a time (e.g., gems
 #   installed in the puppetserver), you have to explicitly design this plugin
 #   code to prevent cross-environment-contamination.  This is why the plugin
 #   architecture requires this class to be anonymous and loads it appropriately.
-#   You must provide similar protections for any supporting Ruby code that you
-#   package in the module (e.g., a separate connector class).
+#   You **must** provide similar protections for any supporting Ruby code that you
+#   package in the module (e.g., a separate connector class). If you are not
+#   sure how to do this, just keep all of your plugin code within its anonymous
+#   class.
 #
 # - The plugin code must allow multiple instances to be instantiated and run
 #   concurrently.
@@ -33,6 +35,10 @@
 # - When accessing the backend in the put(), get(), ... methods, the plugin code
 #   should catch exceptions, convert them to meaningful error messages and then
 #   return the failed status in its public API.
+#
+# - If your plugin uses Ruby Gems that do not come standard with Puppet Ruby,
+#   you must list them as requirements in your plugin's documentation and
+#   should provide instructions on how to install those Gems.
 ###############################################################################
 
 
@@ -69,6 +75,10 @@ plugin_class = Class.new do
   # FIXME:  The description below is informational for you as a developer.
   # Insert the appropriate description of configuration your plugin
   # supports.
+  #
+  # The simpkv adapter will call this method before any of the public API methods
+  # retrieve or change keystore state (i.e., delete(), deletetree(), exists(),
+  # that get(), list(), put()).
   #
   # The plugin-specific configuration will be found in
   # `options['backends'][ options['backend'] ]`
@@ -267,8 +277,6 @@ plugin_class = Class.new do
   #     * :keys - Hash of the key/value pairs for keys in the folder
   #     * :folders - Array of sub-folder names
   #
-  #   * :result - Hash of retrieved key/value pairs; nil if the
-  #     retrieval operation failed
   #   * :err_msg - String. Explanatory text upon failure; nil otherwise.
   #
   def list(keydir)
