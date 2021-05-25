@@ -29,6 +29,12 @@ describe 'simpkv::support::key::validate' do
       end
     end
 
+    it 'should fail when key contains uppercase letters' do
+      key = 'Uppercase/Characters/NOT/Allowed'
+      is_expected.to run.with_params(key).and_raise_error(ArgumentError,
+        /key '#{Regexp.escape(key)}' contains unsupported characters/)
+    end
+
     [ '~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '+', '`', '=',
       '{', '}', '[', ']', '|', '\\', ';', "'", '"', '<', '>', ',', '?'
     ].each do |bad_char|

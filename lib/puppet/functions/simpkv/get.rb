@@ -10,7 +10,6 @@ Puppet::Functions.create_function(:'simpkv::get') do
   #   * Key must contain only the following characters:
   #
   #     * a-z
-  #     * A-Z
   #     * 0-9
   #     * The following special characters: `._:-/`
   #

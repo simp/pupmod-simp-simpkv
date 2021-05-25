@@ -48,7 +48,7 @@
   * a file-based store on the local filesystem and its interface software
 
 * backend - A specific key/value store, e.g., files on a local filesystem,
-  Consul, Etcd, Zookeeper
+  LDAP, Consul, Etcd, Zookeeper
 * plugin - Ruby software that interfaces with a specific backend to
   affect the operations requested in simpkv functions.
 
@@ -98,7 +98,6 @@ a key/value store.
     * A key must contain only the following characters:
 
         * a-z
-        * A-Z
         * 0-9
         * The following special characters: `._:-/`
 
