@@ -5,7 +5,6 @@
 #   * Key must contain only the following characters:
 #
 #     * a-z
-#     * A-Z
 #     * 0-9
 #     * The following special characters: `._:-/`
 #
@@ -28,6 +27,7 @@ Puppet::Functions.create_function(:'simpkv::support::key::validate') do
   #   simpkv::support::key::validate('simp-simp_snmpd:password.auth')
   #
   # @example Failing
+  #   simpkv::support::key::validate('Uppercase/Characters/NOT/Allowed')
   #   simpkv::support::key::validate('${special}/chars/not/allowed!'}
   #   simpkv::support::key::validate('looks/like/an/./unexpanded/linux/path')
   #   simpkv::support::key::validate('looks/like/another/../unexpanded/linux/path')
@@ -43,9 +43,9 @@ Puppet::Functions.create_function(:'simpkv::support::key::validate') do
       raise ArgumentError.new(msg)
     end
 
-    char_regex = /^[a-zA-Z0-9._:\-\/]+$/m
+    char_regex = /^[a-z0-9._:\-\/]+$/m
     unless (key =~ char_regex)
-      msg = "key '#{key}' contains unsupported characters.  Allowed set=[a-zA-Z0-9._:-/]"
+      msg = "key '#{key}' contains unsupported characters.  Allowed set=[a-z0-9._:-/]"
       raise ArgumentError.new(msg)
     end
 

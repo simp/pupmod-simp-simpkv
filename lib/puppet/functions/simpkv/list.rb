@@ -12,7 +12,6 @@ Puppet::Functions.create_function(:'simpkv::list') do
   #   * Key folder must contain only the following characters:
   #
   #     * a-z
-  #     * A-Z
   #     * 0-9
   #     * The following special characters: `._:-/`
   #

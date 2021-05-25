@@ -302,23 +302,23 @@ with an `id` of `default`:
 /var/simp/simpkv/file/default
 │
 ├── app1/ ............. Folder for 'app1' global keys
-│   └── global_keyQ ... simpkv::put('app1/global_keyQ', { 'env'=>'' }) in any environment
+│   └── global_keyq ... simpkv::put('app1/global_keyq', { 'env'=>'' }) in any environment
 │
 ├── dev/ .............. Folder for 'dev' Puppet environment keys
 │   └── app1/
-│       └── keyA ...... simpkv::put('app1/keyA') in a 'dev' node
+│       └── keya ...... simpkv::put('app1/keya') in a 'dev' node
 │
 ├── production/ ....... Folder for 'production' Puppet environment keys
 │   ├── app1/
-│   │   └── keyA ...... simpkv::put('app1/keyA') in a 'production' node
+│   │   └── keya ...... simpkv::put('app1/keya') in a 'production' node
 │   ├── app2/
-│   │   ├── groupX/
-│   │   │   └── keyB
-│   │   └── groupY/
-│   │       └── keyC .. simpkv::put('app2/groupY/keyC') in a 'production' node
-│   └── keyD .......... simpkv::put('keyD') in a 'production' node
+│   │   ├── groupx/
+│   │   │   └── keyb
+│   │   └── groupy/
+│   │       └── keyc .. simpkv::put('app2/groupy/keyc') in a 'production' node
+│   └── keyd .......... simpkv::put('keyd') in a 'production' node
 │
-└── global_keyR ....... simpkv::put('global_keyR', { 'env'=>'' }) in any environment.
+└── global_keyr ....... simpkv::put('global_keyr', { 'env'=>'' }) in any environment.
 ```
 
 ### simpkv Configuration Reference
