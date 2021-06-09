@@ -27,16 +27,22 @@ Deletes a `key` from the configured backend.
 
 #### Examples
 
-##### Delete a key using the default backend
+##### Delete a key from the default backend
 
 ```puppet
 simpkv::delete("hosts/${facts['fqdn']}")
 ```
 
-##### Delete a key using the backend servicing an application id
+##### Delete a key from the backend servicing an application id
 
 ```puppet
 simpkv::delete("hosts/${facts['fqdn']}", { 'app_id' => 'myapp' })
+```
+
+##### Delete a global key from the default backend
+
+```puppet
+simpkv::delete("hosts/${facts['fqdn']}", { 'global' => true })
 ```
 
 #### `simpkv::delete(String[1] $key, Optional[Hash] $options)`
@@ -55,16 +61,22 @@ Raises:
 
 ##### Examples
 
-###### Delete a key using the default backend
+###### Delete a key from the default backend
 
 ```puppet
 simpkv::delete("hosts/${facts['fqdn']}")
 ```
 
-###### Delete a key using the backend servicing an application id
+###### Delete a key from the backend servicing an application id
 
 ```puppet
 simpkv::delete("hosts/${facts['fqdn']}", { 'app_id' => 'myapp' })
+```
+
+###### Delete a global key from the default backend
+
+```puppet
+simpkv::delete("hosts/${facts['fqdn']}", { 'global' => true })
 ```
 
 ##### `key`
@@ -122,13 +134,11 @@ configuration to use via fuzzy name matching, in the absence of the
 
    * Other keys for configuration specific to the backend may also be
      present.
-* **'environment'** `String`: Puppet environment to prepend to keys.
+* **'global'** `Boolean`: Set to `true` when the key being accessed is global. Otherwise, the key
+will be tied to the Puppet environment of the node whose manifest is
+being compiled.
 
-  * When set to a non-empty string, it is prepended to the key used in
-    the backend operation.
-  * Should only be set to an empty string when the key being accessed is
-    truly global.
-  * Defaults to the Puppet environment for the node.
+  * Defaults to `false`
 * **'softfail'** `Boolean`: Whether to ignore simpkv operation failures.
 
   * When `true`, this function will return a result even when the
@@ -145,16 +155,22 @@ Deletes a whole folder from the configured backend.
 
 #### Examples
 
-##### Delete a key folder using the default backend
+##### Delete a key folder from the default backend
 
 ```puppet
 simpkv::deletetree("hosts")
 ```
 
-##### Delete a key folder using the backend servicing an appliction id
+##### Delete a key folder from the backend servicing an application id
 
 ```puppet
 simpkv::deletetree("hosts", { 'app_id' => 'myapp' })
+```
+
+##### Delete a global key folder from the default backend
+
+```puppet
+simpkv::deletetree("hosts", { 'global' => true })
 ```
 
 #### `simpkv::deletetree(String[1] $keydir, Optional[Hash] $options)`
@@ -173,16 +189,22 @@ Raises:
 
 ##### Examples
 
-###### Delete a key folder using the default backend
+###### Delete a key folder from the default backend
 
 ```puppet
 simpkv::deletetree("hosts")
 ```
 
-###### Delete a key folder using the backend servicing an appliction id
+###### Delete a key folder from the backend servicing an application id
 
 ```puppet
 simpkv::deletetree("hosts", { 'app_id' => 'myapp' })
+```
+
+###### Delete a global key folder from the default backend
+
+```puppet
+simpkv::deletetree("hosts", { 'global' => true })
 ```
 
 ##### `keydir`
@@ -240,13 +262,11 @@ configuration to use via fuzzy name matching, in the absence of the
 
    * Other keys for configuration specific to the backend may also be
      present.
-* **'environment'** `String`: Puppet environment to prepend to keys.
+* **'global'** `Boolean`: Set to `true` when the key being accessed is global. Otherwise, the key
+will be tied to the Puppet environment of the node whose manifest is
+being compiled.
 
-  * When set to a non-empty string, it is prepended to the key used in
-    the backend operation.
-  * Should only be set to an empty string when the key being accessed is
-    truly global.
-  * Defaults to the Puppet environment for the node.
+  * Defaults to `false`
 * **'softfail'** `Boolean`: Whether to ignore simpkv operation failures.
 
   * When `true`, this function will return a result even when the
@@ -279,10 +299,10 @@ if simpkv::exists("hosts/${facts['fqdn']}", { 'app_id' => 'myapp' }) {
 }
 ```
 
-##### Check for the existence of a key folder in the default backend
+##### Check for the existence of a global key folder in the default backend
 
 ```puppet
-if simpkv::exists("hosts") {
+if simpkv::exists("hosts", { 'global' => true}) {
    notify { 'hosts folder exists': }
 }
 ```
@@ -319,10 +339,10 @@ if simpkv::exists("hosts/${facts['fqdn']}", { 'app_id' => 'myapp' }) {
 }
 ```
 
-###### Check for the existence of a key folder in the default backend
+###### Check for the existence of a global key folder in the default backend
 
 ```puppet
-if simpkv::exists("hosts") {
+if simpkv::exists("hosts", { 'global' => true}) {
    notify { 'hosts folder exists': }
 }
 ```
@@ -382,13 +402,11 @@ configuration to use via fuzzy name matching, in the absence of the
 
    * Other keys for configuration specific to the backend may also be
      present.
-* **'environment'** `String`: Puppet environment to prepend to keys.
+* **'global'** `Boolean`: Set to `true` when the key being accessed is global. Otherwise, the key
+will be tied to the Puppet environment of the node whose manifest is
+being compiled.
 
-  * When set to a non-empty string, it is prepended to the key used in
-    the backend operation.
-  * Should only be set to an empty string when the key being accessed is
-    truly global.
-  * Defaults to the Puppet environment for the node.
+  * Defaults to `false`
 * **'softfail'** `Boolean`: Whether to ignore simpkv operation failures.
 
   * When `true`, this function will return a result even when the
@@ -406,21 +424,33 @@ Retrieves the value and any metadata stored at `key` from the
 
 #### Examples
 
-##### Retrieve the value and any metadata for a key in the default backend
+##### Retrieve the value and any metadata for a key from the default backend
 
 ```puppet
 $result = simpkv::get("database/${facts['fqdn']}")
 class { 'wordpress':
-  db_host => $result['value']
+  db_host => $result['value'],
+  db_info => $result['metadata']
 }
 ```
 
-##### Retrieve the value and any metadata for a key in the backend servicing an application id
+##### Retrieve the value and any metadata for a key from the backend servicing an application id
 
 ```puppet
 $result = simpkv::get("database/${facts['fqdn']}", { 'app_id' => 'myapp' })
 class { 'wordpress':
-  db_host => $result['value']
+  db_host => $result['value'],
+  db_info => $result['metadata']
+}
+```
+
+##### Retrieve the value and any metadata for a global key from the default backend
+
+```puppet
+$result = simpkv::get("database/${facts['fqdn']}", { 'global' => true })
+class { 'wordpress':
+  db_host => $result['value'],
+  db_info => $result['metadata']
 }
 ```
 
@@ -445,21 +475,33 @@ Raises:
 
 ##### Examples
 
-###### Retrieve the value and any metadata for a key in the default backend
+###### Retrieve the value and any metadata for a key from the default backend
 
 ```puppet
 $result = simpkv::get("database/${facts['fqdn']}")
 class { 'wordpress':
-  db_host => $result['value']
+  db_host => $result['value'],
+  db_info => $result['metadata']
 }
 ```
 
-###### Retrieve the value and any metadata for a key in the backend servicing an application id
+###### Retrieve the value and any metadata for a key from the backend servicing an application id
 
 ```puppet
 $result = simpkv::get("database/${facts['fqdn']}", { 'app_id' => 'myapp' })
 class { 'wordpress':
-  db_host => $result['value']
+  db_host => $result['value'],
+  db_info => $result['metadata']
+}
+```
+
+###### Retrieve the value and any metadata for a global key from the default backend
+
+```puppet
+$result = simpkv::get("database/${facts['fqdn']}", { 'global' => true })
+class { 'wordpress':
+  db_host => $result['value'],
+  db_info => $result['metadata']
 }
 ```
 
@@ -518,13 +560,11 @@ configuration to use via fuzzy name matching, in the absence of the
 
    * Other keys for configuration specific to the backend may also be
      present.
-* **'environment'** `String`: Puppet environment to prepend to keys.
+* **'global'** `Boolean`: Set to `true` when the key being accessed is global. Otherwise, the key
+will be tied to the Puppet environment of the node whose manifest is
+being compiled.
 
-  * When set to a non-empty string, it is prepended to the key used in
-    the backend operation.
-  * Should only be set to an empty string when the key being accessed is
-    truly global.
-  * Defaults to the Puppet environment for the node.
+  * Defaults to `false`
 * **'softfail'** `Boolean`: Whether to ignore simpkv operation failures.
 
   * When `true`, this function will return a result even when the
@@ -544,7 +584,7 @@ about the specified key folder is returned.
 
 #### Examples
 
-##### Retrieve the list of key info for a key folder in the default backend
+##### Retrieve the list of key info for a key folder from the default backend
 
 ```puppet
 $result = simpkv::list('hosts')
@@ -555,34 +595,21 @@ $result['keys'].each |$host, $info | {
 }
 ```
 
-##### Retrieve the list of key info for a key folder in the backend servicing an application id
+##### Retrieve the list of sub-folders in a key folder from the backend servicing an application id
 
 ```puppet
-$result = simpkv::list('hosts', { 'app_id' => 'myapp' })
-$result['keys'].each |$host, $info | {
-  host { $host:
-    ip => $info['value'],
-  }
-}
-```
-
-##### Retrieve the list of sub-folders in a key folder in the default backend
-
-```puppet
-$result = simpkv::list('applications')
+$result = simpkv::list('applications', { 'app_id' => 'myapp' })
 notice("Supported applications: ${join($result['folders'], ' ')}")
 ```
 
-##### Retrieve the top folder list for the environment in the default backend
+##### Retrieve the top level list of global keys/folders in the default backend
 
 ```puppet
-$result = simpkv::list('/')
-```
-
-##### Retrieve the list of environments supported by the default backend
-
-```puppet
-$result = simpkv::list('/', { 'environment' => '' })
+$result = simpkv::list('/', { 'global' = true })
+notice("Global folders: ${join($result['folders'], ' ')}")
+$result['keys'].each |$key, $info | {
+  notice("Global key ${key}: value=${info['value']} metadata=${info['metadata']}")
+}
 ```
 
 #### `simpkv::list(String[1] $keydir, Optional[Hash] $options)`
@@ -610,7 +637,7 @@ Raises:
 
 ##### Examples
 
-###### Retrieve the list of key info for a key folder in the default backend
+###### Retrieve the list of key info for a key folder from the default backend
 
 ```puppet
 $result = simpkv::list('hosts')
@@ -621,34 +648,21 @@ $result['keys'].each |$host, $info | {
 }
 ```
 
-###### Retrieve the list of key info for a key folder in the backend servicing an application id
+###### Retrieve the list of sub-folders in a key folder from the backend servicing an application id
 
 ```puppet
-$result = simpkv::list('hosts', { 'app_id' => 'myapp' })
-$result['keys'].each |$host, $info | {
-  host { $host:
-    ip => $info['value'],
-  }
-}
-```
-
-###### Retrieve the list of sub-folders in a key folder in the default backend
-
-```puppet
-$result = simpkv::list('applications')
+$result = simpkv::list('applications', { 'app_id' => 'myapp' })
 notice("Supported applications: ${join($result['folders'], ' ')}")
 ```
 
-###### Retrieve the top folder list for the environment in the default backend
+###### Retrieve the top level list of global keys/folders in the default backend
 
 ```puppet
-$result = simpkv::list('/')
-```
-
-###### Retrieve the list of environments supported by the default backend
-
-```puppet
-$result = simpkv::list('/', { 'environment' => '' })
+$result = simpkv::list('/', { 'global' = true })
+notice("Global folders: ${join($result['folders'], ' ')}")
+$result['keys'].each |$key, $info | {
+  notice("Global key ${key}: value=${info['value']} metadata=${info['metadata']}")
+}
 ```
 
 ##### `keydir`
@@ -706,13 +720,11 @@ configuration to use via fuzzy name matching, in the absence of the
 
    * Other keys for configuration specific to the backend may also be
      present.
-* **'environment'** `String`: Puppet environment to prepend to keys.
+* **'global'** `Boolean`: Set to `true` when the key being accessed is global. Otherwise, the key
+will be tied to the Puppet environment of the node whose manifest is
+being compiled.
 
-  * When set to a non-empty string, it is prepended to the key used in
-    the backend operation.
-  * Should only be set to an empty string when the key being accessed is
-    truly global.
-  * Defaults to the Puppet environment for the node.
+  * Defaults to `false`
 * **'softfail'** `Boolean`: Whether to ignore simpkv operation failures.
 
   * When `true`, this function will return a result even when the
@@ -730,25 +742,24 @@ Optionally sets metadata along with the `value`.
 
 #### Examples
 
-##### Set a key using the default backend
+##### Set a key in the default backend
 
 ```puppet
 simpkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'])
 ```
 
-##### Set a key with metadata using the default backend
-
-```puppet
-$meta = { 'rack_id' => 183 }
-simpkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'], $meta)
-```
-
-##### Set a key with metadata using the backend servicing an application id
+##### Set a key with metadata in the backend servicing an application id
 
 ```puppet
 $meta = { 'rack_id' => 183 }
 $opts = { 'app_id' => 'myapp' }
 simpkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'], $meta, $opts)
+```
+
+##### Set a gobal key in the default backend
+
+```puppet
+simpkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'], { 'global' => true })
 ```
 
 #### `simpkv::put(String[1] $key, NotUndef $value, Optional[Hash] $metadata, Optional[Hash] $options)`
@@ -768,25 +779,24 @@ Raises:
 
 ##### Examples
 
-###### Set a key using the default backend
+###### Set a key in the default backend
 
 ```puppet
 simpkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'])
 ```
 
-###### Set a key with metadata using the default backend
-
-```puppet
-$meta = { 'rack_id' => 183 }
-simpkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'], $meta)
-```
-
-###### Set a key with metadata using the backend servicing an application id
+###### Set a key with metadata in the backend servicing an application id
 
 ```puppet
 $meta = { 'rack_id' => 183 }
 $opts = { 'app_id' => 'myapp' }
 simpkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'], $meta, $opts)
+```
+
+###### Set a gobal key in the default backend
+
+```puppet
+simpkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'], { 'global' => true })
 ```
 
 ##### `key`
@@ -856,13 +866,11 @@ configuration to use via fuzzy name matching, in the absence of the
 
    * Other keys for configuration specific to the backend may also be
      present.
-* **'environment'** `String`: Puppet environment to prepend to keys.
+* **'global'** `Boolean`: Set to `true` when the key being accessed is global. Otherwise, the key
+will be tied to the Puppet environment of the node whose manifest is
+being compiled.
 
-  * When set to a non-empty string, it is prepended to the key used in
-    the backend operation.
-  * Should only be set to an empty string when the key being accessed is
-    truly global.
-  * Defaults to the Puppet environment for the node.
+  * Defaults to `false`
 * **'softfail'** `Boolean`: Whether to ignore simpkv operation failures.
 
   * When `true`, this function will return a result even when the

@@ -56,14 +56,12 @@ Puppet::Functions.create_function(:'simpkv::get') do
   #      * Other keys for configuration specific to the backend may also be
   #        present.
   #
-  # @option options [String] 'environment'
-  #   Puppet environment to prepend to keys.
+  # @option options [Boolean] 'global'
+  #   Set to `true` when the key being accessed is global. Otherwise, the key
+  #   will be tied to the Puppet environment of the node whose manifest is
+  #   being compiled.
   #
-  #     * When set to a non-empty string, it is prepended to the key used in
-  #       the backend operation.
-  #     * Should only be set to an empty string when the key being accessed is
-  #       truly global.
-  #     * Defaults to the Puppet environment for the node.
+  #     * Defaults to `false`
   #
   # @option options [Boolean] 'softfail'
   #   Whether to ignore simpkv operation failures.
@@ -89,16 +87,25 @@ Puppet::Functions.create_function(:'simpkv::get') do
   #   * Hash may have a 'metadata' key containing a Hash with any metadata for
   #     the key
   #
-  # @example Retrieve the value and any metadata for a key in the default backend
+  # @example Retrieve the value and any metadata for a key from the default backend
   #  $result = simpkv::get("database/${facts['fqdn']}")
   #  class { 'wordpress':
-  #    db_host => $result['value']
+  #    db_host => $result['value'],
+  #    db_info => $result['metadata']
   #  }
   #
-  # @example Retrieve the value and any metadata for a key in the backend servicing an application id
+  # @example Retrieve the value and any metadata for a key from the backend servicing an application id
   #  $result = simpkv::get("database/${facts['fqdn']}", { 'app_id' => 'myapp' })
   #  class { 'wordpress':
-  #    db_host => $result['value']
+  #    db_host => $result['value'],
+  #    db_info => $result['metadata']
+  #  }
+  #
+  # @example Retrieve the value and any metadata for a global key from the default backend
+  #  $result = simpkv::get("database/${facts['fqdn']}", { 'global' => true })
+  #  class { 'wordpress':
+  #    db_host => $result['value'],
+  #    db_info => $result['metadata']
   #  }
   #
   dispatch :get do

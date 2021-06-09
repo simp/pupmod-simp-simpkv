@@ -466,13 +466,11 @@ keys in this Hash are as follows:
   * See [Backend Configuration Entries](#backend-configuration-entries)
     for more details about a backend configuration Hash.
 
-* `environment`: Optional String.  Puppet environment to prepend to keys.
+* `global`: Optional Boolean. Set to `true` when the key being accessed
+  is global. Otherwise, the key will be tied to the Puppet environment
+  of the node whose manifest is being compiled.
 
-  * When set to a non-empty string, it is prepended to the key or key folder
-    used in a backend operation.
-  * Should only be set to an empty string when the key being accessed is truly
-    global.
-  * Defaults to the Puppet environment for the node.
+  * Defaults to `false`.
 
 * `softfail`: Optional Boolean. Whether to ignore simpkv operation failures.
 
@@ -666,13 +664,11 @@ The available options (all optional) are as follows:
    * Other keys for configuration specific to the backend may also be
      present.
 
-* `environment`: String.  Puppet environment to prepend to keys.
+* `global`: Boolean. Set to `true` when the key being accessed
+  is global. Otherwise, the key will be tied to the Puppet environment
+  of the node whose manifest is being compiled.
 
-  * When set to a non-empty string, it is prepended to the key used in
-    the backend operation.
-  * Should only be set to an empty string when the key being accessed is
-    truly global.
-  * Defaults to the Puppet environment for the node.
+  * Defaults to `false`.
 
 #### Function Signatures
 

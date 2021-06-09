@@ -100,17 +100,12 @@ simp_simpkv_adapter_class = Class.new do
     result = nil
     begin
       instance = plugin_instance(options)
+      result = instance.delete( normalize_key(key, options) )
     rescue Exception => e
-      result = { :result => false, :err_msg => e.message }
-    end
-
-    if instance
-      begin
-        result = instance.delete( normalize_key(key, options) )
-      rescue Exception => e
-        err_msg = "simpkv #{instance.name} Error: #{e.message}"
-        result = { :result => false, :err_msg => err_msg }
-      end
+      bt = filter_backtrace(e.backtrace)
+      prefix = instance.nil? ? 'simpkv' : "simpkv #{instance.name}"
+      err_msg = "#{prefix} Error: #{e.message}\n#{bt.join("\n")}".strip
+      result = { :result => false, :err_msg => err_msg }
     end
 
     result
@@ -131,17 +126,12 @@ simp_simpkv_adapter_class = Class.new do
     result = nil
     begin
       instance = plugin_instance(options)
+      result = instance.deletetree( normalize_key(keydir, options) )
     rescue Exception => e
-      result = { :result => false, :err_msg => e.message }
-    end
-
-    if instance
-      begin
-        result = instance.deletetree( normalize_key(keydir, options) )
-      rescue Exception => e
-        err_msg = "simpkv #{instance.name} Error: #{e.message}"
-        result = { :result => false, :err_msg => err_msg }
-      end
+      bt = filter_backtrace(e.backtrace)
+      prefix = instance.nil? ? 'simpkv' : "simpkv #{instance.name}"
+      err_msg = "#{prefix} Error: #{e.message}\n#{bt.join("\n")}".strip
+      result = { :result => false, :err_msg => err_msg }
     end
 
     result
@@ -163,17 +153,12 @@ simp_simpkv_adapter_class = Class.new do
     result = nil
     begin
       instance = plugin_instance(options)
+      result = instance.exists( normalize_key(key, options) )
     rescue Exception => e
-      result = { :result => nil, :err_msg => e.message }
-    end
-
-    if instance
-      begin
-        result = instance.exists( normalize_key(key, options) )
-      rescue Exception => e
-        err_msg = "simpkv #{instance.name} Error: #{e.message}"
-        result = { :result => nil, :err_msg => err_msg }
-      end
+      bt = filter_backtrace(e.backtrace)
+      prefix = instance.nil? ? 'simpkv' : "simpkv #{instance.name}"
+      err_msg = "#{prefix} Error: #{e.message}\n#{bt.join("\n")}".strip
+      result = { :result => nil, :err_msg => err_msg }
     end
 
     result
@@ -196,23 +181,18 @@ simp_simpkv_adapter_class = Class.new do
     result = nil
     begin
       instance = plugin_instance(options)
-    rescue Exception => e
-      result = { :result => nil, :err_msg => e.message }
-    end
-
-    if instance
-      begin
-        raw_result = instance.get( normalize_key(key, options) )
-        if raw_result[:result]
-          value = deserialize(raw_result[:result])
-          result = { :result => value, :err_msg => nil }
-        else
-          result = raw_result
-        end
-      rescue Exception => e
-        err_msg = "simpkv #{instance.name} Error: #{e.message}"
-        result = { :result => nil, :err_msg => err_msg }
+      raw_result = instance.get( normalize_key(key, options) )
+      if raw_result[:result]
+        value = deserialize(raw_result[:result])
+        result = { :result => value, :err_msg => nil }
+      else
+        result = raw_result
       end
+    rescue Exception => e
+      bt = filter_backtrace(e.backtrace)
+      prefix = instance.nil? ? 'simpkv' : "simpkv #{instance.name}"
+      err_msg = "#{prefix} Error: #{e.message}\n#{bt.join("\n")}".strip
+      result = { :result => nil, :err_msg => err_msg }
     end
 
     result
@@ -243,35 +223,30 @@ simp_simpkv_adapter_class = Class.new do
     result = nil
     begin
       instance = plugin_instance(options)
-    rescue Exception => e
-      result = { :result => nil, :err_msg => e.message }
-    end
+      raw_result = instance.list( normalize_key(keydir, options) )
+      if raw_result[:result]
+       result = {
+          :result  => { :keys => {}, :folders => [] },
+          :err_msg => nil
+        }
 
-    if instance
-      begin
-        raw_result = instance.list( normalize_key(keydir, options) )
-        if raw_result[:result]
-          result = {
-            :result  => { :keys => {}, :folders => [] },
-            :err_msg => nil
-          }
-
-          raw_result[:result][:folders].each do |raw_folder|
-            folder = normalize_key(raw_folder, options, :remove_env)
-            result[:result][:folders] << folder
-          end
-
-          raw_result[:result][:keys].each do |raw_key,raw_value|
-            key = normalize_key(raw_key, options, :remove_env)
-            result[:result][:keys][key] = deserialize(raw_value)
-          end
-        else
-          result = raw_result
+        raw_result[:result][:folders].each do |raw_folder|
+          folder = normalize_key(raw_folder, options, :remove_prefix)
+          result[:result][:folders] << folder
         end
-      rescue Exception => e
-        err_msg = "simpkv #{instance.name} Error: #{e.message}"
-        result = { :result => nil, :err_msg => err_msg }
+
+        raw_result[:result][:keys].each do |raw_key,raw_value|
+          key = normalize_key(raw_key, options, :remove_prefix)
+          result[:result][:keys][key] = deserialize(raw_value)
+        end
+      else
+        result = raw_result
       end
+    rescue Exception => e
+      bt = filter_backtrace(e.backtrace)
+      prefix = instance.nil? ? 'simpkv' : "simpkv #{instance.name}"
+      err_msg = "#{prefix} Error: #{e.message}\n#{bt.join("\n")}".strip
+      result = { :result => nil, :err_msg => err_msg }
     end
 
     result
@@ -291,50 +266,77 @@ simp_simpkv_adapter_class = Class.new do
     result = nil
     begin
       instance = plugin_instance(options)
+      normalized_key = normalize_key(key, options)
+      normalized_value = serialize(value, metadata)
+      result = instance.put(normalized_key, normalized_value)
     rescue Exception => e
-      result = { :result => false,  :err_msg => e.message }
-    end
-
-    if instance
-      begin
-        normalized_key = normalize_key(key, options)
-        normalized_value = serialize(value, metadata)
-        result = instance.put(normalized_key, normalized_value)
-      rescue Exception => e
-        err_msg = "simpkv #{instance.name} Error: #{e.message}"
-        result = { :result => false, :err_msg => err_msg }
-      end
+      bt = filter_backtrace(e.backtrace)
+      prefix = instance.nil? ? 'simpkv' : "simpkv #{instance.name}"
+      err_msg = "#{prefix} Error: #{e.message}\n#{bt.join("\n")}".strip
+      result = { :result => false, :err_msg => err_msg }
     end
 
     result
   end
 
   ###### Internal methods ######
+  #
+  # @return prefix to be used in the path for global keys/folders
+  def environment_prefix(environment)
+    "environments/#{environment}"
+  end
 
-  # Adjust the key with the environment specified in the options Hash
+  # @return Skinnied down exception backtrace for more useful reporting of
+  #   errors. This is especially helpful when debugging plugin code!
+  #
+  # @param backtrace Full exception backtrace
+  #
+  def filter_backtrace(backtrace)
+    # Only go up to last line with a simpkv function file path. This removes
+    # all the useless, subsequent lines for the Puppet library internals.
+    # The user will still know the manifest that couldn't be compiled,
+    # because the compiler automatically adds a log line that reports the
+    # manifest file and line number that failed compilation.
+    short_bt = backtrace.reverse.drop_while { |line|
+      !line.include?('/simpkv/lib/puppet/functions/simpkv/')
+    }
+    short_bt.reverse
+  end
+
+
+  # @return prefix to be used in the path for global keys/folders
+  def global_prefix
+    'globals'
+  end
+
+  # Adjust the key per the 'environment' and 'global' settings
+  # in the options Hash
   #
   # @param key Key string to be normalized
-  # @param options Options hash that may specify 'environment'
+  # @param options Options hash that may specify 'global'
   # @param operation Normalize operation
-  #   * :add_env - if an environment is specified in options, the specified
-  #     environment (with a trailing slash) is prepended to the key
-  #   * :remove_env - if an environment is specified in options, the specified
-  #     environment (with a trailing slash) is removed from the key
+  #   * :add_prefix - Add the appropriate environment/global prefix
+  #     to the key
+  #   * :remove_prefix - Remove the appropriate environment/global prefix
+  #     from the key
   #
-  # @return normalized key when a non-empty 'environment' is specified in
-  #   options, the original key, otherwise
-  def normalize_key(key, options, operation = :add_env)
+  # @return normalized key
+  #
+  def normalize_key(key, options, operation = :add_prefix)
     normalized_key = key.dup
-    env = options.fetch('environment', '').strip
-    unless env.empty?
-      case operation
-      when :add_env
-        normalized_key = "#{env}/#{key}"
-      when :remove_env
-        normalized_key = key.gsub(/^#{env}\//,'')
-      else
-        # do nothing
-      end
+    if options.fetch('global', false)
+      prefix = global_prefix
+    else
+      prefix = environment_prefix(options['environment'])
+    end
+
+    case operation
+    when :add_prefix
+      normalized_key = "#{prefix}/#{key}"
+    when :remove_prefix
+      normalized_key = key.gsub(/^#{prefix}\//,'')
+    else
+      # do nothing
     end
 
     # get rid of extraneous slashes
@@ -370,7 +372,7 @@ simp_simpkv_adapter_class = Class.new do
         options['backends'][ options['backend'] ].has_key?('type') &&
         plugin_classes.has_key?(options['backends'][ options['backend'] ]['type'])
     )
-      raise("simpkv Internal Error: Malformed backend config in options=#{options}")
+      raise("Malformed backend config in options=#{options}")
     end
 
     backend = options['backend']
@@ -383,8 +385,7 @@ simp_simpkv_adapter_class = Class.new do
       begin
         plugin_instances[name] = plugin_classes[type].new(name, options)
       rescue Exception => e
-        msg = "simpkv Error: Unable to construct '#{name}': #{e.message}"
-        raise(msg)
+        raise("Unable to construct '#{name}': #{e.message}")
       end
     end
     plugin_instances[name]
@@ -448,7 +449,7 @@ simp_simpkv_adapter_class = Class.new do
   # @param metadata The metadata Hash for the key
   #
   # @return JSON representation of the value and metadata
-  # @raise 
+  # @raise If object cannot be serialized to JSON
   #
   # This is a **LIMITED** implementation meant for prototyping the simpkv API.
   # *  It can only handle objects that have a meaningful to_json method.

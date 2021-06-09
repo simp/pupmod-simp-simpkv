@@ -16,6 +16,7 @@
   * [Single Backend Example](#single-backend-example)
   * [Multiple Backends Example](#multiple-backends-example)
   * [Binary Value Example](#binary-value-example)
+  * [Global Key Example](#global-key-example)
   * [Auto-Default Backend](#auto-default-backend)
   * [Backend Folder Layout](#backend-folder-layout)
   * [simpkv Configuration Reference](#simpkv-configuration-reference)
@@ -224,11 +225,6 @@ our simpkv function calls.  simpkv selects `myapp` as the backend to use for
 simpkv is able to store and retrieve binary values, provided the Puppet code
 uses the appropriate configuration and functions/types for binary data.
 
-  * **IMPORTANT**:  Puppet 5 does not fully support binary data.  So,
-    although simpkv will properly serialize and deserialize the data, the
-    binary data can only be used for Puppet `file` resources when applied
-    with `puppet apply`, not `puppet agent`.
-
 Below is an example of using simpkv for a binary value.
 
 To store the content of a generated keytab file:
@@ -253,6 +249,37 @@ file { '/different/path/to/keytabs/app.keytab':
   content => $retrieved_binary_content
 }
 
+```
+
+### Global Key Example
+
+By default, the key/folder path referenced in a simpkv function is tied to
+the Puppet environment of the node whose manifest is being compiled. This
+ensures the data stored for one Puppet environment (e.g., 'dev') does not
+corrupt the data for another Puppet environment (e.g., 'production').
+Nevertheless, there are times in which you may want to store data that
+is applicable to all Puppet environments, instead. simpkv supports global
+data through an option in each simpkv function call.
+
+Below is an example of using simpkv to store a node's hostname and IP address
+as global data:
+
+```puppet
+$simpkv_options = { 'global' => true }
+$empty_metadata = {}
+simpkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'], $empty_metadata, $simpkv_options)
+```
+
+To create a hosts file using the list of stored, global host information:
+
+```puppet
+$simpkv_options = { 'global' => true }
+$result = simpkv::list('hosts', $simpkv_options)
+$result['keys'].each |$host, $info | {
+  host { $host:
+    ip => $info['value'],
+  }
+}
 ```
 
 ### Auto-Default Backend
@@ -282,13 +309,22 @@ tree with key files at terminal nodes. simpkv automatically sets up the
 folder layout at the top level and the user specifies key files below that.
 Specifically,
 
-* simpkv stores global keys directly off the root folder.
-* simpkv stores all other keys in a sub-folder named for the Puppet
-  environment in which the key was created.
-* Further sub-folder trees are allowed for the global or environment-specific
-  keys.
+* simpkv stores global keys in a `globals` sub-folder of the root folder.
 
-  * A relative paths in a key name indicates a sub-folder tree.
+  * Global keys are not tied to any specific Puppet environment.
+  * You must specify `'global' => true` in the options passed to
+    simpkv functions in order to access global keys.
+
+* simpkv stores all other keys in sub-folders named for the Puppet
+  environment in which each key was created.
+
+  * The parent directory for all environment folders is
+    `<root folder>/environments`.
+
+* Further sub-folder trees are allowed for global or environment-specific keys.
+
+  * A relative paths in a key name indicates a sub-folder tree (e.g.
+   'app1/keya').
 
 * The actual representation of the root folder is backend specific.
 
@@ -301,24 +337,26 @@ with an `id` of `default`:
 ```
 /var/simp/simpkv/file/default
 │
-├── app1/ ............. Folder for 'app1' global keys
-│   └── global_keyq ... simpkv::put('app1/global_keyq', { 'env'=>'' }) in any environment
+├── globals/ .............. Global keys parent
+│   ├── app1/ ............. Folder for 'app1' global keys
+│   │    └── global_keyq .. simpkv::put('app1/global_keyq', { 'global' => true })
+│   └── global_keyr ....... simpkv::put('global_keyr', { 'global'=> true })
 │
-├── dev/ .............. Folder for 'dev' Puppet environment keys
-│   └── app1/
-│       └── keya ...... simpkv::put('app1/keya') in a 'dev' node
-│
-├── production/ ....... Folder for 'production' Puppet environment keys
-│   ├── app1/
-│   │   └── keya ...... simpkv::put('app1/keya') in a 'production' node
-│   ├── app2/
-│   │   ├── groupx/
-│   │   │   └── keyb
-│   │   └── groupy/
-│   │       └── keyc .. simpkv::put('app2/groupy/keyc') in a 'production' node
-│   └── keyd .......... simpkv::put('keyd') in a 'production' node
-│
-└── global_keyr ....... simpkv::put('global_keyr', { 'env'=>'' }) in any environment.
+├── environments/.......... Environment keys parent
+│   ├── dev/ .............. Folder for 'dev' Puppet environment keys
+│   │   └── app1/
+│   │       └── keya ...... simpkv::put('app1/keya') for a 'dev' env node
+│   │
+│   └── production/ ....... Folder for 'production' Puppet environment keys
+│       ├── app1/
+│       │   └── keya ...... simpkv::put('app1/keya') for a 'production' env node
+│       ├── app2/
+│       │   ├── groupx/
+│       │   │   └── keyb
+│       │   └── groupy/
+│       │       └── keyc .. simpkv::put('app2/groupy/keyc') in a 'production' node
+│       └── keyd .......... simpkv::put('keyd') in a 'production' env node
+└──
 ```
 
 ### simpkv Configuration Reference
@@ -364,13 +402,11 @@ keys in this Hash are as follows:
   * See [Backend Configuration Entries](#backend-configuration-entries)
     for more details about a backend configuration Hash.
 
-* `environment`: Optional String.  Puppet environment to prepend to keys.
+* `global`: Optional Boolean. Set to `true` when the key being accessed
+  is global. Otherwise, the key will be tied to the Puppet environment
+  of the node whose manifest is being compiled.
 
-  * When set to a non-empty string, it is prepended to the key or key folder
-    used in a backend operation.
-  * Should only be set to an empty string when the key being accessed is truly
-    global.
-  * Defaults to the Puppet environment for the node when absent.
+  * Defaults to `false`.
 
 * `softfail`: Optional Boolean. Whether to ignore simpkv operation failures.
 
@@ -433,7 +469,7 @@ and supports the following plugin-specific configuration parameters.
 ## Limitations
 
 * SIMP Puppet modules are generally intended to be used on a Red Hat Enterprise
-  Linux-compatible distribution such as EL6 and EL7.
+  Linux-compatible distribution such as EL7 and EL8.
 
 * simpkv's file plugin is only guaranteed to work on local filesystems.  It may not
   work on shared filesystems, such as NFS.

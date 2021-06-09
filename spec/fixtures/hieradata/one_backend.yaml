@@ -1,7 +1,6 @@
 ---
 simpkv::options:
   # global options
-  environment: "myenv"
   softfail: false
 
   # we only have one backend, so might as well set it explicitly

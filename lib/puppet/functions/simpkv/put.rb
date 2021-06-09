@@ -58,14 +58,12 @@ Puppet::Functions.create_function(:'simpkv::put') do
   #      * Other keys for configuration specific to the backend may also be
   #        present.
   #
-  # @option options [String] 'environment'
-  #   Puppet environment to prepend to keys.
+  # @option options [Boolean] 'global'
+  #   Set to `true` when the key being accessed is global. Otherwise, the key
+  #   will be tied to the Puppet environment of the node whose manifest is
+  #   being compiled.
   #
-  #     * When set to a non-empty string, it is prepended to the key used in
-  #       the backend operation.
-  #     * Should only be set to an empty string when the key being accessed is
-  #       truly global.
-  #     * Defaults to the Puppet environment for the node.
+  #     * Defaults to `false`
   #
   # @option options [Boolean] 'softfail'
   #   Whether to ignore simpkv operation failures.
@@ -87,17 +85,16 @@ Puppet::Functions.create_function(:'simpkv::put') do
   #   backend operation fails and 'softfail' is `true` in the merged backend
   #   options
   #
-  # @example Set a key using the default backend
+  # @example Set a key in the default backend
   #   simpkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'])
   #
-  # @example Set a key with metadata using the default backend
-  #   $meta = { 'rack_id' => 183 }
-  #   simpkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'], $meta)
-  #
-  # @example Set a key with metadata using the backend servicing an application id
+  # @example Set a key with metadata in the backend servicing an application id
   #   $meta = { 'rack_id' => 183 }
   #   $opts = { 'app_id' => 'myapp' }
   #   simpkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'], $meta, $opts)
+  #
+  # @example Set a gobal key in the default backend
+  #   simpkv::put("hosts/${facts['clientcert']}", $facts['ipaddress'], { 'global' => true })
   #
   dispatch :put do
     required_param 'String[1]', :key

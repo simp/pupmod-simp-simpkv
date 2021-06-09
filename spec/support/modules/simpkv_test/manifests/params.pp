@@ -27,5 +27,7 @@ class simpkv_test::params (
                                               $test_hash_key           => $test_hash },
 
   Hash           $test_meta               = { 'some' => 'metadata' },
-  Hash           $simpkv_options           = { 'app_id' => 'simpkv_test_class' }
+  String         $app_id                  = 'simpkv_test_class',
+  Hash           $simpkv_options          = { 'app_id' => $app_id },
+  Hash           $simpkv_global_options   = { 'app_id' => $app_id, 'global' => true }
 ) { }

@@ -76,6 +76,8 @@ plugin_class = Class.new do
     @name = name
 
     # FIXME: insert validation and set up code here
+    # Be sure to create 'globals' and 'environments' sub-folders off of the
+    # root directory.
 
     Puppet.debug("#{@name} simpkv plugin constructed")
   end

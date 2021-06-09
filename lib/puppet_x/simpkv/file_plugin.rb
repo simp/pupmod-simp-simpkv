@@ -68,6 +68,10 @@ plugin_class = Class.new do
       Puppet.debug("simpkv plugin #{name}: Using default lock timeout #{@lock_timeout_seconds}")
     end
 
+    # create parent directories for global and Puppet environment keys
+    ensure_folder_path('globals')
+    ensure_folder_path('environments')
+
     Puppet.debug("#{@name} simpkv plugin for #{@root_path} constructed")
   end
 

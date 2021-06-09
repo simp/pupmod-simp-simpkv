@@ -2,8 +2,11 @@ require 'spec_helper'
 
 describe 'simpkv::deletetree' do
 
-# Going to use file plugin and the test plugins in spec/support/test_plugins
-# for these unit tests.
+  # tell puppet-rspec to set Puppet environment to 'myenv'
+  let(:environment) { 'myenv' }
+
+  # Going to use file plugin and the test plugins in spec/support/test_plugins
+  # for these unit tests.
   before(:each) do
     # set up configuration for the file plugin
     @tmpdir = Dir.mktmpdir
@@ -11,7 +14,6 @@ describe 'simpkv::deletetree' do
     @root_path_default_app_id = File.join(@tmpdir, 'simpkv', 'default_app_id')
     @root_path_default        = File.join(@tmpdir, 'simpkv', 'default')
     options_base = {
-      'environment' => 'production',
       'backends'    => {
         # will use failer plugin for catastrophic error cases, because
         # it is badly behaved and raises exceptions on all operations
@@ -50,13 +52,10 @@ describe 'simpkv::deletetree' do
 
   let(:keydir) { 'app1' }
 
-  # The tests will verify most of the function behavior without simpkv::options
-  # specified and then verify options merging when simpkv::options is specified.
-
-  context 'without simpkv::options' do
-    let(:test_file_env_root_dir) { File.join(@root_path_test_file, 'production') }
-    let(:default_app_id_env_root_dir) { File.join(@root_path_default_app_id, 'production') }
-    let(:default_env_root_dir) { File.join(@root_path_default, 'production') }
+  context 'basic operation' do
+    let(:test_file_env_root_dir) { File.join(@root_path_test_file, 'environments', environment) }
+    let(:default_app_id_env_root_dir) { File.join(@root_path_default_app_id, 'environments', environment) }
+    let(:default_env_root_dir) { File.join(@root_path_default, 'environments', environment) }
 
     it 'should delete an existing, non-empty key folder in a specific backend in options' do
       actual_keydir = File.join(test_file_env_root_dir, keydir)
@@ -100,7 +99,7 @@ describe 'simpkv::deletetree' do
       # is constructed
       subject()
       actual_keydir = File.join(Puppet.settings[:vardir], 'simp', 'simpkv', 'file',
-        'auto_default', environment, keydir)
+        'auto_default', 'environments', environment, keydir)
       FileUtils.mkdir_p(File.dirname(actual_keydir))
 
       is_expected.to run.with_params(keydir, @options_default_app_id).and_return(true)
@@ -119,15 +118,16 @@ describe 'simpkv::deletetree' do
       is_expected.to run.with_params(keydir, @options_test_file).and_return(true)
     end
 
-    it 'should use environment-less key folder when environment is empty' do
+    it 'should use global key folder when global config is set' do
       options = @options_default.dup
-      options['environment'] = ''
-      actual_keydir = File.join(@root_path_default, keydir)
+      options['global'] = true
+      actual_keydir = File.join(@root_path_default, 'globals', keydir)
       FileUtils.mkdir_p(actual_keydir)
 
       is_expected.to run.with_params(keydir, options).and_return(true)
       expect( File.exist?(actual_keydir) ).to be false
     end
+
 
     it 'should fail when backend deletetree fails and `softfail` is false' do
       is_expected.to run.with_params(keydir, @options_failer).
@@ -141,24 +141,6 @@ describe 'simpkv::deletetree' do
       is_expected.to run.with_params(keydir, options).and_return(false)
 
       #FIXME check warning log
-    end
-  end
-
-  context 'with simpkv::options' do
-    let(:hieradata) { 'multiple_backends_missing_default' }
-
-    it 'should merge simpkv::options' do
-      # @options_default will add the missing default backend config and
-      # override the environment setting.  To spot check options merge (which
-      # is fully tested elsewhere), remove the environment setting and verify
-      # we use the default config from the local options Hash and the
-      # environment from simpkv::options
-      options = @options_default.dup
-      options.delete('environment')
-      actual_keydir = File.join(@root_path_default, 'myenv', keydir)
-      FileUtils.mkdir_p(actual_keydir)
-      is_expected.to run.with_params(keydir, options).and_return(true)
-      expect( File.exist?(actual_keydir) ).to be false
     end
   end
 

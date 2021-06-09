@@ -2,8 +2,11 @@ require 'spec_helper'
 
 describe 'simpkv::delete' do
 
-# Going to use file plugin and the test plugins in spec/support/test_plugins
-# for these unit tests.
+  # tell puppet-rspec to set Puppet environment to 'myenv'
+  let(:environment) { 'myenv' }
+
+  # Going to use file plugin and the test plugins in spec/support/test_plugins
+  # for these unit tests.
   before(:each) do
     # set up configuration for the file plugin
     @tmpdir = Dir.mktmpdir
@@ -11,7 +14,6 @@ describe 'simpkv::delete' do
     @root_path_default_app_id = File.join(@tmpdir, 'simpkv', 'default_app_id')
     @root_path_default        = File.join(@tmpdir, 'simpkv', 'default')
     options_base = {
-      'environment' => 'production',
       'backends'    => {
         # will use failer plugin for catastrophic error cases, because
         # it is badly behaved and raises exceptions on all operations
@@ -48,13 +50,10 @@ describe 'simpkv::delete' do
     FileUtils.remove_entry_secure(@tmpdir)
   end
 
-  # The tests will verify most of the function behavior without simpkv::options
-  # specified and then verify options merging when simpkv::options is specified.
-
-  context 'without simpkv::options' do
-    let(:test_file_keydir) { File.join(@root_path_test_file, 'production') }
-    let(:default_app_id_keydir) { File.join(@root_path_default_app_id, 'production') }
-    let(:default_keydir) { File.join(@root_path_default, 'production') }
+  context 'basic operation' do
+    let(:test_file_keydir) { File.join(@root_path_test_file, 'environments', environment) }
+    let(:default_app_id_keydir) { File.join(@root_path_default_app_id, 'environments', environment) }
+    let(:default_keydir) { File.join(@root_path_default, 'environments', environment) }
     let(:key) { 'mykey' }
 
     it 'should delete an existing key in a specific backend in options' do
@@ -96,13 +95,11 @@ describe 'simpkv::delete' do
       # is constructed
       subject()
       key_file = File.join(Puppet.settings[:vardir], 'simp', 'simpkv', 'file',
-        'auto_default', environment, key)
+        'auto_default', 'environments', environment, key)
       FileUtils.mkdir_p(File.dirname(key_file))
       FileUtils.touch(key_file)
 
       is_expected.to run.with_params(key).and_return(true)
-      key_file = File.join(Puppet.settings[:vardir], 'simp', 'simpkv', 'file',
-        'auto_default', environment, key)
       expect( File.exist?(key_file) ).to be false
     end
 
@@ -110,11 +107,11 @@ describe 'simpkv::delete' do
       is_expected.to run.with_params(key, @options_test_file).and_return(true)
     end
 
-    it 'should use environment-less key when environment is empty' do
+    it 'should use global key when global config is set' do
       options = @options_default.dup
-      options['environment'] = ''
-      FileUtils.mkdir_p(@root_path_default)
-      key_file = File.join(@root_path_default, key)
+      options['global'] = true
+      key_file = File.join(@root_path_default, 'globals', key)
+      FileUtils.mkdir_p(File.dirname(key_file))
       FileUtils.touch(key_file)
 
       is_expected.to run.with_params(key, options).and_return(true)
@@ -133,27 +130,6 @@ describe 'simpkv::delete' do
       is_expected.to run.with_params(key, options).and_return(false)
 
       #FIXME check warning log
-    end
-  end
-
-  context 'with simpkv::options' do
-    let(:hieradata) { 'multiple_backends_missing_default' }
-
-    it 'should merge simpkv::options' do
-      # @options_default will add the missing default backend config and
-      # override the environment setting.  To spot check options merge (which
-      # is fully tested elsewhere), remove the environment setting and verify
-      # we use the default config from the local options Hash and the
-      # environment from simpkv::options
-      options = @options_default.dup
-      options.delete('environment')
-      default_keydir = File.join(@root_path_default, 'myenv')
-      FileUtils.mkdir_p(default_keydir)
-      key_file = File.join(default_keydir, 'key')
-      FileUtils.touch(key_file)
-
-      is_expected.to run.with_params('key', options).and_return(true)
-      expect( File.exist?(key_file) ).to be false
     end
   end
 

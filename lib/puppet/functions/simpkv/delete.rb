@@ -55,14 +55,12 @@ Puppet::Functions.create_function(:'simpkv::delete') do
   #      * Other keys for configuration specific to the backend may also be
   #        present.
   #
-  # @option options [String] 'environment'
-  #   Puppet environment to prepend to keys.
+  # @option options [Boolean] 'global'
+  #   Set to `true` when the key being accessed is global. Otherwise, the key
+  #   will be tied to the Puppet environment of the node whose manifest is
+  #   being compiled.
   #
-  #     * When set to a non-empty string, it is prepended to the key used in
-  #       the backend operation.
-  #     * Should only be set to an empty string when the key being accessed is
-  #       truly global.
-  #     * Defaults to the Puppet environment for the node.
+  #     * Defaults to `false`
   #
   # @option options [Boolean] 'softfail'
   #   Whether to ignore simpkv operation failures.
@@ -84,11 +82,14 @@ Puppet::Functions.create_function(:'simpkv::delete') do
   #   backend operation fails and 'softfail' is `true` in the merged backend
   #   options
   #
-  # @example Delete a key using the default backend
+  # @example Delete a key from the default backend
   #   simpkv::delete("hosts/${facts['fqdn']}")
   #
-  # @example Delete a key using the backend servicing an application id
+  # @example Delete a key from the backend servicing an application id
   #   simpkv::delete("hosts/${facts['fqdn']}", { 'app_id' => 'myapp' })
+  #
+  # @example Delete a global key from the default backend
+  #   simpkv::delete("hosts/${facts['fqdn']}", { 'global' => true })
   #
   dispatch :delete do
     required_param 'String[1]', :key

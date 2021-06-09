@@ -77,29 +77,37 @@ describe 'simpkv file plugin' do
         end
 
         [
-          '/var/simp/simpkv/file/class/production/from_class/boolean',
-          '/var/simp/simpkv/file/class/production/from_class/string',
-          '/var/simp/simpkv/file/class/production/from_class/integer',
-          '/var/simp/simpkv/file/class/production/from_class/float',
-          '/var/simp/simpkv/file/class/production/from_class/array_strings',
-          '/var/simp/simpkv/file/class/production/from_class/array_integers',
-          '/var/simp/simpkv/file/class/production/from_class/hash',
+          '/var/simp/simpkv/file/class/globals/from_class/boolean',
+          '/var/simp/simpkv/file/class/globals/from_class/string',
+          '/var/simp/simpkv/file/class/globals/from_class/integer',
+          '/var/simp/simpkv/file/class/globals/from_class/float',
+          '/var/simp/simpkv/file/class/globals/from_class/array_strings',
+          '/var/simp/simpkv/file/class/globals/from_class/array_integers',
+          '/var/simp/simpkv/file/class/globals/from_class/hash',
 
-          '/var/simp/simpkv/file/class/production/from_class/boolean_with_meta',
-          '/var/simp/simpkv/file/class/production/from_class/string_with_meta',
-          '/var/simp/simpkv/file/class/production/from_class/integer_with_meta',
-          '/var/simp/simpkv/file/class/production/from_class/float_with_meta',
-          '/var/simp/simpkv/file/class/production/from_class/array_strings_with_meta',
-          '/var/simp/simpkv/file/class/production/from_class/array_integers_with_meta',
-          '/var/simp/simpkv/file/class/production/from_class/hash_with_meta',
+          '/var/simp/simpkv/file/class/environments/production/from_class/boolean',
+          '/var/simp/simpkv/file/class/environments/production/from_class/string',
+          '/var/simp/simpkv/file/class/environments/production/from_class/integer',
+          '/var/simp/simpkv/file/class/environments/production/from_class/float',
+          '/var/simp/simpkv/file/class/environments/production/from_class/array_strings',
+          '/var/simp/simpkv/file/class/environments/production/from_class/array_integers',
+          '/var/simp/simpkv/file/class/environments/production/from_class/hash',
 
-          '/var/simp/simpkv/file/class/production/from_class/boolean_from_pfunction',
-          '/var/simp/simpkv/file/default/production/from_class/boolean_from_pfunction_no_app_id',
+          '/var/simp/simpkv/file/class/environments/production/from_class/boolean_with_meta',
+          '/var/simp/simpkv/file/class/environments/production/from_class/string_with_meta',
+          '/var/simp/simpkv/file/class/environments/production/from_class/integer_with_meta',
+          '/var/simp/simpkv/file/class/environments/production/from_class/float_with_meta',
+          '/var/simp/simpkv/file/class/environments/production/from_class/array_strings_with_meta',
+          '/var/simp/simpkv/file/class/environments/production/from_class/array_integers_with_meta',
+          '/var/simp/simpkv/file/class/environments/production/from_class/hash_with_meta',
 
-          '/var/simp/simpkv/file/define_instance/production/from_define/define2/string',
-          '/var/simp/simpkv/file/define_instance/production/from_define/define2/string_from_pfunction',
-          '/var/simp/simpkv/file/define_type/production/from_define/define1/string',
-          '/var/simp/simpkv/file/define_type/production/from_define/define1/string_from_pfunction'
+          '/var/simp/simpkv/file/class/environments/production/from_class/boolean_from_pfunction',
+          '/var/simp/simpkv/file/default/environments/production/from_class/boolean_from_pfunction_no_app_id',
+
+          '/var/simp/simpkv/file/define_instance/environments/production/from_define/define2/string',
+          '/var/simp/simpkv/file/define_instance/environments/production/from_define/define2/string_from_pfunction',
+          '/var/simp/simpkv/file/define_type/environments/production/from_define/define1/string',
+          '/var/simp/simpkv/file/define_type/environments/production/from_define/define1/string_from_pfunction'
         ].each do |file|
           # validation of content will be done in 'get' test
           it "should create #{file}" do
@@ -171,13 +179,13 @@ describe 'simpkv file plugin' do
         end
 
         [
-          '/var/simp/simpkv/file/class/production/from_class/boolean',
-          '/var/simp/simpkv/file/class/production/from_class/string',
-          '/var/simp/simpkv/file/class/production/from_class/integer',
-          '/var/simp/simpkv/file/class/production/from_class/float',
-          '/var/simp/simpkv/file/class/production/from_class/array_strings',
-          '/var/simp/simpkv/file/class/production/from_class/array_integers',
-          '/var/simp/simpkv/file/class/production/from_class/hash',
+          '/var/simp/simpkv/file/class/environments/production/from_class/boolean',
+          '/var/simp/simpkv/file/class/environments/production/from_class/string',
+          '/var/simp/simpkv/file/class/environments/production/from_class/integer',
+          '/var/simp/simpkv/file/class/environments/production/from_class/float',
+          '/var/simp/simpkv/file/class/environments/production/from_class/array_strings',
+          '/var/simp/simpkv/file/class/environments/production/from_class/array_integers',
+          '/var/simp/simpkv/file/class/environments/production/from_class/hash',
         ].each do |file|
           it "should remove #{file}" do
             expect( file_exists_on(host, file) ).to be false
@@ -190,9 +198,9 @@ describe 'simpkv file plugin' do
       context 'simpkv deletetree operation' do
         let(:manifest) {
           <<-EOS
-          # class uses simpkv::deletetree to remove the remaining keys in the 'file/class'
-          # backend and the simpkv::exists to verify all keys are gone; fails compilation
-          # if any keys remain
+          # class uses simpkv::deletetree to remove the remaining Puppet env and
+          # global keys in the 'file/class' backend and the simpkv::exists to
+          # verify all keys are gone; fails compilation if any keys remain
           class { 'simpkv_test::deletetree': }
           EOS
         }
@@ -201,8 +209,9 @@ describe 'simpkv file plugin' do
           apply_manifest_on(host, manifest, :catch_failures => true)
         end
 
-        it 'should remove specified folder' do
-          expect( file_exists_on(host, '/var/simp/simpkv/file/class/production/from_class/') ).to be false
+        it 'should remove specified folders' do
+          expect( file_exists_on(host, '/var/simp/simpkv/file/class/environments/production/from_class/') ).to be false
+          expect( file_exists_on(host, '/var/simp/simpkv/file/class/globals/from_class/') ).to be false
         end
       end
 
@@ -228,8 +237,8 @@ describe 'simpkv file plugin' do
           end
 
           [
-            '/var/simp/simpkv/file/default/production/from_class/binary',
-            '/var/simp/simpkv/file/default/production/from_class/binary_with_meta'
+            '/var/simp/simpkv/file/default/environments/production/from_class/binary',
+            '/var/simp/simpkv/file/default/environments/production/from_class/binary_with_meta'
           ].each do |file|
             it "should create #{file}" do
               expect( file_exists_on(host, file) ).to be true
@@ -279,10 +288,10 @@ describe 'simpkv file plugin' do
 
       it 'should store keys in auto-default backend' do
         [
-          '/var/simp/simpkv/file/auto_default/production/from_define/define2/string',
-          '/var/simp/simpkv/file/auto_default/production/from_define/define2/string_from_pfunction',
-          '/var/simp/simpkv/file/auto_default/production/from_define/define1/string',
-          '/var/simp/simpkv/file/auto_default/production/from_define/define1/string_from_pfunction'
+          '/var/simp/simpkv/file/auto_default/environments/production/from_define/define2/string',
+          '/var/simp/simpkv/file/auto_default/environments/production/from_define/define2/string_from_pfunction',
+          '/var/simp/simpkv/file/auto_default/environments/production/from_define/define1/string',
+          '/var/simp/simpkv/file/auto_default/environments/production/from_define/define1/string_from_pfunction'
         ].each do |file|
           expect( file_exists_on(host, file) ).to be true
         end
