@@ -20,8 +20,11 @@ end
 
 describe 'simpkv::list' do
 
-# Going to use file plugin and the test plugins in spec/support/test_plugins
-# for these unit tests.
+  # tell puppet-rspec to set Puppet environment to 'myenv'
+  let(:environment) { 'myenv' }
+
+  # Going to use file plugin and the test plugins in spec/support/test_plugins
+  # for these unit tests.
   before(:each) do
     # set up configuration for the file plugin
     @tmpdir = Dir.mktmpdir
@@ -29,7 +32,6 @@ describe 'simpkv::list' do
     @root_path_default_app_id = File.join(@tmpdir, 'simpkv', 'default_app_id')
     @root_path_default        = File.join(@tmpdir, 'simpkv', 'default')
     options_base = {
-      'environment' => 'production',
       'backends'    => {
         # will use failer plugin for catastrophic error cases, because
         # it is badly behaved and raises exceptions on all operations
@@ -84,15 +86,11 @@ describe 'simpkv::list' do
    { 'keys' => key_list, 'folders' => ['subapp1', 'subapp2', 'subapp3'] }
   }
 
-  let(:test_file_env_root_dir) { File.join(@root_path_test_file, 'production') }
-  let(:default_app_id_env_root_dir) { File.join(@root_path_default_app_id, 'production') }
-  let(:default_env_root_dir) { File.join(@root_path_default, 'production') }
+  let(:test_file_env_root_dir) { File.join(@root_path_test_file, 'environments', environment) }
+  let(:default_app_id_env_root_dir) { File.join(@root_path_default_app_id, 'environments', environment) }
+  let(:default_env_root_dir) { File.join(@root_path_default, 'environments', environment) }
 
-  # The tests will verify most of the function behavior without simpkv::options
-  # specified and then verify options merging when simpkv::options is specified.
-
-  context 'without simpkv::options' do
-
+  context 'basic operation' do
     it 'should retrieve key list from a specific backend in options when keys exist' do
       prepopulate_key_files(test_file_env_root_dir, keydir)
 
@@ -126,7 +124,7 @@ describe 'simpkv::list' do
       # is constructed
       subject()
       env_root_dir = File.join(Puppet.settings[:vardir], 'simp', 'simpkv', 'file',
-        'auto_default', environment)
+        'auto_default', 'environments', environment)
       prepopulate_key_files(env_root_dir, keydir)
 
       is_expected.to run.with_params(keydir).and_return(full_list)
@@ -145,10 +143,10 @@ describe 'simpkv::list' do
         and_raise_error(RuntimeError, /simpkv Error for simpkv::list with keydir='#{keydir}'/)
     end
 
-    it 'should use environment-less keydir when environment is empty' do
+    it 'should use global keydir when global config is set' do
       options = @options_default.dup
-      options['environment'] = ''
-      prepopulate_key_files(@root_path_default, keydir)
+      options['global'] = true
+      prepopulate_key_files(File.join(@root_path_default, 'globals'), keydir)
 
       is_expected.to run.with_params(keydir, options).and_return(full_list)
     end
@@ -165,24 +163,6 @@ describe 'simpkv::list' do
       is_expected.to run.with_params(keydir, options).and_return(nil)
 
       #FIXME check warning log
-    end
-  end
-
-  context 'with simpkv::options' do
-    let(:hieradata) { 'multiple_backends_missing_default' }
-
-    it 'should merge simpkv::options' do
-      # @options_default will add the missing default backend config and
-      # override the environment setting.  To spot check options merge (which
-      # is fully tested elsewhere), remove the environment setting and verify
-      # we use the default config from the local options Hash and the
-      # environment from simpkv::options
-      options = @options_default.dup
-      options.delete('environment')
-      default_env_root_dir = File.join(@root_path_default, 'myenv')
-      prepopulate_key_files(default_env_root_dir, keydir)
-
-      is_expected.to run.with_params(keydir, options).and_return(full_list)
     end
   end
 

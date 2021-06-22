@@ -1,11 +1,33 @@
+* Mon Jun 21 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 0.8.0
+- BREAKING CHANGES:
+  - Added 'globals' and 'environments' root directories for global and
+    Puppet-environment keys, respectively, in the normalized key paths
+    in the backend.
+    - This change makes the top-level organization of keys in the backend
+      explicit, and thus more understandable.
+    - The prefix used for global keys was changed from `<keystore root dir>` to
+      `<keystore root dir>/globals`.
+    - The prefix used for environment keys was changed from
+      `<keystore root dir>/<specific Puppet environment>` to
+      `<keystore root dir>/environments/<specific Puppet environment>`.
+    - Change required for the LDAP plugin.
+  - Replaced the confusing 'environment' backend option in each simpkv Puppet
+    function with a 'global' Boolean option.
+    - Global keys are now specified by setting 'global' to true in lieu of
+      setting 'environment' to ''.
+  - Restrict letter characters used in key and folder names to be
+    lowercase.
+    - Change required for the LDAP plugin.
+- Added
+  - More detailed plugin exception reporting in order to pinpoint plugin
+    logic problems.
+    - Now prints out the useful portion of the backtrace when an exception
+      is raised.
+    - Especially useful during plugin development.
+
 * Wed Jun 16 2021 Chris Tessmer <chris.tessmer@onyxpoint.com> - 0.8.0
 - Removed support for Puppet 5
 - Ensured support for Puppet 7 in requirements and stdlib
-
-* Tue May 25 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 0.8.0
-- Restrict letter characters used in key and folder names to be
-  lowercase
-  - Change required for LDAP plugin.
 
 * Sat Dec 19 2020 Chris Tessmer <chris.tessmer@onyxpoint.com> - 0.7.2
 - Removed EL6 support

@@ -14,15 +14,17 @@ obj.instance_eval(File.read(simpkv_adapter_file), simpkv_adapter_file)
 
 describe 'simpkv adapter anonymous class' do
 
-# Going to use file plugin and the test plugins in spec/support/test_plugins
-# for these unit tests.
+  # tell puppet-rspec to set Puppet environment to 'production'
+  let(:environment) {'production'}
 
+  # Going to use file plugin and the test plugins in spec/support/test_plugins
+  # for these unit tests.
   before(:each) do
     # set up configuration for the file plugin
     @tmpdir = Dir.mktmpdir
     @root_path = File.join(@tmpdir, 'simpkv', 'file')
     options_base = {
-      'environment' => 'production',
+      'environment' => environment,
       'backends'    => {
         # will use failer plugin for catastrophic error cases, because
         # it is badly behaved and raises exceptions on all operations
@@ -78,40 +80,77 @@ describe 'simpkv adapter anonymous class' do
       @adapter = simp_simpkv_adapter_class.new
     end
 
+    context '#filter_backtrace' do
+      it 'should filter-out backtrace lines containing Puppet library internals' do
+        # this is not even the full backtrace (~150 lines), but is good enough for testing
+        full_backtrace = [
+          "/etc/puppetlabs/code/environments/production/modules/simpkv/lib/puppet_x/simpkv/file_plugin.rb:379:in `ensure_root_path'",
+          "/etc/puppetlabs/code/environments/production/modules/simpkv/lib/puppet_x/simpkv/simpkv.rb:394:in `plugin_instance'",
+          "/etc/puppetlabs/code/environments/production/modules/simpkv/lib/puppet_x/simpkv/simpkv.rb:280:in `put'",
+          "/etc/puppetlabs/code/environments/production/modules/simpkv/lib/puppet/functions/simpkv/put.rb:131:in `put'",
+          "/opt/puppetlabs/puppet/lib/ruby/vendor_ruby/puppet/pops/functions/dispatch.rb:60:in `invoke'",
+          "/opt/puppetlabs/puppet/lib/ruby/vendor_ruby/puppet/pops/functions/dispatcher.rb:43:in `block in dispatch'",
+          "/opt/puppetlabs/puppet/lib/ruby/vendor_ruby/puppet/pops/functions/dispatcher.rb:42:in `catch'",
+          "/opt/puppetlabs/puppet/lib/ruby/vendor_ruby/puppet/pops/functions/dispatcher.rb:42:in `dispatch'",
+          "/opt/puppetlabs/puppet/lib/ruby/vendor_ruby/puppet/pops/functions/function.rb:46:in `block in call'",
+          "/opt/puppetlabs/puppet/lib/ruby/vendor_ruby/puppet/pops/functions/function.rb:45:in `catch'",
+          "/opt/puppetlabs/puppet/lib/ruby/vendor_ruby/puppet/pops/functions/function.rb:45:in `call'",
+          "/opt/puppetlabs/puppet/lib/ruby/vendor_ruby/puppet/pops/puppet_stack.rb:42:in `stack'",
+          # skip a bunch of lines
+          "/opt/puppetlabs/puppet/lib/ruby/vendor_ruby/puppet/application.rb:382:in `run'",
+          "/opt/puppetlabs/puppet/lib/ruby/vendor_ruby/puppet/util/command_line.rb:143:in `run'",
+          "/opt/puppetlabs/puppet/lib/ruby/vendor_ruby/puppet/util/command_line.rb:77:in `execute'",
+          "/opt/puppetlabs/puppet/bin/puppet:5:in `<main>'",
+        ]
+
+        expected = [
+          "/etc/puppetlabs/code/environments/production/modules/simpkv/lib/puppet_x/simpkv/file_plugin.rb:379:in `ensure_root_path'",
+          "/etc/puppetlabs/code/environments/production/modules/simpkv/lib/puppet_x/simpkv/simpkv.rb:394:in `plugin_instance'",
+          "/etc/puppetlabs/code/environments/production/modules/simpkv/lib/puppet_x/simpkv/simpkv.rb:280:in `put'",
+          "/etc/puppetlabs/code/environments/production/modules/simpkv/lib/puppet/functions/simpkv/put.rb:131:in `put'",
+        ]
+
+        expect( @adapter.filter_backtrace(full_backtrace) ).to eq(expected)
+      end
+    end
+
     context '#normalize_key' do
       let(:key) { 'my/test/key' }
-      let(:normalized_key) { 'production/my/test/key' }
-      it 'should add the environment in options with :add_env operation' do
-        opts = {'environment' => 'production'}
-        expect( @adapter.normalize_key(key, opts) ).to eq normalized_key
+      let(:normalized_env_key) { 'environments/production/my/test/key' }
+      let(:normalized_global_key) { 'globals/my/test/key' }
+
+      context 'with operation=:add_prefix (default)' do
+        it "should add the env path when only 'environment' option is specified" do
+          opts = {'environment' => 'production'}
+          expect( @adapter.normalize_key(key, opts) ).to eq normalized_env_key
+        end
+
+        it "should add the env path when 'global'=false and 'environment' is set" do
+          opts = {'environment' => 'production', 'global' => false}
+          expect( @adapter.normalize_key(key, opts) ).to eq normalized_env_key
+        end
+
+        it "should add the global path when 'global' is true" do
+          opts = {'environment' => 'production', 'global' => true}
+          expect( @adapter.normalize_key(key, opts) ).to eq normalized_global_key
+        end
       end
 
-      it 'should leave key intact when no environment specified in options with :add_env operation' do
-        expect( @adapter.normalize_key(key, {}) ).to eq key
-      end
+      context 'with operation=:remove_prefix' do
+        it "should remove the env path when only 'environment' option is specified" do
+          opts = {'environment' => 'production'}
+          expect( @adapter.normalize_key(normalized_env_key, opts, :remove_prefix) ).to eq key
+        end
 
-      it 'should leave key intact when empty environment specified in options with :add_env operation' do
-        opts = {'environment' => ''}
-        expect( @adapter.normalize_key(key, opts) ).to eq key
-      end
+        it "should remove the env path when 'global'=false and 'environment' is set" do
+          opts = {'environment' => 'production', 'global' => false}
+          expect( @adapter.normalize_key(normalized_env_key, opts, :remove_prefix) ).to eq key
+        end
 
-      it 'should remove the environment in options with :remove_env operation' do
-        opts = {'environment' => 'production'}
-        expect( @adapter.normalize_key(normalized_key, opts, :remove_env) ).to eq key
-      end
-
-      it 'should leave key intact when no environment specified in options with :remove_env operation' do
-        expect( @adapter.normalize_key(normalized_key, {}, :remove_env) ).to eq normalized_key
-      end
-
-      it 'should leave key intact when empty environment specified in options with :remove_env operation' do
-        opts = {'environment' => ''}
-        expect( @adapter.normalize_key(normalized_key, opts, :remove_env) ).to eq normalized_key
-      end
-
-      it 'should leave key intact with any other operation' do
-        opts = {'environment' => 'production'}
-        expect( @adapter.normalize_key(normalized_key, opts, :oops) ).to eq normalized_key
+        it "should remove the global path when 'global' is true" do
+          opts = {'environment' => 'production', 'global' => true}
+          expect( @adapter.normalize_key(normalized_global_key, opts, :remove_prefix) ).to eq key
+        end
       end
     end
 
@@ -137,12 +176,12 @@ describe 'simpkv adapter anonymous class' do
       context 'error cases' do
         it 'should fail when options is not a Hash' do
           expect { @adapter.plugin_instance('oops') }.
-            to raise_error(/simpkv Internal Error: Malformed backend config/)
+            to raise_error(/Malformed backend config/)
         end
 
         it "should fail when options missing 'backend' key" do
           expect { @adapter.plugin_instance({}) }.
-            to raise_error(/simpkv Internal Error: Malformed backend config/)
+            to raise_error(/Malformed backend config/)
         end
 
         it "should fail when options missing 'backends' key" do
@@ -150,7 +189,7 @@ describe 'simpkv adapter anonymous class' do
             'backend' => 'test'
           }
           expect { @adapter.plugin_instance(options) }.
-            to raise_error(/simpkv Internal Error: Malformed backend config/)
+            to raise_error(/Malformed backend config/)
         end
 
         it "should fail when options 'backends' key is not a Hash" do
@@ -159,7 +198,7 @@ describe 'simpkv adapter anonymous class' do
             'backends' => 'oops'
           }
           expect { @adapter.plugin_instance(options) }.
-            to raise_error(/simpkv Internal Error: Malformed backend config/)
+            to raise_error(/Malformed backend config/)
         end
 
         it "should fail when options 'backends' does not have the specified backend" do
@@ -170,7 +209,7 @@ describe 'simpkv adapter anonymous class' do
             }
           }
           expect { @adapter.plugin_instance(options) }.
-            to raise_error(/simpkv Internal Error: Malformed backend config/)
+            to raise_error(/Malformed backend config/)
         end
 
         it "should fail when the correct 'backends' element has no 'id' key" do
@@ -182,7 +221,7 @@ describe 'simpkv adapter anonymous class' do
             }
           }
           expect { @adapter.plugin_instance(options) }.
-            to raise_error(/simpkv Internal Error: Malformed backend config/)
+            to raise_error(/Malformed backend config/)
         end
 
         it "should fail when the correct 'backends' element has no 'type' key" do
@@ -194,7 +233,7 @@ describe 'simpkv adapter anonymous class' do
             }
           }
           expect { @adapter.plugin_instance(options) }.
-            to raise_error(/simpkv Internal Error: Malformed backend config/)
+            to raise_error(/Malformed backend config/)
         end
 
         it "should fail when the correct 'backends' element has wrong 'type' value" do
@@ -206,14 +245,14 @@ describe 'simpkv adapter anonymous class' do
             }
           }
           expect { @adapter.plugin_instance(options) }.
-            to raise_error(/simpkv Internal Error: Malformed backend config/)
+            to raise_error(/Malformed backend config/)
         end
 
 
         it 'should fail when plugin instance cannot be created' do
 
           expect { @adapter.plugin_instance(@options_failer_ctr) }.
-            to raise_error(/simpkv Error: Unable to construct 'failer\/test'/)
+            to raise_error(/Unable to construct 'failer\/test'/)
         end
       end
     end
@@ -273,7 +312,7 @@ describe 'simpkv adapter anonymous class' do
     end
 
     let(:key) { 'my/test/key' }
-    let(:key_plus_env) { 'production/my/test/key' }
+    let(:key_plus_env) { 'environments/production/my/test/key' }
     let(:value) { 'some string' }
     let(:metadata) { { 'foo' => 'bar' } }
     let(:serialized_value) {

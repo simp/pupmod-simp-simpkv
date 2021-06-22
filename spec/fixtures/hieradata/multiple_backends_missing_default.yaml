@@ -16,7 +16,6 @@
 
   simpkv::options:
     # global options
-    environment: "myenv"
     softfail: false
 
     # Hash of backend configuration to be used to lookup the appropriate

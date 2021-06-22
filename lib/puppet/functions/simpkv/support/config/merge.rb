@@ -54,9 +54,12 @@ Puppet::Functions.create_function(:'simpkv::support::config::merge') do
     return merged_options
   end
 
-  # merge options; set defaults for 'backend', 'environment', and 'softfail'
-  # when missing; and when 'backends' is missing, insert a 'default' backend
-  # of type 'file'.
+  # merge options; set defaults for 'backend', 'environment', 'global' and
+  # 'softfail' when missing; and when 'backends' is missing, insert a 'default'
+  # backend of type 'file'.
+  #
+  # 'environment' is an internal option required by the simpkv adapter. It
+  # is used to generate the environment-specific prefix to the key path.
   def merge_options(options)
     require 'deep_merge'
     # deep_merge will not work with frozen options, so make a deep copy
@@ -101,11 +104,12 @@ Puppet::Functions.create_function(:'simpkv::support::config::merge') do
       merged_options['softfail'] = false
     end
 
-    unless merged_options.has_key?('environment')
-      merged_options['environment'] = closure_scope.compiler.environment.to_s
+    unless merged_options.has_key?('global')
+      merged_options['global'] = false
     end
 
-    merged_options['environment'] = '' if merged_options['environment'].nil?
+    merged_options['environment'] = closure_scope.compiler.environment.to_s
+
     merged_options
   end
 end

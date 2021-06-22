@@ -93,6 +93,8 @@ describe 'simpkv file plugin anonymous class' do
       it 'should create the root_path tree when none exists' do
         expect{ plugin_class.new(@plugin_name, @options) }.to_not raise_error
         expect( Dir.exist?(@root_path) ).to be true
+        expect( Dir.exist?(File.join(@root_path, 'globals')) ).to be true
+        expect( Dir.exist?(File.join(@root_path, 'environments')) ).to be true
       end
 
       it 'should not fail if the root_path tree exists' do

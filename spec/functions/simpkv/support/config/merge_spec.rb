@@ -4,47 +4,16 @@ describe 'simpkv::support::config::merge' do
 
   let(:backends) { [ 'file' ] }
 
+  # tell puppet-rspec to set Puppet environment to 'myenv'
+  let(:environment) { 'myenv' }
+
   context 'simpkv::options and app_id not specified' do
-    let(:environment) { 'myenv' }
-    it 'should return input config when config is fully-specified' do
-      config = {
+    it "should just add 'environment' to merged config when all other config specified" do
+      input_config = {
         'backend'     => 'default',
-        'environment' => 'dev',
+        'global'      => true,
         'softfail'    => true,
         'backends'    => {
-          'default' => {
-            'id'   => 'test',
-            'type' => 'file'
-          }
-        }
-      }
-
-      is_expected.to run.with_params(config, backends).and_return(config)
-    end
-
-    it "should add default 'backend' to merged config when missing" do
-      input_config = {
-        'environment' => 'dev',
-        'softfail'    => true,
-        'backends'    => {
-          'default' => {
-            'id'   => 'test',
-            'type' => 'file'
-          }
-        }
-      }
-      output_config = input_config.dup
-      output_config['backend'] = 'default'
-
-      is_expected.to run.with_params(input_config, backends).
-        and_return(output_config)
-    end
-
-    it "should add 'environment' to merged config when missing" do
-      input_config = {
-        'backend'  => 'default',
-        'softfail' => true,
-        'backends' => {
           'default' => {
             'id'   => 'test',
             'type' => 'file'
@@ -54,15 +23,14 @@ describe 'simpkv::support::config::merge' do
       output_config = input_config.dup
       output_config['environment'] = environment
 
-      is_expected.to run.with_params(input_config, backends).
-        and_return(output_config)
+      is_expected.to run.with_params(input_config, backends).and_return(output_config)
     end
 
-    it "should add 'softfail' to merged config when missing" do
+    it "should add default 'backend' to merged config when missing" do
       input_config = {
-        'backend'  => 'default',
-        'environment' => '',
-        'backends' => {
+        'global'      => false,
+        'softfail'    => true,
+        'backends'    => {
           'default' => {
             'id'   => 'test',
             'type' => 'file'
@@ -70,6 +38,46 @@ describe 'simpkv::support::config::merge' do
         }
       }
       output_config = input_config.dup
+      output_config['environment'] = environment
+      output_config['backend'] = 'default'
+
+      is_expected.to run.with_params(input_config, backends).
+        and_return(output_config)
+    end
+
+    it "should add 'global' to merged config when missing" do
+      input_config = {
+        'backend'     => 'default',
+        'softfail'    => true,
+        'backends'    => {
+          'default' => {
+            'id'   => 'test',
+            'type' => 'file'
+          }
+        }
+      }
+      output_config = input_config.dup
+      output_config['environment'] = environment
+      output_config['global'] = false
+
+      is_expected.to run.with_params(input_config, backends).
+        and_return(output_config)
+    end
+
+
+    it "should add 'softfail' to merged config when missing" do
+      input_config = {
+        'backend'     => 'default',
+        'global'      => true,
+        'backends'    => {
+          'default' => {
+            'id'   => 'test',
+            'type' => 'file'
+          }
+        }
+      }
+      output_config = input_config.dup
+      output_config['environment'] = environment
       output_config['softfail'] = false
 
       is_expected.to run.with_params(input_config, backends).
@@ -78,7 +86,8 @@ describe 'simpkv::support::config::merge' do
 
     it "should add 'backends' with file backend auto-default when backends missing" do
       output_config = {
-        'environment' => 'myenv',
+        'environment' => environment,
+        'global'      => false,
         'softfail'    => false,
         'backend'     => 'default',
         'backends'    => {
@@ -114,7 +123,8 @@ describe 'simpkv::support::config::merge' do
     it 'should return simpkv::options config when no input config is specified' do
       output_config = {
         'backend'     => 'default',
-        'environment' => 'myenv',
+        'environment' => environment,
+        'global'      => false,
         'softfail'    => false,
         'backends'    => {
           'default' => {
@@ -133,7 +143,7 @@ describe 'simpkv::support::config::merge' do
     it 'should merge input config and simpkv::options but defer to input config' do
       input_config = {
         'backend'     => 'test',
-        'environment' => '',
+        'global'      => true,
         'softfail'    => true,
         'backends'    => {
           'test' => {
@@ -146,7 +156,8 @@ describe 'simpkv::support::config::merge' do
 
       output_config = {
         'backend'     => 'test',
-        'environment' => '',
+        'environment' => environment,
+        'global'      => true,
         'softfail'    => true,
         'backends'    => {
           'default' => {
@@ -179,9 +190,11 @@ describe 'simpkv::support::config::merge' do
   context 'backend lookup using app_id' do
     let(:hieradata) { 'multiple_backends' }
 
-    # alias expanded version of simpkv:options in multiple_backends.yaml
+    # alias expanded version of simpkv:options in multiple_backends.yaml with
+    # environment added
     let(:simpkv_options) { {
-      'environment' => 'myenv',
+      'environment' => environment,
+      'global'      => false,
       'softfail'    => false,
       'backends'    => {
         'myapp1_special_snowflake' => {
@@ -242,5 +255,4 @@ describe 'simpkv::support::config::merge' do
         backends).and_return(expected)
     end
   end
-
 end

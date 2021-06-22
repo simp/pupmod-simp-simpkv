@@ -58,14 +58,12 @@ Puppet::Functions.create_function(:'simpkv::list') do
   #      * Other keys for configuration specific to the backend may also be
   #        present.
   #
-  # @option options [String] 'environment'
-  #   Puppet environment to prepend to keys.
+  # @option options [Boolean] 'global'
+  #   Set to `true` when the key being accessed is global. Otherwise, the key
+  #   will be tied to the Puppet environment of the node whose manifest is
+  #   being compiled.
   #
-  #     * When set to a non-empty string, it is prepended to the key used in
-  #       the backend operation.
-  #     * Should only be set to an empty string when the key being accessed is
-  #       truly global.
-  #     * Defaults to the Puppet environment for the node.
+  #     * Defaults to `false`
   #
   # @option options [Boolean] 'softfail'
   #   Whether to ignore simpkv operation failures.
@@ -93,7 +91,7 @@ Puppet::Functions.create_function(:'simpkv::list') do
   #       'metadata' key.
   #   * 'folders' attribute is an Array of sub-folder names
   #
-  # @example Retrieve the list of key info for a key folder in the default backend
+  # @example Retrieve the list of key info for a key folder from the default backend
   #   $result = simpkv::list('hosts')
   #   $result['keys'].each |$host, $info | {
   #     host { $host:
@@ -101,23 +99,16 @@ Puppet::Functions.create_function(:'simpkv::list') do
   #     }
   #   }
   #
-  # @example Retrieve the list of key info for a key folder in the backend servicing an application id
-  #   $result = simpkv::list('hosts', { 'app_id' => 'myapp' })
-  #   $result['keys'].each |$host, $info | {
-  #     host { $host:
-  #       ip => $info['value'],
-  #     }
-  #   }
-  #
-  # @example Retrieve the list of sub-folders in a key folder in the default backend
-  #   $result = simpkv::list('applications')
+  # @example Retrieve the list of sub-folders in a key folder from the backend servicing an application id
+  #   $result = simpkv::list('applications', { 'app_id' => 'myapp' })
   #   notice("Supported applications: ${join($result['folders'], ' ')}")
   #
-  # @example Retrieve the top folder list for the environment in the default backend
-  #   $result = simpkv::list('/')
-  #
-  # @example Retrieve the list of environments supported by the default backend
-  #   $result = simpkv::list('/', { 'environment' => '' })
+  # @example Retrieve the top level list of global keys/folders in the default backend
+  #   $result = simpkv::list('/', { 'global' = true })
+  #   notice("Global folders: ${join($result['folders'], ' ')}")
+  #   $result['keys'].each |$key, $info | {
+  #     notice("Global key ${key}: value=${info['value']} metadata=${info['metadata']}")
+  #   }
   #
   dispatch :list do
     required_param 'String[1]', :keydir

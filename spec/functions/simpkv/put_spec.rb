@@ -2,8 +2,11 @@ require 'spec_helper'
 
 describe 'simpkv::put' do
 
-# Going to use file plugin and the test plugins in spec/support/test_plugins
-# for these unit tests.
+  # tell puppet-rspec to set Puppet environment to 'myenv'
+  let(:environment) { 'myenv' }
+
+  # Going to use file plugin and the test plugins in spec/support/test_plugins
+  # for these unit tests.
   before(:each) do
     # set up configuration for the file plugin
     @tmpdir = Dir.mktmpdir
@@ -11,7 +14,6 @@ describe 'simpkv::put' do
     @root_path_default_app_id = File.join(@tmpdir, 'simpkv', 'default_app_id')
     @root_path_default        = File.join(@tmpdir, 'simpkv', 'default')
     options_base = {
-      'environment' => 'production',
       'backends'    => {
         # will use failer plugin for catastrophic error cases, because
         # it is badly behaved and raises exceptions on all operations
@@ -48,10 +50,7 @@ describe 'simpkv::put' do
     FileUtils.remove_entry_secure(@tmpdir)
   end
 
-  # The tests will verify most of the function behavior without simpkv::options
-  # specified and then verify options merging when simpkv::options is specified.
-
-  context 'without simpkv::options' do
+  context 'basic operation' do
     let(:key) { 'mykey' }
     let(:value) { 'myvalue' }
     let(:metadata) { { 'foo' => 'bar', 'baz' => 42 } }
@@ -63,7 +62,7 @@ describe 'simpkv::put' do
         params = [ key, info[:value] , info[:metadata], @options_test_file ]
         is_expected.to run.with_params(*params).and_return(true)
 
-        key_file = File.join(@root_path_test_file, 'production', key)
+        key_file = File.join(@root_path_test_file, 'environments', environment, key)
         expect( File.exist?(key_file) ).to be true
         expect( File.read(key_file) ).to eq(info[:serialized_value])
       end
@@ -73,7 +72,7 @@ describe 'simpkv::put' do
       is_expected.to run.with_params(key, value , metadata, @options_default).
         and_return(true)
 
-      key_file = File.join(@root_path_default, 'production', key)
+      key_file = File.join(@root_path_default, 'environments', environment, key)
       expect( File.exist?(key_file) ).to be true
     end
 
@@ -88,7 +87,7 @@ describe 'simpkv::put' do
       is_expected.to run.with_params(key, value, metadata).and_return(true)
 
       key_file = File.join(Puppet.settings[:vardir], 'simp', 'simpkv', 'file',
-        'auto_default', environment, key)
+        'auto_default', 'environments', environment, key)
       expect( File.exist?(key_file) ).to be true
     end
 
@@ -96,20 +95,20 @@ describe 'simpkv::put' do
       is_expected.to run.with_params(key, value , metadata, @options_default_app_id).
         and_return(true)
 
-      key_file = File.join(@root_path_default_app_id, 'production', key)
+      key_file = File.join(@root_path_default_app_id, 'environments', environment, key)
       expect( File.exist?(key_file) ).to be true
     end
 
-    it 'should use environment-less key when environment is empty' do
+    it 'should use global key when global config is set' do
       options = @options_default.dup
-      options['environment'] = ''
+      options['global'] = true
       is_expected.to run.with_params(key, value , metadata, options).
         and_return(true)
 
-      env_key_file = File.join(@root_path_default, 'production', key)
+      env_key_file = File.join(@root_path_default, 'environments', environment, key)
       expect( File.exist?(env_key_file) ).to be false
 
-      key_file = File.join(@root_path_default, key)
+      key_file = File.join(@root_path_default, 'globals', key)
       expect( File.exist?(key_file) ).to be true
     end
 
@@ -126,25 +125,6 @@ describe 'simpkv::put' do
         and_return(false)
 
       #FIXME check warning log
-    end
-  end
-
-  context 'with simpkv::options' do
-    let(:hieradata) { 'multiple_backends_missing_default' }
-
-    it 'should merge simpkv::options' do
-      # @options_default will add the missing default backend config and
-      # override the environment setting.  To spot check options merge (which
-      # is fully tested elsewhere), remove the environment setting and verify
-      # we use the default config from the local options Hash and the
-      # environment from simpkv::options
-      options = @options_default.dup
-      options.delete('environment')
-      is_expected.to run.with_params('key', 'value', {}, options).
-        and_return(true)
-
-      key_file = File.join(@root_path_default, 'myenv', 'key')
-      expect( File.exist?(key_file) ).to be true
     end
   end
 
