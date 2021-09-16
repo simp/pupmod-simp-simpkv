@@ -353,8 +353,29 @@ pup6.pe:
 pup6.pe-fips:
   <<: *pup_6_pe
   <<: *acceptance_base
+  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
   script:
     - 'BEAKER_fips=yes bundle exec rake beaker:suites[default,default]'
+
+pup6.x.centos7:
+  <<: *pup_6_x
+  <<: *acceptance_base
+  script:
+    - 'bundle exec rake beaker:suites[default,centos7]'
+
+pup6.x.centos7-fips:
+  <<: *pup_6_x
+  <<: *acceptance_base
+  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
+  script:
+    - 'BEAKER_fips=yes bundle exec rake beaker:suites[default,centos7]'
+
+pup6.pe.centos7:
+  <<: *pup_6_pe
+  <<: *acceptance_base
+  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
+  script:
+    - 'bundle exec rake beaker:suites[default,centos7]'
 
 pup6.pe-oel:
   <<: *pup_6_pe
@@ -369,8 +390,29 @@ pup6.pe-oel-fips:
   script:
     - 'BEAKER_fips=yes bundle exec rake beaker:suites[default,oel]'
 
+pup6.pe.centos7-oel:
+  <<: *pup_6_pe
+  <<: *acceptance_base
+  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
+  script:
+    - 'bundle exec rake beaker:suites[default,oel7]'
+
+pup6.pe.centos7-oel-fips:
+  <<: *pup_6_pe
+  <<: *acceptance_base
+  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
+  script:
+    - 'BEAKER_fips=yes bundle exec rake beaker:suites[default,oel7]'
+
 pup7.x:
   <<: *pup_7_x
   <<: *acceptance_base
   script:
     - 'bundle exec rake beaker:suites[default,default]'
+
+pup7.x.centos7:
+  <<: *pup_7_x
+  <<: *acceptance_base
+  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
+  script:
+    - 'bundle exec rake beaker:suites[default,centos7]'

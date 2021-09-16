@@ -1,8 +1,8 @@
 {
   "name": "simp-simpkv_test",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "author": "simp",
-  "summary": "test manifests for simpkv plugin testing",
+  "summary": "test manifests for simp kv testing",
   "license": "Apache-2.0",
   "source": "https://github.com/simp/pupmod-simp-simpkv",
   "project_page": "https://github.com/simp/pupmod-simp-simpkv",
@@ -10,34 +10,22 @@
   "tags": [],
   "dependencies": [
     {
+      "name": "puppetlabs/stdlib",
+      "version_requirement": ">= 4.9.0"
+    },
+    {
       "name": "simp/simpkv",
-      "version_requirement": ">= 0.7.0"
+      "version_requirement": ">= 0.8.0"
     },
     {
       "name": "simp/simplib",
-      "version_requirement": ">= 4.0.0 < 5.0.0"
-    }
-  ],
-  "operatingsystem_support": [
-    {
-      "operatingsystem": "CentOS",
-      "operatingsystemrelease": [
-        "6",
-        "7"
-      ]
-    },
-    {
-      "operatingsystem": "RedHat",
-      "operatingsystemrelease": [
-        "6",
-        "7"
-      ]
+      "version_requirement": ">= 4.0.0"
     }
   ],
   "requirements": [
     {
       "name": "puppet",
-      "version_requirement": ">= 5.0.0 < 7.0.0"
+      "version_requirement": ">= 6.5.0"
     }
   ]
 }

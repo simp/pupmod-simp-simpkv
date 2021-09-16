@@ -1,11 +1,13 @@
 require 'beaker-rspec'
+require_relative 'acceptance/helpers'
+require_relative 'acceptance/shared_examples'
+
 require 'tmpdir'
 require 'yaml'
 require 'simp/beaker_helpers'
 include Simp::BeakerHelpers
-
-require 'data_helper'
-include DataHelper
+include Acceptance::Helpers::TestData
+include Acceptance::Helpers::ManifestUtils
 
 unless ENV['BEAKER_provision'] == 'no'
   hosts.each do |host|
@@ -25,6 +27,10 @@ end
 RSpec.configure do |c|
   # ensure that environment OS is ready on each host
   fix_errata_on hosts
+
+  # Detect cases in which no examples are executed (e.g., nodeset does not
+  # have hosts with required roles)
+  c.fail_if_no_examples = true
 
   # Readable test descriptions
   c.formatter = :documentation
