@@ -506,9 +506,10 @@ To create your own plugin
   test shows you how to instantiate an object of your plugin for testing
   purposes.
 * Write acceptance tests for your plugin, using the acceptance tests for
-  simpkv's file plugin, `spec/acceptances/suites/default/file_plugin_spec.rb`,
-  as an example.  That test uses a test module, `spec/support/simpkv_test` to
-  exercise the the simpkv API and verify its operation.
+  simpkv's file plugin in `spec/acceptances/suites/default/`,
+  as an example.  That test uses a test module, `spec/support/simpkv_test`
+  and a plugin-specific validator to exercise the the simpkv API and verify its
+  operation with the file plugin.
 * Document your plugin's type and configuration parameters in the README.md for
   your store plugin module.
 

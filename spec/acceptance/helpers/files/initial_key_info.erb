@@ -1,0 +1,119 @@
+---
+# NOTES FOR TEST MAINTAINERS:
+# This file specifies test key information in a data structure corresponding to
+# the Simpkv_test::KeyInfo type alias. This data or data derived from it will be
+# used to stimulate simpkv_test manifests to test simpkv functions.
+#
+# ** Please take time to understand how the simpkv_test module works! **
+#
+# Important details about this key information are as follows:
+# * The keys are designed to cover a wide variety of keys types a user could
+#   specify. This includes:
+#   - Keys with simple values (Boolean, Integer, Float, String)
+#   - Keys with complex values (Hash, Array)
+#   - Keys that have to be handled with special Puppet code (Binary values)
+#   - Puppet-environment-specific keys
+#   - Global keys
+#   - Keys with/without metadata
+#   - Keys with/without path elements in their key names
+# * The keys are explicitly designed to test that key uniqueness is
+#   appropriately handled.
+#    - Keys are supposed to be uniquely specified by their
+#      {key path, global status, and backend} triples.
+#    - This data and the tests **ASSUME** a one-to-one mapping of app_id
+#      to backend, and so a key is uniquely specified by its
+#      {key path, global status, and app_id} triple.
+#    - This file contains multiple keys with the same key path, but different
+#      content and different combinations of app_id and global status.
+# * The key info is also designed to test different folder configurations
+#   - Folders with keys and sub-folders
+#   - Folders with only keys
+#   - Folders with only sub-folders
+#
+# Also of note:
+# - This file currently only supports 3 different app_ids.
+# - Binary data is loaded with the Puppet binary_file() method, so the
+#   'file' specification must match what that function requires.
+# - Validation logic elsewhere assumes the Binary value of a key will be found
+#   in a file in the simpkv_test module.
+#
+"<%= appid1 %>":
+  env:
+    boolean:
+      value: true
+    integer:
+      value: 1234567890
+      metadata:
+        verified: true
+    float:
+      value: 0.123
+    string:
+      value: "test string1"
+      metadata:
+        author: "Sally Smith"
+    complex/array_integers:
+      value:
+      - 8
+      - 9
+      - 10
+      metadata:
+        normalized: true
+    complex/array_strings:
+      value:
+      - 'test string2'
+    complex/hash:
+      value:
+        attr1: "test string2"
+        attr2: 11.0
+        attr3: false
+        attr4:
+          part1: "test string3"
+          part2: true
+          part3:
+          - 12
+          - 13
+    empty/string:
+      value: ""
+    empty/complex/array:
+      value: []
+    empty/complex/hash:
+      value: {}
+  global:
+    boolean:
+      value: false
+    string:
+      value: "global test string1"
+      metadata:
+        auditor: "Jill Jones"
+    binary/keytabs/test_krb5.keytab:
+      file: "simpkv_test/test_krb5.keytab"
+      metadata:
+        comment: "from simp/krb5 test"
+"<%= appid2 %>":
+  # list will have no sub-folders
+  env:
+    integer:
+      value: 123
+    float:
+      value: 45.678
+      metadata:
+        origin: sensor
+        version: 3
+  global:
+    integer:
+      value: 901
+      metadata:
+        truncated: true
+    string:
+      value: "global test string2"
+
+"<%= appid3 %>":
+  env:
+  # list will have only sub-folders
+    complex/hash:
+      value:
+        location: rack1
+        slot: 10
+      metadata:
+        last_reviewed: "2021-08-30"
+  # global list will be empty
