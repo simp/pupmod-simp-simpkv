@@ -67,6 +67,7 @@ describe 'simpkv adapter anonymous class' do
       expect( adapter.plugin_info ).to_not be_empty
       expect( adapter.plugin_info.keys.include?('file') ).to be true
       expect( adapter.plugin_info.keys.include?('failer') ).to be true
+      expect( adapter.plugin_info.keys.include?('ldap') ).to be true
       expect( adapter.plugin_info.keys.include?('malformed') ).to be false
     end
 
@@ -324,8 +325,8 @@ describe 'simpkv adapter anonymous class' do
 
     context '#backends' do
       it 'should list available backend plugins' do
-        # currently only 2 plugins (one real and one for test only)
-        expect( @adapter.backends ).to eq([ 'failer', 'file' ])
+        # currently only 3 plugins (2 real and 1 for test only)
+        expect( @adapter.backends.sort ).to eq([ 'failer', 'file', 'ldap' ])
       end
     end
 

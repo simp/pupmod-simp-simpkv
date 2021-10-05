@@ -1,4 +1,4 @@
-* Mon Jun 21 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 0.8.0
+* Tue Sep 28 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 0.8.0
 - BREAKING CHANGES:
   - Added 'globals' and 'environments' root directories for global and
     Puppet-environment keys, respectively, in the normalized key paths
@@ -27,11 +27,17 @@
     - Plugin type is now determined from its filename.
     - Previous mechanism did not work when when multiple plugins were used.
 - Added
+  - LDAP plugin
+    - Acceptance test that demonstrates its use and integration with
+      a 389-DS instance configured with the SIMP data schema
   - More detailed plugin exception reporting in order to pinpoint plugin
     logic problems.
     - Now prints out the useful portion of the backtrace when an exception
       is raised.
     - Especially useful during plugin development.
+  - More background information for users
+  - More background information for plugin developers, which has now
+    been split out into its own document.
 
 * Wed Jun 16 2021 Chris Tessmer <chris.tessmer@onyxpoint.com> - 0.8.0
 - Removed support for Puppet 5

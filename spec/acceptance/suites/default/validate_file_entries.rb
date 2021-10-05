@@ -3,9 +3,17 @@ include Acceptance::Helpers::Utils
 
 # Validate file-plugin-managed keys on the local filesystem
 #
-# - Conforms to the API specified in 'a simpkv plugin test' shared_examples
-# - Uses local filesystem commands, since the file plugin has to be on the
-#   same host as the file keystore
+# For each key specification,
+# - Selects the backend whose name matches its 'app_id'  or 'default', when
+#   no match is found
+# - Checks for the existence of the key in the appropriate location in the
+#   backend
+# - When the key is supposed to exist and does exist, verifies the stored data
+#
+# Conforms to the API specified in 'a simpkv plugin test' shared_examples
+#
+# NOTE: Uses local filesystem commands, since the file plugin has to be on the
+#       same host as the file keystore.
 #
 # @param key_info Hash of key information whose format corresponds to the
 #   Simpkv_test::KeyInfo type alias
@@ -21,52 +29,24 @@ include Acceptance::Helpers::Utils
 #
 # @return Whether validation of keys succeeded
 #
+# @raise RuntimeError if the appropriate backend for each app_id within key_info
+#   cannot be found in backend_hiera
+#
 def validate_file_entries(key_info, keys_should_exist, backend_hiera, host)
-  if keys_should_exist
-    validate_file_entries_present(key_info, backend_hiera, host)
-  else
-    validate_file_entries_absent(key_info, backend_hiera, host)
-  end
-end
-
-# Validate that file-plugin-managed keys exist on the local filesystem
-#
-# For each key specification,
-# - Selects the backend whose name matches its 'app_id'  or 'default', when
-#   no match is found
-# - Checks for the existence of the appropriate file for the backend
-# - Verifies the file content, when the file exists
-#
-# @param key_info Hash of key information whose format corresponds to the
-#   Simpkv_test::KeyInfo type alias
-#
-# @param backend_hiera Hash of backend configuration ('simpkv::options' Hash)
-#
-# @param host Host object on which the validator will execute commands
-#   - Must be same host as file file keystore
-#
-# @return Whether validation of keys succeeded
-#
-def validate_file_entries_present(key_info, backend_hiera, host)
   errors = []
   key_info.each do |app_id, key_struct|
-    root_path = file_root_path_for_app_id(app_id, backend_hiera)
+    config = backend_config_for_app_id(app_id, 'file', backend_hiera)
     key_struct.each do |key_type, keys|
-      key_root_path = (key_type == 'global') ? "#{root_path}/globals" : "#{root_path}/environments/production"
       keys.each do |key, key_data|
-        key_path = "#{key_root_path}/#{key}"
-        expected_key_string = key_data_string(key_data)
-        result = on(host, "cat #{key_path}", :accept_all_exit_codes => true)
-        if result.exit_code == 0
-          if result.stdout.strip != expected_key_string
-            errors << [
-              "Contents of #{key_path} did not match expected:",
-              "  Expected: #{expected_key_string}",
-              "  Actual:   #{result.stdout}"
-            ].join("\n")
-          end
+        result = {}
+        if keys_should_exist
+          result = validate_file_key_entry_present(key, key_type, key_data, config, host)
         else
-          errors << "Validation of #{key_path} presence and data failed: #{result.stderr}"
+          result = validate_file_key_entry_absent(key, key_type, config, host)
+        end
+
+        unless result[:success]
+          errors << result[:err_msg]
         end
       end
     end
@@ -84,63 +64,89 @@ def validate_file_entries_present(key_info, backend_hiera, host)
   end
 end
 
-# Validate that file-plugin-managed keys do not exist on the local filesystem
+# Validate a that file-plugin-managed key exists on the local filesystem and
+# has the correct stored data
 #
-# For each key specification,
-# - Selects the backend whose name matches its 'app_id'  or 'default', when
-#   no match is found
-# - Checks for the existence of the appropriate file for the backend
+# @param key Key name
 #
-# @param key_info Hash of key information whose format corresponds to the
-#   Simpkv_test::KeyInfo type alias
+# @param key_type 'env' or 'global' for a key tied to the Puppet-environment
+#   or a global key, respectively
 #
-# @param backend_hiera Hash of backend configuration ('simpkv::options' Hash)
+# @param key_data Hash of key data whose format corresponds to the
+#   Simpkv_test::KeyData type alias
+#
+# @param config Backend configuration
 #
 # @param host Host object on which the validator will execute commands
 #   - Must be same host as file file keystore
 #
-# @return Whether validation of keys succeeded
+# @return results Hash
+#   * :success - whether the validation succeeded
+#   * :err_msg - error message upon failure or nil otherwise
 #
-def validate_file_entries_absent(key_info, backend_hiera, host)
-  errors = []
-  key_info.each do |app_id, key_struct|
-    root_path = file_root_path_for_app_id(app_id, backend_hiera)
-    key_struct.each do |key_type, keys|
-      key_root_path = (key_type == 'global') ? "#{root_path}/globals" : "#{root_path}/environments/production"
-      keys.each do |key, key_data|
-        key_path = "#{key_root_path}/#{key}"
-        result = on(host, "ls -l #{key_path}", :accept_all_exit_codes => true)
-        if result.exit_code == 0
-          errors << "Validation of #{key_path} absence failed: #{result.stdout}"
-        end
-      end
-    end
-  end
+def validate_file_key_entry_present(key, key_type, key_data, config, host)
+  result = { :success => true }
 
-  if errors.size == 0
-    true
+  key_path = filesystem_key_path(key, key_type, config)
+  cmd_result = on(host, "cat #{key_path}", :accept_all_exit_codes => true)
+  if cmd_result.exit_code == 0
+    expected_key_string = key_data_string(key_data)
+    if cmd_result.stdout.strip != expected_key_string
+      result = {
+        :success => false,
+        :err_msg => [
+          "Data for #{key} did not match expected:",
+          "  Expected: #{expected_key_string}",
+          "  Actual:   #{result.stdout}"
+        ].join("\n")
+      }
+    end
   else
-    warn('Validation Failures:')
-    errors.each do |error|
-      warn("  #{error}")
-    end
-
-    false
+    result = {
+      :success => false,
+      :err_msg => "Validation of #{key} presence failed: Could not find #{key_path}"
+    }
   end
+
+  result
 end
 
-# @return Root path for the file backend that corresponds to the app_id
+# Validate a that file-plugin-managed key does not exists on the local filesystem
 #
-# @param app_id The app_id for a key or '', if none specified
-# @param backend_hiera Hash of backend configuration ('simpkv::options' Hash)
+# @param key Key name
 #
-def file_root_path_for_app_id(app_id, backend_hiera)
-  root_path = ''
-  if backend_hiera['simpkv::options']['backends'].keys.include?(app_id)
-    root_path = backend_hiera["simpkv::backend::#{app_id}"]['root_path']
-  elsif backend_hiera['simpkv::options']['backends'].keys.include?('default')
-    root_path = backend_hiera['simpkv::backend::default']['root_path']
+# @param key_type 'env' or 'global' for a key tied to the Puppet-environment
+#   or a global key, respectively
+#
+# @param config Backend configuration
+#
+# @param host Host object on which the validator will execute commands
+#   - Must be same host as file file keystore
+#
+# @return results Hash
+#   * :success - whether the validation succeeded
+#   * :err_msg - error message upon failure or nil otherwise
+#
+def validate_file_key_entry_absent(key, key_type, config, host)
+  result = { :success => true }
+
+  key_path = filesystem_key_path(key, key_type, config)
+  cmd_result = on(host, "ls -l #{key_path}", :accept_all_exit_codes => true)
+  if result.exit_code == 0
+    result = {
+      :success => false,
+      :err_msg => "Validation of #{key} absence failed: Found #{key_path}"
+    }
   end
 
-  root_path
+  result
+end
+
+def filesystem_key_path(key, key_type, config)
+  root_path = config.key?('root_path') ? config['root_path'] : '/var/simp/simpkv/file/default'
+  if key_type == 'global'
+    File.join(root_path, 'globals', key)
+  else
+    File.join(root_path, 'environments', 'production', key)
+  end
 end

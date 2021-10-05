@@ -17,6 +17,7 @@
 * [Rollout Considerations](#rollout-considerations)
 * [Design](#design)
 
+  * [Changes from Version 0.7.X](#changes-from-version-0.7.x)
   * [Changes from Version 0.6.X](#changes-from-version-0.6.x)
   * [simpkv Configuration](#simpkv-configuration)
 
@@ -293,14 +294,17 @@ general requirements:
       * Getting this to work on specific shared file system types is
         deferred to a future requirement.
 
-* simpkv may provide a Consul-based plugin
+* simpkv must provide a plugin to interface with a high-availability, distributed
+  key/store
+
+  * The first high-availability, distributed key/store to which simpkv will
+    interface will be LDAP.
 
 ### Future Requirements
 
 This is a placeholder for miscellaneous, additional simpkv requirements
 to be addressed, once it moves beyond the prototype stage.
 
-* simpkv must provide a plugin for a remote key/value store, such as LDAP
 * simpkv must support audit operations on a key/value store
 
   * Auditing information to be provided must include:
@@ -398,6 +402,48 @@ from using `File` resources with the `source` set to `File` resources with
 This section discusses at a high level the design to meet the second prototype
 requirements.  For indepth understanding of the design, please refer to the
 prototype software and is tests.
+
+### Changes from Version 0.7.X
+
+This section lists the changes that have been made to the simpkv function and
+plugin APIs to address deficiencies found when developing the LDAP plugin.
+
+#### simpkv function API changes
+
+* The confusing 'environment' backend option in each simpkv Puppet
+  function has been replaced with a 'global' Boolean option.
+
+  * Global keys are now specified by setting 'global' to true in lieu of
+    setting 'environment' to ''.
+
+* The key and folder name specification now restricts the allowed letter
+  characters to lowercase.
+
+
+#### plugin API changes
+
+* 'globals' and 'environments' root directories have been added for global
+   and Puppet-environment keys, respectively, in the normalized key paths
+   in the backend.
+
+   * This change makes the top-level organization of keys in the backend
+     explicit, and thus more understandable.
+   * The prefix used for global keys was changed from `<keystore root dir>` to
+     `<keystore root dir>/globals`.
+   * The prefix used for environment keys was changed from
+     `<keystore root dir>/<specific Puppet environment>` to
+     `<keystore root dir>/environments/<specific Puppet environment>`.
+
+* Plugin configuration has been split out into its own method, instead of being
+  done in the plugin constructor.
+
+  * This minimal change allows the use of mock objects in the unit tests for
+    complex plugins, such as those that require connections to external servers.
+
+* Fixed the mechanism a plugin uses to advertise its type.
+
+  * Plugin type is now determined from its filename.
+  * Previous mechanism did not work when when multiple plugins were used.
 
 ### Changes from Version 0.6.X
 
@@ -562,19 +608,10 @@ are specified and mapped to different application identifiers.
     type: file
     root_path: "/some/other/path"
 
-  simpkv::backend::consul:
-    id: consul
-    type: consul
-
-    request_timeout_seconds: 15
-    num_retries: 1
-    uris:
-    - "consul+ssl+verify://1.2.3.4:8501/puppet"
-    - "consul+ssl+verify://1.2.3.5:8501/puppet"
-    auth:
-      ca_file:    "/path/to/ca.crt"
-      cert_file:  "/path/to/server.crt"
-      key_file:   "/path/to/server.key"
+  simpkv::backend::ldap:
+    id: ldap
+    type: ldap
+    ldap_uri: ldapi://%2fvar%2frun%2fslapd-simp_data.socket
 
   simpkv::options:
     # global options
@@ -592,10 +629,10 @@ are specified and mapped to different application identifiers.
       "myapp":                   "%{alias('simpkv::backend::file')}"
 
       # backend for all yourapp* applications
-      "yourapp":                 "%{alias('simpkv::backend::consul')}"
+      "yourapp":                 "%{alias('simpkv::backend::ldap')}"
 
       # required default backend
-      "default":                 "%{alias('simpkv::backend::consul')}"
+      "default":                 "%{alias('simpkv::backend::ldap')}"
 
 ```
 

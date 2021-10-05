@@ -55,7 +55,7 @@ module Acceptance::Helpers::TestData
     backends = {}
     backend_configs.each do |name, config|
       backend_tag = "simpkv::backend::#{name}"
-      hiera[backend_tag] = config
+      hiera[backend_tag] = Marshal.load(Marshal.dump(config))
       hiera[backend_tag]['id'] = name
       backends[name]= "%{alias('#{backend_tag}')}"
     end

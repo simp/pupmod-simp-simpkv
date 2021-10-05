@@ -37,12 +37,13 @@ plugin_class = Class.new do
   # The plugin-specific configuration will be found in
   # `options['backends'][ options['backend'] ]`:
   #
-  # * `root_path`: root directory path; defaults to '/var/simp/simpkv/<name>' when
-  #     that directory can be created or '<Puppet[:vardir]>/simp/simpkv/<name>'
-  #     otherwise
-  # * `lock_timeout_seconds`: max seconds to wait for an exclusive file lock
-  #   on a file modifying operation before failing the operation; defaults
-  #   to 5 seconds
+  # * `root_path`: Optional. Root directory path
+  #   - Defaults to '/var/simp/simpkv/<name>' when that directory can be created
+  #     or '<Puppet[:vardir]>/simp/simpkv/<name>' otherwise
+  #
+  # * `lock_timeout_seconds`: Optional. Max seconds to wait for an exclusive file lock
+  #   on a file modifying operation before failing the operation
+  #   - Defaults to 5 seconds
   #
   # @param options Hash of global simpkv and backend-specific options
   # @raise RuntimeError if any required configuration is missing from options,
@@ -59,8 +60,6 @@ plugin_class = Class.new do
         options['backends'].has_key?(options['backend']) &&
         options['backends'][ options['backend'] ].has_key?('id') &&
         options['backends'][ options['backend'] ].has_key?('type') &&
-        # self is not available to an anonymous class and can't use constants,
-        # so have to repeat what is already in self.type
         (options['backends'][ options['backend'] ]['type'] == 'file')
     )
       raise("Plugin misconfigured: #{options}")
