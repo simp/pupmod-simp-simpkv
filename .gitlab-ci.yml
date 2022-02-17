@@ -464,4 +464,3 @@ pup7.x.multiple_plugins:
   <<: *acceptance_base
   script:
     - 'bundle exec rake beaker:suites[multiple_plugins,default]'
-
