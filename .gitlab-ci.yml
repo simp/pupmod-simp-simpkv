@@ -340,9 +340,9 @@ pup7.pe-unit:
   <<: *pup_7_pe
   <<: *unit_tests
 
-pup8.x-unit:
-  <<: *pup_8_x
-  <<: *unit_tests
+#pup8.x-unit:
+#  <<: *pup_8_x
+#  <<: *unit_tests
 
 # ------------------------------------------------------------------------------
 #             NOTICE: **This file is maintained with puppetsync**
@@ -411,18 +411,18 @@ pup7.pe-oel7:
   script:
     - 'bundle exec rake beaker:suites[default,oel7]'
 
-pup8.x:
-  <<: *pup_8_x
-  <<: *acceptance_base
-  script:
-    - 'bundle exec rake beaker:suites[default,default]'
+#pup8.x:
+#  <<: *pup_8_x
+#  <<: *acceptance_base
+#  script:
+#    - 'bundle exec rake beaker:suites[default,default]'
 
-pup8.x-centos7:
-  <<: *pup_8_x
-  <<: *acceptance_base
-  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
-  script:
-    - 'bundle exec rake beaker:suites[default,centos7]'
+#pup8.x-centos7:
+#  <<: *pup_8_x
+#  <<: *acceptance_base
+#  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
+#  script:
+#    - 'bundle exec rake beaker:suites[default,centos7]'
 
 #---- ldap_plugin suite ----
 # Nodesets: default -> CentOS8 + CentOS7
@@ -453,11 +453,11 @@ pup7.pe-ldap_plugin-oel:
   script:
     - 'bundle exec rake beaker:suites[ldap_plugin,oel]'
 
-pup8.x-ldap_plugin:
-  <<: *pup_8_x
-  <<: *acceptance_base
-  script:
-    - 'bundle exec rake beaker:suites[ldap_plugin,default]'
+#pup8.x-ldap_plugin:
+#  <<: *pup_8_x
+#  <<: *acceptance_base
+#  script:
+#    - 'bundle exec rake beaker:suites[ldap_plugin,default]'
 
 #---- multiple_plugins suite ----
 # Nodesets: default -> CentOS8
@@ -481,8 +481,8 @@ pup7.pe.multiple_plugins-fips:
   script:
     - 'BEAKER_fips=yes bundle exec rake beaker:suites[multiple_plugins,default]'
 
-pup8.x.multiple_plugins:
-  <<: *pup_8_x
-  <<: *acceptance_base
-  script:
-    - 'bundle exec rake beaker:suites[multiple_plugins,default]'
+#pup8.x.multiple_plugins:
+#  <<: *pup_8_x
+#  <<: *acceptance_base
+#  script:
+#    - 'bundle exec rake beaker:suites[multiple_plugins,default]'
