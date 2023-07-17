@@ -1,6 +1,6 @@
 {
   "name": "simp-simpkv",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "author": "simp",
   "summary": "SIMPkv providers",
   "license": "Apache-2.0",
@@ -14,7 +14,7 @@
   "dependencies": [
     {
       "name": "puppetlabs/stdlib",
-      "version_requirement": ">= 6.6.0 < 8.0.0"
+      "version_requirement": ">= 8.0.0 < 9.0.0"
     }
   ],
   "operatingsystem_support": [
@@ -30,6 +30,12 @@
       "operatingsystemrelease": [
         "8",
         "7"
+      ]
+    },
+    {
+      "operatingsystem": "Rocky",
+      "operatingsystemrelease": [
+        "8"
       ]
     }
   ],

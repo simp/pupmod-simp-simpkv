@@ -1,3 +1,6 @@
+* Mon Jun 12 2023 Chris Tessmer <chris.tessmer@onyxpoint.com> - 0.9.0
+- Add RockyLinux 8 support
+
 * Tue Sep 28 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 0.8.0
 - BREAKING CHANGES:
   - Added 'globals' and 'environments' root directories for global and
