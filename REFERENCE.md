@@ -6,20 +6,20 @@
 
 ### Functions
 
-* [`simpkv::delete`](#simpkvdelete): Deletes a `key` from the configured backend.
-* [`simpkv::deletetree`](#simpkvdeletetree): Deletes a whole folder from the configured backend.
-* [`simpkv::exists`](#simpkvexists): Returns whether key or key folder exists in the configured backend.
-* [`simpkv::get`](#simpkvget): Retrieves the value and any metadata stored at `key` from the  configured backend.
-* [`simpkv::list`](#simpkvlist): Returns a listing of all keys and sub-folders in a folder.  The list operation does not recurse through any sub-folders. Only information abo
-* [`simpkv::put`](#simpkvput): Sets the data at `key` to the specified `value` in the configured backend. Optionally sets metadata along with the `value`.
-* [`simpkv::support::config::merge`](#simpkvsupportconfigmerge): Create merged backend configuration and then validate it.  The merge entails the following operations: * The `options` argument is merged wit
-* [`simpkv::support::config::validate`](#simpkvsupportconfigvalidate): Validate backend configuration
-* [`simpkv::support::key::validate`](#simpkvsupportkeyvalidate): Validates key conforms to the simpkv key specification  * simpkv key specification    * Key must contain only the following characters:      
-* [`simpkv::support::load`](#simpkvsupportload): Load simpkv adapter and plugins and add simpkv 'extension' to the catalog instance, if it is not present
+* [`simpkv::delete`](#simpkv--delete): Deletes a `key` from the configured backend.
+* [`simpkv::deletetree`](#simpkv--deletetree): Deletes a whole folder from the configured backend.
+* [`simpkv::exists`](#simpkv--exists): Returns whether key or key folder exists in the configured backend.
+* [`simpkv::get`](#simpkv--get): Retrieves the value and any metadata stored at `key` from the  configured backend.
+* [`simpkv::list`](#simpkv--list): Returns a listing of all keys and sub-folders in a folder.  The list operation does not recurse through any sub-folders. Only information abo
+* [`simpkv::put`](#simpkv--put): Sets the data at `key` to the specified `value` in the configured backend. Optionally sets metadata along with the `value`.
+* [`simpkv::support::config::merge`](#simpkv--support--config--merge): Create merged backend configuration and then validate it.  The merge entails the following operations: * The `options` argument is merged wit
+* [`simpkv::support::config::validate`](#simpkv--support--config--validate): Validate backend configuration
+* [`simpkv::support::key::validate`](#simpkv--support--key--validate): Validates key conforms to the simpkv key specification  * simpkv key specification    * Key must contain only the following characters:      
+* [`simpkv::support::load`](#simpkv--support--load): Load simpkv adapter and plugins and add simpkv 'extension' to the catalog instance, if it is not present
 
 ## Functions
 
-### <a name="simpkvdelete"></a>`simpkv::delete`
+### <a name="simpkv--delete"></a>`simpkv::delete`
 
 Type: Ruby 4.x API
 
@@ -147,7 +147,7 @@ being compiled.
     failed.
   * Defaults to `false`.
 
-### <a name="simpkvdeletetree"></a>`simpkv::deletetree`
+### <a name="simpkv--deletetree"></a>`simpkv::deletetree`
 
 Type: Ruby 4.x API
 
@@ -275,7 +275,7 @@ being compiled.
     failed.
   * Defaults to `false`.
 
-### <a name="simpkvexists"></a>`simpkv::exists`
+### <a name="simpkv--exists"></a>`simpkv::exists`
 
 Type: Ruby 4.x API
 
@@ -415,7 +415,7 @@ being compiled.
     failed.
   * Defaults to `false`.
 
-### <a name="simpkvget"></a>`simpkv::get`
+### <a name="simpkv--get"></a>`simpkv::get`
 
 Type: Ruby 4.x API
 
@@ -573,7 +573,7 @@ being compiled.
     failed.
   * Defaults to `false`.
 
-### <a name="simpkvlist"></a>`simpkv::list`
+### <a name="simpkv--list"></a>`simpkv::list`
 
 Type: Ruby 4.x API
 
@@ -733,7 +733,7 @@ being compiled.
     failed.
   * Defaults to `false`.
 
-### <a name="simpkvput"></a>`simpkv::put`
+### <a name="simpkv--put"></a>`simpkv::put`
 
 Type: Ruby 4.x API
 
@@ -879,7 +879,7 @@ being compiled.
     failed.
   * Defaults to `false`.
 
-### <a name="simpkvsupportconfigmerge"></a>`simpkv::support::config::merge`
+### <a name="simpkv--support--config--merge"></a>`simpkv::support::config::merge`
 
 Type: Ruby 4.x API
 
@@ -962,7 +962,7 @@ Data type: `Array`
 List of backends for which plugins have been successfully
 loaded.
 
-### <a name="simpkvsupportconfigvalidate"></a>`simpkv::support::config::validate`
+### <a name="simpkv--support--config--validate"></a>`simpkv::support::config::validate`
 
 Type: Ruby 4.x API
 
@@ -991,7 +991,7 @@ Data type: `Array`
 List of backends for which plugins have been successfully
 loaded.
 
-### <a name="simpkvsupportkeyvalidate"></a>`simpkv::support::key::validate`
+### <a name="simpkv--support--key--validate"></a>`simpkv::support::key::validate`
 
 Type: Ruby 4.x API
 
@@ -1075,7 +1075,7 @@ Data type: `String[1]`
 
 simpkv key
 
-### <a name="simpkvsupportload"></a>`simpkv::support::load`
+### <a name="simpkv--support--load"></a>`simpkv::support::load`
 
 Type: Ruby 4.x API
 
