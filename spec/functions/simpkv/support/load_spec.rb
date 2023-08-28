@@ -29,8 +29,8 @@ describe 'simpkv::support::load' do
   end
 
   it 'should fail when simpkv.rb does not exist' do
-    allow(File).to receive(:exists?).with(any_args).and_call_original
-    allow(File).to receive(:exists?).with(/simpkv\/loader.rb/).and_return(false)
+    allow(File).to receive(:exist?).with(any_args).and_call_original
+    allow(File).to receive(:exist?).with(/simpkv\/loader.rb/).and_return(false)
     is_expected.to run.with_params().and_raise_error(LoadError, /simpkv Internal Error: unable to load .* File not found/)
   end
 

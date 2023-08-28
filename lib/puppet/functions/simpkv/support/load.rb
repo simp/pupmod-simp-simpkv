@@ -18,7 +18,7 @@ Puppet::Functions.create_function(:'simpkv::support::load') do
       # 'simpkv' attribute to the catalog instance
       lib_dir = File.dirname(File.dirname(File.dirname(File.dirname(File.dirname("#{__FILE__}")))))
       filename = File.join(lib_dir, 'puppet_x', 'simpkv', 'loader.rb')
-      if File.exists?(filename)
+      if File.exist?(filename)
         begin
           catalog.instance_eval(File.read(filename), filename)
         rescue SyntaxError => e
