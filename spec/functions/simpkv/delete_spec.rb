@@ -141,7 +141,7 @@ describe 'simpkv::delete' do
     end
 
     it 'should fail when simpkv cannot be added to the catalog instance' do
-      allow(File).to receive(:exists?).and_return(false)
+      allow(File).to receive(:exist?).and_return(false)
       is_expected.to run.with_params('mykey', @options_test_file).
         and_raise_error(LoadError, /simpkv Internal Error: unable to load/)
     end
