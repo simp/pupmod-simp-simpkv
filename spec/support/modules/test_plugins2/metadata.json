@@ -1,6 +1,6 @@
 {
   "name": "simp-test_plugins2",
-  "version": "9.9.9",
+  "version": "9.10.0",
   "author": "simp",
   "summary": "plugins for simpkv error testing",
   "license": "Apache-2.0",
@@ -16,7 +16,7 @@
   "requirements": [
     {
       "name": "puppet",
-      "version_requirement": ">= 6.0.0"
+      "version_requirement": ">= 7.0.0 < 9.0.0"
     }
   ]
 }
