@@ -4,8 +4,7 @@
 
 # Each plugin **MUST** be an anonymous class accessible only through
 # a `plugin_class` local variable.
-plugin_class = Class.new do
-
+Class.new do
   ###### Public Plugin API ######
 
   # Construct an instance of this plugin setting its instance name
@@ -38,10 +37,7 @@ plugin_class = Class.new do
   end
 
   # @return unique identifier assigned to this plugin instance
-  def name
-    @name
-  end
-
+  attr_reader :name
 
   # Deletes a `key` from the configured backend.
   #
@@ -51,7 +47,7 @@ plugin_class = Class.new do
   #   * :result - Boolean indicating whether operation succeeded
   #   * :err_msg - String. Explanatory text upon failure; nil otherwise.
   #
-  def delete(key)
+  def delete(_key)
     raise('Catastrophic failure for delete')
   end
 
@@ -63,7 +59,7 @@ plugin_class = Class.new do
   #   * :result - Boolean indicating whether operation succeeded
   #   * :err_msg - String. Explanatory text upon failure; nil otherwise.
   #
-  def deletetree(keydir)
+  def deletetree(_keydir)
     raise('Catastrophic failure for deletetree')
   end
 
@@ -77,7 +73,7 @@ plugin_class = Class.new do
   #   * :err_msg - String. Explanatory text when status could not be
   #     determined; nil otherwise.
   #
-  def exists(key)
+  def exists(_key)
     raise('Catastrophic failure for exists')
   end
 
@@ -90,7 +86,7 @@ plugin_class = Class.new do
   #     be retrieved
   #   * :err_msg - String. Explanatory text upon failure; nil otherwise.
   #
-  def get(key)
+  def get(_key)
     raise('Catastrophic failure for get')
   end
 
@@ -105,7 +101,7 @@ plugin_class = Class.new do
   #     retrieval operation failed
   #   * :err_msg - String. Explanatory text upon failure; nil otherwise.
   #
-  def list(keydir)
+  def list(_keydir)
     raise('Catastrophic failure for list')
   end
 
@@ -118,8 +114,7 @@ plugin_class = Class.new do
   #   * :result - Boolean indicating whether operation succeeded
   #   * :err_msg - String. Explanatory text upon failure; nil otherwise.
   #
-  def put(key, value)
+  def put(_key, _value)
     raise('Catastrophic failure for put')
   end
-
 end

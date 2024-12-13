@@ -41,12 +41,10 @@
 #   should provide instructions on how to install those Gems.
 ###############################################################################
 
-
 # Each plugin **MUST** be an anonymous class accessible only through
 # a `plugin_class` local variable.
 # DO NOT CHANGE THE LINE BELOW!!!!
-plugin_class = Class.new do
-
+Class.new do
   # WARNING:
   # In typical Ruby code, using constants and class methods is quite normal.
   # Unfortunately, you cannot use constants or class methods in an anonymous
@@ -119,8 +117,7 @@ plugin_class = Class.new do
   # @raise RuntimeError if any required configuration is missing from options
   #   or this object can't set up any stateful objects it needs to do its work
   #   (e.g., file directory, connection to a backend)
-  def configure(options)
-
+  def configure(_options)
     # FIXME: insert validation and set up code here
     # Be sure to create 'globals' and 'environments' sub-folders off of the
     # root directory.
@@ -129,9 +126,7 @@ plugin_class = Class.new do
   end
 
   # @return unique identifier assigned to this plugin instance
-  def name
-    @name
-  end
+  attr_reader :name
 
   # The remaining methods in this API map one-for-one to those in
   # simpkv's Puppet function API.
@@ -182,8 +177,7 @@ plugin_class = Class.new do
   #   * :result - Boolean indicating whether operation succeeded
   #   * :err_msg - String. Explanatory text upon failure; nil otherwise.
   #
-  def delete(key)
-
+  def delete(_key)
     # FIXME: insert code that connects to the backend and affects the delete
     # operation
     #
@@ -192,7 +186,7 @@ plugin_class = Class.new do
     #   error message.
     #
 
-    { :result => false, :err_msg => 'FIXME: not implemented' }
+    { result: false, err_msg: 'FIXME: not implemented' }
   end
 
   # Deletes a whole folder from the configured backend.
@@ -203,8 +197,7 @@ plugin_class = Class.new do
   #   * :result - Boolean indicating whether operation succeeded
   #   * :err_msg - String. Explanatory text upon failure; nil otherwise.
   #
-  def deletetree(keydir)
-
+  def deletetree(_keydir)
     # FIXME: insert code that connects to the backend and affects the deletetree
     # operation
     #
@@ -214,7 +207,7 @@ plugin_class = Class.new do
     #   error message.
     #
 
-    { :result => false, :err_msg => 'FIXME: not implemented' }
+    { result: false, err_msg: 'FIXME: not implemented' }
   end
 
   # Returns whether key or key folder exists in the configured backend.
@@ -227,8 +220,7 @@ plugin_class = Class.new do
   #   * :err_msg - String. Explanatory text when status could not be
   #     determined; nil otherwise.
   #
-  def exists(key)
-
+  def exists(_key)
     # FIXME: insert code that connects to the backend and affects the exists
     # operation
     #
@@ -236,7 +228,7 @@ plugin_class = Class.new do
     #   error message.
     #
 
-    { :result => nil, :err_msg => 'FIXME: not implemented' }
+    { result: nil, err_msg: 'FIXME: not implemented' }
   end
 
   # Retrieves the value stored at `key` from the configured backend.
@@ -248,8 +240,7 @@ plugin_class = Class.new do
   #     be retrieved
   #   * :err_msg - String. Explanatory text upon failure; nil otherwise.
   #
-  def get(key)
-
+  def get(_key)
     # FIXME: insert code that connects to the backend and affects the get
     # operation
     #
@@ -258,7 +249,7 @@ plugin_class = Class.new do
     #   error message.
     #
 
-    { :result => nil, :err_msg => 'FIXME: not implemented' }
+    { result: nil, err_msg: 'FIXME: not implemented' }
   end
 
   # Returns a listing of all keys/info pairs and sub-folders in a folder
@@ -279,8 +270,7 @@ plugin_class = Class.new do
   #
   #   * :err_msg - String. Explanatory text upon failure; nil otherwise.
   #
-  def list(keydir)
-
+  def list(_keydir)
     # FIXME: insert code that connects to the backend and affects the list
     # operation
     #
@@ -288,7 +278,7 @@ plugin_class = Class.new do
     #   error message.
     #
 
-    { :result => nil, :err_msg => 'FIXME: not implemented' }
+    { result: nil, err_msg: 'FIXME: not implemented' }
   end
 
   # Sets the data at `key` to a `value` in the configured backend.
@@ -300,8 +290,7 @@ plugin_class = Class.new do
   #   * :result - Boolean indicating whether operation succeeded
   #   * :err_msg - String. Explanatory text upon failure; nil otherwise.
   #
-  def put(key, value)
-
+  def put(_key, _value)
     # FIXME: insert code that connects to the backend and affects the put
     # operation
     #
@@ -310,7 +299,6 @@ plugin_class = Class.new do
     #   error message.
     #
 
-    { :result => false, :err_msg => 'FIXME: not implemented' }
+    { result: false, err_msg: 'FIXME: not implemented' }
   end
-
 end

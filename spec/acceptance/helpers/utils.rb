@@ -5,7 +5,6 @@ module Acceptance; end
 module Acceptance::Helpers; end
 
 module Acceptance::Helpers::Utils
-
   # @return Backend configuration Hash for the backend corresponding to app_id and
   #   plugin_type
   #
@@ -32,16 +31,16 @@ module Acceptance::Helpers::Utils
         backend_hiera['simpkv::options']['backends'][app_id]
       end
     elsif backend_hiera['simpkv::options']['backends'].key?('default')
-      if backend_hiera['simpkv::options']['backends']['default'].is_a?(String)
-        # Assume this is an alias for simpkv::backend::default
-        config = backend_hiera['simpkv::backend::default']
-      else
-        config = backend_hiera['simpkv::options']['backends']['default']
-      end
+      config = if backend_hiera['simpkv::options']['backends']['default'].is_a?(String)
+                 # Assume this is an alias for simpkv::backend::default
+                 backend_hiera['simpkv::backend::default']
+               else
+                 backend_hiera['simpkv::options']['backends']['default']
+               end
     end
 
-    if config.empty? || ( !plugin_type.nil? && (config['type'] != plugin_type) )
-      fail("No '#{plugin_type}' backend found for #{app_id}")
+    if config.empty? || (!plugin_type.nil? && (config['type'] != plugin_type))
+      raise("No '#{plugin_type}' backend found for #{app_id}")
     end
 
     config
@@ -55,28 +54,26 @@ module Acceptance::Helpers::Utils
   # @param key_data Hash with key data corresponding to Simpkv_test::KeyData
   #
   def key_data_string(key_data)
-   key_hash = {}
-   if key_data.key?('value')
-     key_hash['value'] = key_data['value']
-   elsif key_data.key?('file')
-     simpkv_test_files = File.join(__dir__, '../../support/modules/simpkv_test/files')
-     value = IO.read( key_data['file'].gsub('simpkv_test', "#{simpkv_test_files}") )
-     value.force_encoding('ASCII-8BIT')
+    key_hash = {}
+    if key_data.key?('value')
+      key_hash['value'] = key_data['value']
+    elsif key_data.key?('file')
+      simpkv_test_files = File.join(__dir__, '../../support/modules/simpkv_test/files')
+      value = IO.read(key_data['file'].gsub('simpkv_test', simpkv_test_files.to_s))
+      value.force_encoding('ASCII-8BIT')
 
-     encoded_value = Base64.strict_encode64(value)
-     key_hash['value'] = encoded_value
-     key_hash['encoding'] = 'base64'
-     key_hash['original_encoding'] = 'ASCII-8BIT'
-   end
+      encoded_value = Base64.strict_encode64(value)
+      key_hash['value'] = encoded_value
+      key_hash['encoding'] = 'base64'
+      key_hash['original_encoding'] = 'ASCII-8BIT'
+    end
 
-   if key_data.key?('metadata')
-     key_hash['metadata'] = key_data['metadata']
-   else
-     key_hash['metadata'] = {}
-   end
+    key_hash['metadata'] = if key_data.key?('metadata')
+                             key_data['metadata']
+                           else
+                             {}
+                           end
 
-   key_hash.to_json
+    key_hash.to_json
   end
-
 end
-

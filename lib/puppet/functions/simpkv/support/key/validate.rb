@@ -15,7 +15,6 @@
 # @author https://github.com/simp/pupmod-simp-simpkv/graphs/contributors
 #
 Puppet::Functions.create_function(:'simpkv::support::key::validate') do
-
   # @param key simpkv key
   #
   # @return [Nil]
@@ -37,24 +36,21 @@ Puppet::Functions.create_function(:'simpkv::support::key::validate') do
   end
 
   def validate(key)
-    ws_regex = /[[:space:]]/
-    if (key =~ ws_regex)
+    ws_regex = %r{[[:space:]]}
+    if key&.match?(ws_regex)
       msg = "key '#{key}' contains disallowed whitespace"
-      raise ArgumentError.new(msg)
+      raise ArgumentError, msg
     end
 
-    char_regex = /^[a-z0-9._:\-\/]+$/m
-    unless (key =~ char_regex)
+    char_regex = %r{^[a-z0-9._:\-/]+$}m
+    unless key&.match?(char_regex)
       msg = "key '#{key}' contains unsupported characters.  Allowed set=[a-z0-9._:-/]"
-      raise ArgumentError.new(msg)
+      raise ArgumentError, msg
     end
 
-    dot_regex = /\/\.\.?\//
-    if (key =~ dot_regex)
-      msg = "key '#{key}' contains disallowed '/./' or '/../' sequence"
-      raise ArgumentError.new(msg)
-    end
+    dot_regex = %r{/\.\.?/}
+    return unless key&.match?(dot_regex)
+    msg = "key '#{key}' contains disallowed '/./' or '/../' sequence"
+    raise ArgumentError, msg
   end
-
 end
-
