@@ -14,7 +14,7 @@ require_relative 'validate_ldap_entries'
 shared_context 'ldap test configuration' do
   include Acceptance::Helpers::LdapUtils
 
-  # TODO Create a separate administrator bind DN and configure it appropriately
+  # TODO: Create a separate administrator bind DN and configure it appropriately
   #      for LDAPI via an ACI
   # - This test configures the ldap_plugin to use the appropriate instance root
   #   dn and password as its admin user, instead of a specific simpkv admin
@@ -23,45 +23,45 @@ shared_context 'ldap test configuration' do
   #   mapping for the 'root' user.
   #
   let(:base_dn) { 'dc=simp' }
-  let(:root_dn) { 'cn=Directory_Manager'  }
-  let(:simpkv_base_dn) { "ou=simpkv,o=puppet,#{base_dn}"}
+  let(:root_dn) { 'cn=Directory_Manager' }
+  let(:simpkv_base_dn) { "ou=simpkv,o=puppet,#{base_dn}" }
   let(:admin_dn) { root_dn }
 
-  let(:ldap_instances) { {
-    'simp_data_without_tls' => {
+  let(:ldap_instances) do
+    {
+      'simp_data_without_tls' => {
+        # ds389::instance config
+        base_dn: base_dn,
+        root_dn: root_dn,
+        root_pw: 'P@ssw0rdP@ssw0rd!N0TLS',
+        port: 387,
+
+        # simpkv ldap_plugin config
+        simpkv_base_dn: simpkv_base_dn,
+        admin_dn: admin_dn,
+        admin_pw: 'P@ssw0rdP@ssw0rd!N0TLS',
+        admin_pw_file: '/etc/simp/simp_data_without_tls_pw.txt',
+      },
+
+    'simp_data_with_tls' => {
       # ds389::instance config
-      :base_dn        => base_dn,
-      :root_dn        => root_dn,
-      :root_pw        => 'P@ssw0rdP@ssw0rd!N0TLS',
-      :port           => 387,
+      base_dn: base_dn,
+      root_dn: root_dn,
+      root_pw: 'P@ssw0rdP@ssw0rd!TLS',
+      port: 388, # for StartTLS
+      secure_port: 637,
 
       # simpkv ldap_plugin config
-      :simpkv_base_dn => simpkv_base_dn,
-      :admin_dn       => admin_dn,
-      :admin_pw       => 'P@ssw0rdP@ssw0rd!N0TLS',
-      :admin_pw_file  => '/etc/simp/simp_data_without_tls_pw.txt',
-    },
-
-    'simp_data_with_tls'    => {
-      # ds389::instance config
-      :base_dn        => base_dn,
-      :root_dn        => root_dn,
-      :root_pw        => 'P@ssw0rdP@ssw0rd!TLS',
-      :port           => 388,  # for StartTLS
-      :secure_port    => 637,
-
-      # simpkv ldap_plugin config
-      :simpkv_base_dn => simpkv_base_dn,
-      :admin_dn       => admin_dn,
-      :admin_pw       => 'P@ssw0rdP@ssw0rd!TLS',
-      :admin_pw_file  => '/etc/simp/simp_data_with_tls_pw.txt',
+      simpkv_base_dn: simpkv_base_dn,
+      admin_dn: admin_dn,
+      admin_pw: 'P@ssw0rdP@ssw0rd!TLS',
+      admin_pw_file: '/etc/simp/simp_data_with_tls_pw.txt',
     }
-
-  } }
+    }
+  end
 
   # PKI general
   let(:certdir) { '/etc/pki/simp-testing/pki' }
-
 
   # Context for 'a simpkv plug test' shared_examples
 
@@ -86,15 +86,12 @@ shared_context 'ldap test configuration' do
   let(:id2) { 'custom' }
   let(:id3) { 'custom_snowflake' }
 
-
- # Hash of initial key information for the 3 test backends/app_ids.
+  # Hash of initial key information for the 3 test backends/app_ids.
   #
   # 'a simpkv plugin test' uses this data to test key storage operations
   # and then transform the data into subsets that it uses to test key/folder
   # existence, folder lists, and key and folder delete operations.
-  let(:initial_key_info) {
+  let(:initial_key_info) do
     generate_initial_key_info(id1, id2, id3)
-  }
-
+  end
 end
-

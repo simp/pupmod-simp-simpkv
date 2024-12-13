@@ -13,7 +13,7 @@
 # - Deserializes value data to be retrieved from common JSON format
 # - Delegates actions to appropriate plugin instance
 #
-simp_simpkv_adapter_class = Class.new do
+Class.new do
   require 'base64'
   require 'json'
   require 'pathname'
@@ -22,15 +22,15 @@ simp_simpkv_adapter_class = Class.new do
 
   def initialize
     Puppet.debug('Constructing simpkv adapter from anonymous class')
-    @plugin_info   = {}    # backend plugin classes;
-                           # key = backend type derived from the plugin base
-                           #       filename (<plugin type>_plugin.rb)
-                           # value = { :class  => <loaded class obj>,
-                           #           :source => <plugin file path>
-                           #         }
+    @plugin_info = {} # backend plugin classes;
+    # key = backend type derived from the plugin base
+    #       filename (<plugin type>_plugin.rb)
+    # value = { :class  => <loaded class obj>,
+    #           :source => <plugin file path>
+    #         }
     @plugin_instances = {} # backend plugin instances;
-                           # key = name assigned to the instance, <type>/<id>
-                           # supports multiple backend plugin instances per backend
+    # key = name assigned to the instance, <type>/<id>
+    # supports multiple backend plugin instances per backend
 
     # Load in the simpkv backend plugins from all modules.
     #
@@ -65,24 +65,22 @@ simp_simpkv_adapter_class = Class.new do
       Puppet.debug("Loading simpkv plugin from #{filename}")
       begin
         plugin_class = nil
-        self.instance_eval(File.read(filename), filename)
+        instance_eval(File.read(filename), filename)
         plugin_type = File.basename(filename, '_plugin.rb')
-        if @plugin_info.has_key?(plugin_type)
-          msg = "Skipping load of simpkv plugin from #{filename}: " +
-            "plugin type '#{plugin_type}' already loaded from " +
-            @plugin_info[plugin_type][:source]
+        if @plugin_info.key?(plugin_type)
+          msg = "Skipping load of simpkv plugin from #{filename}: " \
+                "plugin type '#{plugin_type}' already loaded from " +
+                @plugin_info[plugin_type][:source]
+          Puppet.warning(msg)
+        elsif plugin_class.nil?
+          msg = "Skipping load of simpkv plugin from #{filename}: " \
+                'Internal error: Plugin missing required plugin_class definition'
           Puppet.warning(msg)
         else
-          if plugin_class.nil?
-            msg = "Skipping load of simpkv plugin from #{filename}: " +
-              'Internal error: Plugin missing required plugin_class definition'
-            Puppet.warning(msg)
-          else
-            @plugin_info[plugin_type] = {
-              :class  => plugin_class,
-              :source => filename
-            }
-          end
+          @plugin_info[plugin_type] = {
+            class: plugin_class,
+            source: filename
+          }
         end
       rescue SyntaxError => e
         Puppet.warning("simpkv plugin from #{filename} failed to load: #{e.message}")
@@ -95,7 +93,7 @@ simp_simpkv_adapter_class = Class.new do
   # @return list of backend plugins (i.e. their types) that have successfully
   #   loaded
   def backends
-    return plugin_info.keys.sort
+    plugin_info.keys.sort
   end
 
   # execute delete operation on the backend, after normalizing the key
@@ -112,12 +110,12 @@ simp_simpkv_adapter_class = Class.new do
     result = nil
     begin
       instance = plugin_instance(options)
-      result = instance.delete( normalize_key(key, options) )
+      result = instance.delete(normalize_key(key, options))
     rescue Exception => e
       bt = filter_backtrace(e.backtrace)
       prefix = instance.nil? ? 'simpkv' : "simpkv #{instance.name}"
       err_msg = "#{prefix} Error: #{e.message}\n#{bt.join("\n")}".strip
-      result = { :result => false, :err_msg => err_msg }
+      result = { result: false, err_msg: err_msg }
     end
 
     result
@@ -138,12 +136,12 @@ simp_simpkv_adapter_class = Class.new do
     result = nil
     begin
       instance = plugin_instance(options)
-      result = instance.deletetree( normalize_key(keydir, options) )
+      result = instance.deletetree(normalize_key(keydir, options))
     rescue Exception => e
       bt = filter_backtrace(e.backtrace)
       prefix = instance.nil? ? 'simpkv' : "simpkv #{instance.name}"
       err_msg = "#{prefix} Error: #{e.message}\n#{bt.join("\n")}".strip
-      result = { :result => false, :err_msg => err_msg }
+      result = { result: false, err_msg: err_msg }
     end
 
     result
@@ -165,12 +163,12 @@ simp_simpkv_adapter_class = Class.new do
     result = nil
     begin
       instance = plugin_instance(options)
-      result = instance.exists( normalize_key(key, options) )
+      result = instance.exists(normalize_key(key, options))
     rescue Exception => e
       bt = filter_backtrace(e.backtrace)
       prefix = instance.nil? ? 'simpkv' : "simpkv #{instance.name}"
       err_msg = "#{prefix} Error: #{e.message}\n#{bt.join("\n")}".strip
-      result = { :result => nil, :err_msg => err_msg }
+      result = { result: nil, err_msg: err_msg }
     end
 
     result
@@ -193,10 +191,10 @@ simp_simpkv_adapter_class = Class.new do
     result = nil
     begin
       instance = plugin_instance(options)
-      raw_result = instance.get( normalize_key(key, options) )
+      raw_result = instance.get(normalize_key(key, options))
       if raw_result[:result]
         value = deserialize(raw_result[:result])
-        result = { :result => value, :err_msg => nil }
+        result = { result: value, err_msg: nil }
       else
         result = raw_result
       end
@@ -204,7 +202,7 @@ simp_simpkv_adapter_class = Class.new do
       bt = filter_backtrace(e.backtrace)
       prefix = instance.nil? ? 'simpkv' : "simpkv #{instance.name}"
       err_msg = "#{prefix} Error: #{e.message}\n#{bt.join("\n")}".strip
-      result = { :result => nil, :err_msg => err_msg }
+      result = { result: nil, err_msg: err_msg }
     end
 
     result
@@ -235,11 +233,11 @@ simp_simpkv_adapter_class = Class.new do
     result = nil
     begin
       instance = plugin_instance(options)
-      raw_result = instance.list( normalize_key(keydir, options) )
+      raw_result = instance.list(normalize_key(keydir, options))
       if raw_result[:result]
-       result = {
-          :result  => { :keys => {}, :folders => [] },
-          :err_msg => nil
+        result = {
+          result: { keys: {}, folders: [] },
+           err_msg: nil
         }
 
         raw_result[:result][:folders].each do |raw_folder|
@@ -247,7 +245,7 @@ simp_simpkv_adapter_class = Class.new do
           result[:result][:folders] << folder
         end
 
-        raw_result[:result][:keys].each do |raw_key,raw_value|
+        raw_result[:result][:keys].each do |raw_key, raw_value|
           key = normalize_key(raw_key, options, :remove_prefix)
           result[:result][:keys][key] = deserialize(raw_value)
         end
@@ -258,7 +256,7 @@ simp_simpkv_adapter_class = Class.new do
       bt = filter_backtrace(e.backtrace)
       prefix = instance.nil? ? 'simpkv' : "simpkv #{instance.name}"
       err_msg = "#{prefix} Error: #{e.message}\n#{bt.join("\n")}".strip
-      result = { :result => nil, :err_msg => err_msg }
+      result = { result: nil, err_msg: err_msg }
     end
 
     result
@@ -285,7 +283,7 @@ simp_simpkv_adapter_class = Class.new do
       bt = filter_backtrace(e.backtrace)
       prefix = instance.nil? ? 'simpkv' : "simpkv #{instance.name}"
       err_msg = "#{prefix} Error: #{e.message}\n#{bt.join("\n")}".strip
-      result = { :result => false, :err_msg => err_msg }
+      result = { result: false, err_msg: err_msg }
     end
 
     result
@@ -309,9 +307,9 @@ simp_simpkv_adapter_class = Class.new do
     # The user will still know the manifest that couldn't be compiled,
     # because the compiler automatically adds a log line that reports the
     # manifest file and line number that failed compilation.
-    short_bt = backtrace.reverse.drop_while { |line|
+    short_bt = backtrace.reverse.drop_while do |line|
       !line.include?('/simpkv/lib/puppet/functions/simpkv/')
-    }
+    end
     short_bt.reverse
   end
 
@@ -335,17 +333,17 @@ simp_simpkv_adapter_class = Class.new do
   #
   def normalize_key(key, options, operation = :add_prefix)
     normalized_key = key.dup
-    if options.fetch('global', false)
-      prefix = global_prefix
-    else
-      prefix = environment_prefix(options['environment'])
-    end
+    prefix = if options.fetch('global', false)
+               global_prefix
+             else
+               environment_prefix(options['environment'])
+             end
 
     case operation
     when :add_prefix
       normalized_key = "#{prefix}/#{key}"
     when :remove_prefix
-      normalized_key = key.gsub(/^#{prefix}\//,'')
+      normalized_key = key.gsub(%r{^#{prefix}/}, '')
     else
       # do nothing
     end
@@ -373,16 +371,15 @@ simp_simpkv_adapter_class = Class.new do
   #   plugin constructor fails
   def plugin_instance(options)
     # backend config should already have been verified, but just in case...
-    unless (
-        options.is_a?(Hash) &&
-        options.has_key?('backend') &&
-        options.has_key?('backends') &&
-        options['backends'].is_a?(Hash) &&
-        options['backends'].has_key?(options['backend']) &&
-        options['backends'][ options['backend'] ].has_key?('id') &&
-        options['backends'][ options['backend'] ].has_key?('type') &&
-        plugin_info.has_key?(options['backends'][ options['backend'] ]['type'])
-    )
+    unless options.is_a?(Hash) &&
+           options.key?('backend') &&
+           options.key?('backends') &&
+           options['backends'].is_a?(Hash) &&
+           options['backends'].key?(options['backend']) &&
+           options['backends'][ options['backend'] ].key?('id') &&
+           options['backends'][ options['backend'] ].key?('type') &&
+           plugin_info.key?(options['backends'][ options['backend'] ]['type'])
+
       raise("Malformed backend config in options=#{options}")
     end
 
@@ -392,7 +389,7 @@ simp_simpkv_adapter_class = Class.new do
     type = backend_config['type']
 
     name = "#{type}/#{id}"
-    unless plugin_instances.has_key?(name)
+    unless plugin_instances.key?(name)
       begin
         plugin_instances[name] = plugin_info[type][:class].new(name)
         plugin_instances[name].configure(options)
@@ -413,7 +410,7 @@ simp_simpkv_adapter_class = Class.new do
   #   key, or the optional 'encoding' key contains an unsupported encoding
   #   scheme.
   #
-  #FIXME This should use Puppet's deserialization code so that
+  # FIXME This should use Puppet's deserialization code so that
   # all contained Binary strings in the value object are properly deserialized
   def deserialize(serialized_value)
     begin
@@ -421,16 +418,16 @@ simp_simpkv_adapter_class = Class.new do
     rescue JSON::ParserError => e
       raise("Failed to deserialize: JSON parse error: #{e}")
     end
-    unless encapsulation.has_key?('value')
+    unless encapsulation.key?('value')
       raise("Failed to deserialize: 'value' missing in '#{serialized_value}'")
     end
 
     result = {}
-    if encapsulation['value'].is_a?(String)
-      result[:value] = deserialize_string_value(encapsulation)
-    else
-      result[:value] = encapsulation['value']
-    end
+    result[:value] = if encapsulation['value'].is_a?(String)
+                       deserialize_string_value(encapsulation)
+                     else
+                       encapsulation['value']
+                     end
 
     result[:metadata] = encapsulation['metadata']
 
@@ -440,16 +437,14 @@ simp_simpkv_adapter_class = Class.new do
   # @raise RuntimeError if the optional 'encoding' specifie dis not 'base64'
   def deserialize_string_value(encapsulation)
     value = encapsulation['value']
-    if encapsulation.has_key?('encoding')
+    if encapsulation.key?('encoding')
       # right now, only support base64 encoding
-      if encapsulation['encoding'] == 'base64'
-        value = Base64.strict_decode64(encapsulation['value'])
-        if encapsulation.has_key?('original_encoding')
-          value.force_encoding(encapsulation['original_encoding'])
-        end
-      else
-        raise("Failed to deserialize: Unsupported encoding in '#{encapsulation}'")
+      raise("Failed to deserialize: Unsupported encoding in '#{encapsulation}'") unless encapsulation['encoding'] == 'base64'
+      value = Base64.strict_decode64(encapsulation['value'])
+      if encapsulation.key?('original_encoding')
+        value.force_encoding(encapsulation['original_encoding'])
       end
+
     end
 
     value
@@ -474,18 +469,17 @@ simp_simpkv_adapter_class = Class.new do
   #    Array value, binary Strings within the metadata Hash) will fail
   #    serialization unless that binary data just happens to form valid UTF-8.
   #
-  #FIXME This should use Puppet's serialization code so that all contained Binary
+  # FIXME This should use Puppet's serialization code so that all contained Binary
   # strings are properly serialized
   def serialize(value, metadata)
-    encapsulation = nil
-    if value.is_a?(String)
-      encapsulation = serialize_string_value(value, metadata)
-    elsif value.respond_to?(:binary_buffer)
-      # This is a Puppet Binary type
-      encapsulation = serialize_binary_data(value.binary_buffer, metadata)
-    else
-      encapsulation = { 'value' => value, 'metadata' => metadata }
-    end
+    encapsulation = if value.is_a?(String)
+                      serialize_string_value(value, metadata)
+                    elsif value.respond_to?(:binary_buffer)
+                      # This is a Puppet Binary type
+                      serialize_binary_data(value.binary_buffer, metadata)
+                    else
+                      { 'value' => value, 'metadata' => metadata }
+                    end
     # This will raise an error if the value or metadata contains
     # any element that cannot be serialized to JSON.  Caller catches
     # error and reports failure.
@@ -494,7 +488,7 @@ simp_simpkv_adapter_class = Class.new do
 
   def serialize_binary_data(value, metadata)
     encoded_value = Base64.strict_encode64(value)
-    encapsulation = {
+    {
       'value'             =>  encoded_value,
       'encoding'          => 'base64',
       'original_encoding' => 'ASCII-8BIT',
@@ -510,14 +504,11 @@ simp_simpkv_adapter_class = Class.new do
       # TODO Should we fail instead and tell the user to use a Binary type?
       normalized_value.force_encoding('ASCII-8BIT')
     end
-
-    encapsulation = nil
-    if normalized_value.encoding == Encoding::ASCII_8BIT
-      encapsulation = serialize_binary_data(normalized_value, metadata)
-    else
-      encapsulation = { 'value' => normalized_value, 'metadata' => metadata }
-    end
+    encapsulation = if normalized_value.encoding == Encoding::ASCII_8BIT
+                      serialize_binary_data(normalized_value, metadata)
+                    else
+                      { 'value' => normalized_value, 'metadata' => metadata }
+                    end
     encapsulation
   end
-
 end

@@ -29,53 +29,59 @@ describe 'ldap_plugin using unencrypted and encrypted LDAP' do
           let(:tls_cert)   { "#{certdir}/public/#{client_fqdn}.pub" }
           let(:tls_key)    { "#{certdir}/private/#{client_fqdn}.pem" }
           let(:tls_cacert) { "#{certdir}/cacerts/cacerts.pem" }
-          let(:ldaps_config) {{
-            'type'          => 'ldap',
-            'ldap_uri'      => ldaps_uri,
-            'base_dn'       => ldap_with_tls[:simpkv_base_dn],
-            'admin_dn'      => ldap_with_tls[:admin_dn],
-            'admin_pw_file' => ldap_with_tls[:admin_pw_file],
-            'tls_cert'      => tls_cert,
-            'tls_key'       => tls_key,
-            'tls_cacert'    => tls_cacert,
-          }}
+          let(:ldaps_config) do
+            {
+              'type'          => 'ldap',
+           'ldap_uri'      => ldaps_uri,
+           'base_dn'       => ldap_with_tls[:simpkv_base_dn],
+           'admin_dn'      => ldap_with_tls[:admin_dn],
+           'admin_pw_file' => ldap_with_tls[:admin_pw_file],
+           'tls_cert'      => tls_cert,
+           'tls_key'       => tls_key,
+           'tls_cacert'    => tls_cacert,
+            }
+          end
 
-          let(:ldap_starttls_config) {{
-            'type'          => 'ldap',
-            'ldap_uri'      => ldap_starttls_uri,
-            'base_dn'       => ldap_with_tls[:simpkv_base_dn],
-            'admin_dn'      => ldap_with_tls[:admin_dn],
-            'admin_pw_file' => ldap_with_tls[:admin_pw_file],
-            'enable_tls'    => true,
-            'tls_cert'      => tls_cert,
-            'tls_key'       => tls_key,
-            'tls_cacert'    => tls_cacert,
-          }}
+          let(:ldap_starttls_config) do
+            {
+              'type'          => 'ldap',
+           'ldap_uri'      => ldap_starttls_uri,
+           'base_dn'       => ldap_with_tls[:simpkv_base_dn],
+           'admin_dn'      => ldap_with_tls[:admin_dn],
+           'admin_pw_file' => ldap_with_tls[:admin_pw_file],
+           'enable_tls'    => true,
+           'tls_cert'      => tls_cert,
+           'tls_key'       => tls_key,
+           'tls_cacert'    => tls_cacert,
+            }
+          end
 
-          let(:ldap_config) {{
-            'type'          => 'ldap',
-            'ldap_uri'      => ldap_uri,
-            'base_dn'       => ldap_without_tls[:simpkv_base_dn],
-            'admin_dn'      => ldap_without_tls[:admin_dn],
-            'admin_pw_file' => ldap_without_tls[:admin_pw_file]
-          }}
+          let(:ldap_config) do
+            {
+              'type'          => 'ldap',
+           'ldap_uri'      => ldap_uri,
+           'base_dn'       => ldap_without_tls[:simpkv_base_dn],
+           'admin_dn'      => ldap_without_tls[:admin_dn],
+           'admin_pw_file' => ldap_without_tls[:admin_pw_file]
+            }
+          end
 
           # Command to run on the test host to clear out all stored key data.
-          let(:clear_data_cmd) {
+          let(:clear_data_cmd) do
             [
               build_ldap_command('ldapdelete', ldaps_config),
               '-r',
-              %Q{"ou=instances,#{ldap_with_tls[:simpkv_base_dn]}"},
+              %("ou=instances,#{ldap_with_tls[:simpkv_base_dn]}"),
               ' ; ',
 
               build_ldap_command('ldapdelete', ldap_config),
               '-r',
-              %Q{"ou=instances,#{ldap_without_tls[:simpkv_base_dn]}"},
+              %("ou=instances,#{ldap_without_tls[:simpkv_base_dn]}"),
             ].join(' ')
-          }
+          end
 
           # simpkv::options hieradata for 3 distinct backends
-          let(:backend_hiera) {
+          let(:backend_hiera) do
             backend_configs = {
               id1 => ldaps_config,
               id2 => ldap_starttls_config,
@@ -86,7 +92,7 @@ describe 'ldap_plugin using unencrypted and encrypted LDAP' do
             # results in unique trees for that backend name beneath the
             # simpkv tree in the 389-DS instances
             generate_backend_hiera(backend_configs)
-          }
+          end
 
           context "simpkv ldap_plugin on #{client} using ldap with & without TLS to #{server}" do
             it_behaves_like 'a simpkv plugin test', client

@@ -3,7 +3,8 @@
 # Each plugin **MUST** be an anonymous class accessible only through
 # a `plugin_class` local variable.
 # DO NOT CHANGE THE LINE BELOW!!!!
-plugin_class = Class.new do
+require 'English'
+Class.new do
   require 'facter'
   require 'pathname'
   require 'set'
@@ -35,7 +36,7 @@ plugin_class = Class.new do
     # - Relative to simpkv root tree
     # - Don't need the the 'ldap/' prefix the simpkv adapter adds to @name...
     #   just want the configured id
-    @instance_path = File.join('instances', @name.gsub(%r{^ldap/},''))
+    @instance_path = File.join('instances', @name.gsub(%r{^ldap/}, ''))
 
     # Maintain a list of folders that already exist to reduce the number of
     # unnecessary ldap add operations over the lifetime of this plugin instance
@@ -114,16 +115,15 @@ plugin_class = Class.new do
   def configure(options)
     # backend config should already have been verified by simpkv adapter, but
     # just in case...
-    unless (
-        options.is_a?(Hash) &&
-        options.has_key?('backend') &&
-        options.has_key?('backends') &&
-        options['backends'].is_a?(Hash) &&
-        options['backends'].has_key?(options['backend']) &&
-        options['backends'][ options['backend'] ].has_key?('id') &&
-        options['backends'][ options['backend'] ].has_key?('type') &&
-        (options['backends'][ options['backend'] ]['type'] == 'ldap')
-    )
+    unless options.is_a?(Hash) &&
+           options.key?('backend') &&
+           options.key?('backends') &&
+           options['backends'].is_a?(Hash) &&
+           options['backends'].key?(options['backend']) &&
+           options['backends'][ options['backend'] ].key?('id') &&
+           options['backends'][ options['backend'] ].key?('type') &&
+           (options['backends'][ options['backend'] ]['type'] == 'ldap')
+
       raise("Plugin misconfigured: #{options}")
     end
 
@@ -144,9 +144,7 @@ plugin_class = Class.new do
   end
 
   # @return unique identifier assigned to this plugin instance
-  def name
-    @name
-  end
+  attr_reader :name
 
   # Deletes a `key` from the configured backend.
   #
@@ -160,13 +158,13 @@ plugin_class = Class.new do
     Puppet.debug("#{@name} delete(#{key})")
     unless @configured
       return {
-        :result  => false,
-        :err_msg => 'Internal error: delete called before configure'
+        result: false,
+        err_msg: 'Internal error: delete called before configure'
       }
     end
 
-    full_key_path =  File.join(@instance_path, key)
-    cmd = %Q{#{@ldapdelete} "#{path_to_dn(full_key_path)}"}
+    full_key_path = File.join(@instance_path, key)
+    cmd = %(#{@ldapdelete} "#{path_to_dn(full_key_path)}")
     deleted = false
     err_msg = nil
     done = false
@@ -181,7 +179,7 @@ plugin_class = Class.new do
         deleted = true
         done = true
       when ldap_code_server_is_busy
-        if (retries == 0)
+        if retries == 0
           err_msg = result[:stderr]
           done = true
         end
@@ -192,7 +190,7 @@ plugin_class = Class.new do
       retries -= 1
     end
 
-    { :result => deleted, :err_msg => err_msg }
+    { result: deleted, err_msg: err_msg }
   end
 
   # Deletes a whole folder from the configured backend.
@@ -207,13 +205,13 @@ plugin_class = Class.new do
     Puppet.debug("#{@name} deletetree(#{keydir})")
     unless @configured
       return {
-        :result  => false,
-        :err_msg => 'Internal error: deletetree called before configure'
+        result: false,
+        err_msg: 'Internal error: deletetree called before configure'
       }
     end
 
-    full_keydir_path =  File.join(@instance_path, keydir)
-    cmd = %Q{#{@ldapdelete} -r "#{path_to_dn(full_keydir_path, false)}"}
+    full_keydir_path = File.join(@instance_path, keydir)
+    cmd = %(#{@ldapdelete} -r "#{path_to_dn(full_keydir_path, false)}")
     deleted = false
     err_msg = nil
     done = false
@@ -228,7 +226,7 @@ plugin_class = Class.new do
         deleted = true
         done = true
       when ldap_code_server_is_busy
-        if (retries == 0)
+        if retries == 0
           err_msg = result[:stderr]
           done = true
         end
@@ -241,11 +239,11 @@ plugin_class = Class.new do
 
     if deleted
       existing_folders.delete(full_keydir_path)
-      parent_path = full_keydir_path + "/"
+      parent_path = full_keydir_path + '/'
       existing_folders.delete_if { |path| path.start_with?(parent_path) }
     end
 
-    { :result => deleted, :err_msg => err_msg }
+    { result: deleted, err_msg: err_msg }
   end
 
   # Returns whether key or key folder exists in the configured backend.
@@ -262,23 +260,23 @@ plugin_class = Class.new do
     Puppet.debug("#{@name} exists(#{key})")
     unless @configured
       return {
-        :result  => nil,
-        :err_msg => 'Internal error: exists called before configure'
+        result: nil,
+        err_msg: 'Internal error: exists called before configure'
       }
     end
 
     # don't know if the key path is to a key or a folder so need to create a
     # search filter for both an RDN of ou=<key> or an RDN simpkvKey=<key>.
-    full_key_path =  File.join(@instance_path, key)
+    full_key_path = File.join(@instance_path, key)
     dn = path_to_dn(File.dirname(full_key_path), false)
     leaf = File.basename(key)
     search_filter = "(|(ou=#{leaf})(simpkvKey=#{leaf}))"
     cmd = [
       @ldapsearch,
-      '-b', %Q{"#{dn}"},
+      '-b', %("#{dn}"),
       '-s one',
-      %Q{"#{search_filter}"},
-      '1.1'                   # only print out the dn, no attributes
+      %("#{search_filter}"),
+      '1.1' # only print out the dn, no attributes
     ].join(' ')
 
     found = false
@@ -292,13 +290,13 @@ plugin_class = Class.new do
         # Parent DN exists, but search may or may not have returned a result
         # (i.e. search may have returned no matches). Have to parse console
         # output to see if a dn was returned.
-        found = true if result[:stdout].match(%r{^dn: (ou=#{leaf})|(simpkvKey=#{leaf}),#{dn}})
+        found = true if result[:stdout].match?(%r{^dn: (ou=#{leaf})|(simpkvKey=#{leaf}),#{dn}})
         done = true
       when ldap_code_no_such_object
         # Some part of the parent DN does not exist, so it does not exist!
         done = true
       when ldap_code_server_is_busy
-        if (retries == 0)
+        if retries == 0
           found = nil
           err_msg = result[:stderr]
           done = true
@@ -311,7 +309,7 @@ plugin_class = Class.new do
       retries -= 1
     end
 
-    { :result => found, :err_msg => err_msg }
+    { result: found, err_msg: err_msg }
   end
 
   # Retrieves the value stored at `key` from the configured backend.
@@ -327,13 +325,13 @@ plugin_class = Class.new do
     Puppet.debug("#{@name} get(#{key})")
     unless @configured
       return {
-        :result  => nil,
-        :err_msg => 'Internal error: get called before configure'
+        result: nil,
+        err_msg: 'Internal error: get called before configure'
       }
     end
 
-    full_key_path =  File.join(@instance_path, key)
-    cmd = %Q{#{@ldapsearch} -b "#{path_to_dn(full_key_path)}"}
+    full_key_path = File.join(@instance_path, key)
+    cmd = %(#{@ldapsearch} -b "#{path_to_dn(full_key_path)}")
     value = nil
     err_msg = nil
     done = false
@@ -342,16 +340,16 @@ plugin_class = Class.new do
       result = run_command(cmd)
       case result[:exitstatus]
       when 0
-          match = result[:stdout].match(/^simpkvJsonValue: (.*?)$/)
-          if match
-            value = match[1]
-          else
-            err_msg = "Key retrieval did not return key/value entry:"
-            err_msg += "\n#{result[:stdout]}"
-          end
-          done = true
+        match = result[:stdout].match(%r{^simpkvJsonValue: (.*?)$})
+        if match
+          value = match[1]
+        else
+          err_msg = 'Key retrieval did not return key/value entry:'
+          err_msg += "\n#{result[:stdout]}"
+        end
+        done = true
       when ldap_code_server_is_busy
-        if (retries == 0)
+        if retries == 0
           err_msg = result[:stderr]
           done = true
         end
@@ -362,7 +360,7 @@ plugin_class = Class.new do
       retries -= 1
     end
 
-    { :result => value, :err_msg => err_msg }
+    { result: value, err_msg: err_msg }
   end
 
   # Returns a listing of all keys/info pairs and sub-folders in a folder
@@ -387,16 +385,16 @@ plugin_class = Class.new do
     Puppet.debug("#{@name} list(#{keydir})")
     unless @configured
       return {
-        :result  => nil,
-        :err_msg => 'Internal error: list called before configure'
+        result: nil,
+        err_msg: 'Internal error: list called before configure'
       }
     end
-    full_keydir_path =  File.join(@instance_path, keydir)
+    full_keydir_path = File.join(@instance_path, keydir)
 
     cmd = [
       @ldapsearch,
-      '-b', %Q{"#{path_to_dn(full_keydir_path, false)}"},
-      '-s', 'one',
+      '-b', %("#{path_to_dn(full_keydir_path, false)}"),
+      '-s', 'one'
     ].join(' ')
 
     ldif_out = nil
@@ -413,7 +411,7 @@ plugin_class = Class.new do
         err_msg = result[:stderr]
         done = true
       when ldap_code_server_is_busy
-        if (retries == 0)
+        if retries == 0
           err_msg = result[:stderr]
           done = true
         end
@@ -426,14 +424,14 @@ plugin_class = Class.new do
 
     list = nil
     unless ldif_out.nil?
-      if ldif_out.empty?
-        list = { :keys => {}, :folders => [] }
-      else
-        list = parse_list_ldif(ldif_out)
-      end
+      list = if ldif_out.empty?
+               { keys: {}, folders: [] }
+             else
+               parse_list_ldif(ldif_out)
+             end
     end
 
-    { :result => list, :err_msg => err_msg }
+    { result: list, err_msg: err_msg }
   end
 
   # Sets the data at `key` to a `value` in the configured backend.
@@ -449,12 +447,12 @@ plugin_class = Class.new do
     Puppet.debug("#{@name} put(#{key},...)")
     unless @configured
       return {
-        :result  => false,
-        :err_msg => 'Internal error: put called before configure'
+        result: false,
+        err_msg: 'Internal error: put called before configure'
       }
     end
 
-    full_key_path =  File.join(@instance_path, key)
+    full_key_path = File.join(@instance_path, key)
 
     # We want to add the key/value entry if it does not exist, but only modify
     # the value if its current value does not match the desired value.
@@ -471,7 +469,7 @@ plugin_class = Class.new do
     # each node.
 
     results = nil
-    ldap_results = ensure_folder_path( File.dirname(full_key_path) )
+    ldap_results = ensure_folder_path(File.dirname(full_key_path))
     if ldap_results[:success]
       # first try ldapadd for the key/value entry
       ldif = entry_add_ldif(full_key_path, value)
@@ -480,16 +478,16 @@ plugin_class = Class.new do
       ldap_results = ldap_add(ldif, false)
 
       if ldap_results[:success]
-        results = { :result => true, :err_msg => nil }
-      elsif (ldap_results[:exitstatus] == ldap_code_already_exists)
+        results = { result: true, err_msg: nil }
+      elsif ldap_results[:exitstatus] == ldap_code_already_exists
         Puppet.debug("#{@name} #{full_key_path} already exists")
         # ldapmodify only if necessary
         results = update_value_if_changed(key, value)
       else
-        results = { :result => false, :err_msg => ldap_results[:err_msg] }
+        results = { result: false, err_msg: ldap_results[:err_msg] }
       end
     else
-      results = { :result => false, :err_msg => ldap_results[:err_msg] }
+      results = { result: false, err_msg: ldap_results[:err_msg] }
     end
 
     results
@@ -514,7 +512,6 @@ plugin_class = Class.new do
     Puppet.debug("#{@name} ensure_folder_path(#{folder_path})")
     # Handle each folder separately instead of all at once, so we don't have to
     # use log scraping to understand what happened...log scraping is fragile!
-    ldif_file = nil
     folders_ensured = true
     results = nil
     Pathname.new(folder_path).descend do |folder|
@@ -532,7 +529,7 @@ plugin_class = Class.new do
     end
 
     if folders_ensured
-      results = { :success => true, :exitstatus => 0, :err_msg => nil }
+      results = { success: true, exitstatus: 0, err_msg: nil }
     end
 
     results
@@ -550,8 +547,8 @@ plugin_class = Class.new do
   def ensure_instance_tree
     [
       File.join(@instance_path, 'globals'),
-      File.join(@instance_path, 'environments')
-    ].each do | folder|
+      File.join(@instance_path, 'environments'),
+    ].each do |folder|
       # Have already verified access to the base DN, so going to *assume* any
       # failures here are transient and will ignore them for now. If there is
       # a persistent problem, it will be caught in the first key storage
@@ -613,7 +610,7 @@ plugin_class = Class.new do
     # Maintainers:  Comment out this line to see actual LDIF content when
     # debugging. Since may contain sensitive info, we don't want to allow this
     # output normally.
-    #Puppet.debug( "#{@name} add ldif:\n#{ldif}" )
+    # Puppet.debug( "#{@name} add ldif:\n#{ldif}" )
     ldif_file = Tempfile.new('ldap_add')
     ldif_file.puts(ldif)
     ldif_file.close
@@ -641,7 +638,7 @@ plugin_class = Class.new do
         end
         done = true
       when ldap_code_server_is_busy
-        if (retries == 0)
+        if retries == 0
           err_msg = result[:stderr]
           exitstatus = result[:exitstatus]
           done = true
@@ -654,10 +651,10 @@ plugin_class = Class.new do
       retries -= 1
     end
 
-    { :success => added, :exitstatus => exitstatus, :err_msg => err_msg }
+    { success: added, exitstatus: exitstatus, err_msg: err_msg }
   ensure
-    ldif_file.close if ldif_file
-    ldif_file.unlink if ldif_file
+    ldif_file&.close
+    ldif_file&.unlink
   end
 
   # LDAP return code for 'Already exists'
@@ -691,12 +688,12 @@ plugin_class = Class.new do
     # Maintainers:  Comment out this line to see actual LDIF content when
     # debugging. Since may contain sensitive info, we don't want to allow this
     # output normally.
-    #Puppet.debug( "#{@name} modify ldif:\n#{ldif}" )
+    # Puppet.debug( "#{@name} modify ldif:\n#{ldif}" )
     ldif_file = Tempfile.new('ldap_modify')
     ldif_file.puts(ldif)
     ldif_file.close
 
-    cmd =  "#{@ldapmodify} -f #{ldif_file.path}"
+    cmd = "#{@ldapmodify} -f #{ldif_file.path}"
     modified = false
     exitstatus = nil
     err_msg = nil
@@ -715,7 +712,7 @@ plugin_class = Class.new do
         err_msg = result[:stderr]
         done = true
       when ldap_code_server_is_busy
-        if (retries == 0)
+        if retries == 0
           err_msg = result[:stderr]
           done = true
         end
@@ -727,11 +724,10 @@ plugin_class = Class.new do
       retries -= 1
     end
 
-    { :success => modified, :exitstatus => exitstatus, :err_msg => err_msg }
+    { success: modified, exitstatus: exitstatus, err_msg: err_msg }
   ensure
-    ldif_file.close if ldif_file
-    ldif_file.unlink if ldif_file
-
+    ldif_file&.close
+    ldif_file&.unlink
   end
 
   # @return DN corresponding to a path
@@ -747,7 +743,7 @@ plugin_class = Class.new do
     else
       attribute = leaf_is_key ? 'simpkvKey' : 'ou'
       dn = "#{attribute}=#{parts.pop}"
-      parts.reverse.each do |folder|
+      parts.reverse_each do |folder|
         dn += ",ou=#{folder}"
       end
       dn += ",#{@base_dn}"
@@ -826,13 +822,13 @@ plugin_class = Class.new do
     ldap_uri = config['ldap_uri']
     raise("Plugin missing 'ldap_uri' configuration") if ldap_uri.nil?
 
-    # TODO this regex for URI or socket can be better!
-    unless ldap_uri.match(%r{^(ldapi|ldap|ldaps)://\S.})
+    # TODO: this regex for URI or socket can be better!
+    unless ldap_uri.match?(%r{^(ldapi|ldap|ldaps)://\S.})
       raise("Invalid 'ldap_uri' configuration: #{ldap_uri}")
     end
 
     if config.key?('base_dn')
-      # TODO Detect when non-escaped characters exist and fail?
+      # TODO: Detect when non-escaped characters exist and fail?
       opts[:base_dn] = config['base_dn']
     else
       opts[:base_dn] = 'ou=simpkv,o=puppet,dc=simp'
@@ -843,7 +839,7 @@ plugin_class = Class.new do
     if config.key?('admin_dn')
       admin_dn = config['admin_dn']
     else
-      #FIXME Should not use admin for whole tree
+      # FIXME: Should not use admin for whole tree
       admin_dn = 'cn=Directory_Manager'
       Puppet.debug("simpkv plugin #{name}: Using default simpkv admin DN #{admin_dn}")
     end
@@ -859,16 +855,16 @@ plugin_class = Class.new do
 
     if tls_enabled?(config)
       opts[:cmd_env], extra_opts = parse_tls_config(config)
-      opts[:base_opts] = %Q{#{extra_opts} -x -D "#{admin_dn}" -y #{admin_pw_file} -H #{ldap_uri}}
+      opts[:base_opts] = %(#{extra_opts} -x -D "#{admin_dn}" -y #{admin_pw_file} -H #{ldap_uri})
     else
       opts[:cmd_env] = ''
-      if admin_pw_file
-        # unencrypted ldap or ldapi with simple authentication
-        opts[:base_opts] = %Q{-x -D "#{admin_dn}" -y #{admin_pw_file} -H #{ldap_uri}}
-      else
-        # ldapi with EXTERNAL SASL
-        opts[:base_opts] = "-Y EXTERNAL -H #{ldap_uri}"
-      end
+      opts[:base_opts] = if admin_pw_file
+                           # unencrypted ldap or ldapi with simple authentication
+                           %(-x -D "#{admin_dn}" -y #{admin_pw_file} -H #{ldap_uri})
+                         else
+                           # ldapi with EXTERNAL SASL
+                           "-Y EXTERNAL -H #{ldap_uri}"
+                         end
     end
 
     if config.key?('retries')
@@ -893,34 +889,34 @@ plugin_class = Class.new do
   def parse_list_ldif(ldif_out)
     folders = []
     keys = {}
-    ldif_out.split(/^dn: /).each do |ldif|
+    ldif_out.split(%r{^dn: }).each do |ldif|
       next if ldif.strip.empty?
-      if ldif.match(/objectClass: organizationalUnit/i)
+      if ldif.match?(%r{objectClass: organizationalUnit}i)
         rdn = ldif.split("\n").first.split(',').first
-        folder_match = rdn.match(/^ou=(\S+)$/)
+        folder_match = rdn.match(%r{^ou=(\S+)$})
         if folder_match
           folders << folder_match[1]
         else
           Puppet.debug("Unexpected organizationalUnit entry:\n#{ldif}")
         end
-      elsif ldif.match(/objectClass: simpkvEntry/i)
-        key_match = ldif.match(/simpkvKey: (\S+)/i)
+      elsif ldif.match?(%r{objectClass: simpkvEntry}i)
+        key_match = ldif.match(%r{simpkvKey: (\S+)}i)
         if key_match
           key = key_match[1]
-          value_match = ldif.match(/simpkvJsonValue: (\{.+?\})\n/i)
+          value_match = ldif.match(%r{simpkvJsonValue: (\{.+?\})\n}i)
           if value_match
             keys[key] = value_match[1]
           else
-             Puppet.debug("simpkvEntry missing simpkvJsonValue:\n#{ldif}")
+            Puppet.debug("simpkvEntry missing simpkvJsonValue:\n#{ldif}")
           end
         else
-           Puppet.debug("simpkvEntry missing simpkvKey:\n#{ldif}")
+          Puppet.debug("simpkvEntry missing simpkvKey:\n#{ldif}")
         end
       else
         Puppet.debug("Found unexpected object in simpkv tree:\n#{ldif}")
       end
     end
-    { :keys => keys, :folders => folders }
+    { keys: keys, folders: folders }
   end
 
   # @return Pair of string modifiers for StartTLS/TLS via ldap* commands:
@@ -934,7 +930,7 @@ plugin_class = Class.new do
     tls_cacert = config.fetch('tls_cacert', nil)
 
     if tls_cert.nil? || tls_key.nil? || tls_cacert.nil?
-      err_msg = "TLS configuration incomplete:"
+      err_msg = 'TLS configuration incomplete:'
       err_msg += ' tls_cert, tls_key, and tls_cacert must all be set'
       raise(err_msg)
     end
@@ -942,16 +938,16 @@ plugin_class = Class.new do
     cmd_env = [
       "LDAPTLS_CERT=#{tls_cert}",
       "LDAPTLS_KEY=#{tls_key}",
-      "LDAPTLS_CACERT=#{tls_cacert}"
+      "LDAPTLS_CACERT=#{tls_cacert}",
     ].join(' ')
 
-    if config['ldap_uri'].match(/^ldap:/)
-      # StartTLS
-      extra_opts = '-ZZ'
-    else
-      # TLS
-      extra_opts = ''
-    end
+    extra_opts = if config['ldap_uri'].match?(%r{^ldap:})
+                   # StartTLS
+                   '-ZZ'
+                 else
+                   # TLS
+                   ''
+                 end
 
     [ cmd_env, extra_opts ]
   end
@@ -976,16 +972,16 @@ plugin_class = Class.new do
   #   * :stderr - Messages sent to stderr
   #
   def run_command(command)
-    Puppet.debug( "#{@name} executing: #{command}" )
+    Puppet.debug("#{@name} executing: #{command}")
 
     out_pipe_r, out_pipe_w = IO.pipe
     err_pipe_r, err_pipe_w = IO.pipe
-    pid = spawn(command, :out => out_pipe_w, :err => err_pipe_w)
+    pid = spawn(command, out: out_pipe_w, err: err_pipe_w)
     out_pipe_w.close
     err_pipe_w.close
 
     Process.wait(pid)
-    exitstatus = $?.nil? ? nil : $?.exitstatus
+    exitstatus = $CHILD_STATUS&.exitstatus
     stdout = out_pipe_r.read
     out_pipe_r.close
     stderr = err_pipe_r.read
@@ -994,10 +990,10 @@ plugin_class = Class.new do
     stderr = "#{command} failed:\n#{stderr}" if exitstatus != 0
 
     {
-      :success    => (exitstatus == 0),
-      :exitstatus => exitstatus,
-      :stdout     => stdout,
-      :stderr     => stderr
+      success: (exitstatus == 0),
+      exitstatus: exitstatus,
+      stdout: stdout,
+      stderr: stderr
     }
   end
 
@@ -1034,11 +1030,11 @@ plugin_class = Class.new do
       ldapsearch,
       base_opts,
 
-      # TODO switch to ldif_wrap when we drop support for EL7
+      # TODO: switch to ldif_wrap when we drop support for EL7
       # - EL7 only supports ldif-wrap
       # - EL8 says it supports ldif_wrap (--help and man page), but actually
       #   accepts ldif-wrap or ldif_wrap
-      '-o "ldif-wrap=no" -LLL'
+      '-o "ldif-wrap=no" -LLL',
     ].join(' ')
 
     @ldapadd = [
@@ -1064,17 +1060,16 @@ plugin_class = Class.new do
   #
   # @param config Hash backend-specific options
   def tls_enabled?(config)
-    tls_enabled = false
     ldap_uri = config['ldap_uri']
-    if ldap_uri.start_with?('ldapi')
-      tls_enabled = false
-    elsif ldap_uri.match(/^ldaps:/)
-      tls_enabled = true
-    elsif config.key?('enable_tls')
-      tls_enabled = config['enable_tls']
-    else
-      tls_enabled = false
-    end
+    tls_enabled = if ldap_uri.start_with?('ldapi')
+                    false
+                  elsif ldap_uri.match?(%r{^ldaps:})
+                    true
+                  elsif config.key?('enable_tls')
+                    config['enable_tls']
+                  else
+                    false
+                  end
 
     tls_enabled
   end
@@ -1100,19 +1095,19 @@ plugin_class = Class.new do
         Puppet.debug("#{@name} Attempting modify for #{full_key_path}")
         ldif = entry_modify_ldif(full_key_path, value)
         ldap_results = ldap_modify(ldif)
-        if ldap_results[:success]
-          results = { :result => true, :err_msg => nil }
-        else
-          results = { :result => false, :err_msg => ldap_results[:err_msg] }
-        end
+        results = if ldap_results[:success]
+                    { result: true, err_msg: nil }
+                  else
+                    { result: false, err_msg: ldap_results[:err_msg] }
+                  end
       else
         # no change needed
         Puppet.debug("#{@name} #{full_key_path} value already correct")
-        results = { :result => true, :err_msg => nil }
+        results = { result: true, err_msg: nil }
       end
     else
       err_msg = "Failed to retrieve current value for comparison: #{current_result[:err_msg]}"
-      results = { :result => false, :err_msg => err_msg }
+      results = { result: false, err_msg: err_msg }
     end
 
     results
@@ -1123,9 +1118,9 @@ plugin_class = Class.new do
   def verify_ldap_access
     cmd = [
       @ldapsearch,
-      '-b', %Q{"#{@base_dn}"},
+      '-b', %("#{@base_dn}"),
       '-s base',
-      '1.1'             # only print out the dn, no attributes
+      '1.1' # only print out the dn, no attributes
     ].join(' ')
 
     found = false
@@ -1139,7 +1134,7 @@ plugin_class = Class.new do
         found = true
         done = true
       when ldap_code_server_is_busy
-        if (retries == 0)
+        if retries == 0
           err_msg = result[:stderr]
           done = true
         end
@@ -1150,9 +1145,7 @@ plugin_class = Class.new do
       retries -= 1
     end
 
-    unless found
-      raise("Plugin could not access #{@base_dn}: #{err_msg}")
-    end
+    return if found
+    raise("Plugin could not access #{@base_dn}: #{err_msg}")
   end
 end
-

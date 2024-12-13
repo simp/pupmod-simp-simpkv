@@ -4,8 +4,7 @@
 # Each plugin **MUST** be an anonymous class accessible only through
 # a `plugin_class` local variable.
 # DO NOT CHANGE THE LINE BELOW!!!!
-plugin_class = Class.new do
-
+Class.new do
   require 'etc'
   require 'fileutils'
   require 'timeout'
@@ -52,24 +51,22 @@ plugin_class = Class.new do
   def configure(options)
     # backend config should already have been verified by simpkv adapter, but
     # just in case...
-    unless (
-        options.is_a?(Hash) &&
-        options.has_key?('backend') &&
-        options.has_key?('backends') &&
-        options['backends'].is_a?(Hash) &&
-        options['backends'].has_key?(options['backend']) &&
-        options['backends'][ options['backend'] ].has_key?('id') &&
-        options['backends'][ options['backend'] ].has_key?('type') &&
-        (options['backends'][ options['backend'] ]['type'] == 'file')
-    )
+    unless options.is_a?(Hash) &&
+           options.key?('backend') &&
+           options.key?('backends') &&
+           options['backends'].is_a?(Hash) &&
+           options['backends'].key?(options['backend']) &&
+           options['backends'][ options['backend'] ].key?('id') &&
+           options['backends'][ options['backend'] ].key?('type') &&
+           (options['backends'][ options['backend'] ]['type'] == 'file')
+
       raise("Plugin misconfigured: #{options}")
     end
-
 
     # set optional configuration
     backend = options['backend']
     @root_path = ensure_root_path(options)
-    if options['backends'][backend].has_key?('lock_timeout_seconds')
+    if options['backends'][backend].key?('lock_timeout_seconds')
       @lock_timeout_seconds = options['backends'][backend]['lock_timeout_seconds']
     else
       @lock_timeout_seconds = 5
@@ -82,8 +79,6 @@ plugin_class = Class.new do
 
     Puppet.debug("#{@name} simpkv plugin for #{@root_path} configured")
   end
-
-
 
   # Deletes a `key` from the configured backend.
   #
@@ -114,7 +109,7 @@ plugin_class = Class.new do
       end
     end
 
-    { :result => success, :err_msg => err_msg }
+    { result: success, err_msg: err_msg }
   end
 
   # Deletes a whole folder from the configured backend.
@@ -149,7 +144,7 @@ plugin_class = Class.new do
       success = true
     end
 
-    { :result => success, :err_msg => err_msg }
+    { result: success, err_msg: err_msg }
   end
 
   # Returns whether key or key folder exists in the configured backend.
@@ -166,7 +161,7 @@ plugin_class = Class.new do
     key_file = File.join(@root_path, key)
     # this simple plugin doesn't have any error cases that would be reported
     # in :err_msg
-    { :result => File.exist?(key_file), :err_msg => nil }
+    { result: File.exist?(key_file), err_msg: nil }
   end
 
   # Retrieves the value stored at `key` from the configured backend.
@@ -191,14 +186,13 @@ plugin_class = Class.new do
         # do **NOT** use a File.open block!
         file = File.open(key_file, 'r')
 
-        Timeout::timeout(@lock_timeout_seconds) do
+        Timeout.timeout(@lock_timeout_seconds) do
           file.flock(File::LOCK_EX)
         end
 
         value = file.read
         file.close # lock released with close
         file = nil
-
       rescue Errno::ENOENT
         err_msg = "Key not found at '#{key_file}'"
       rescue Errno::EACCES
@@ -210,10 +204,10 @@ plugin_class = Class.new do
         err_msg = "Key retrieval at '#{key_file}' failed: #{e.message}"
       ensure
         # make sure lock is released even on failure
-        file.close unless file.nil?
+        file&.close
       end
     end
-    { :result => value, :err_msg => err_msg }
+    { result: value, err_msg: err_msg }
   end
 
   # Returns a listing of all keys/info pairs and sub-folders in a folder
@@ -239,12 +233,12 @@ plugin_class = Class.new do
     err_msg = nil
     dir = File.join(@root_path, keydir)
     if Dir.exist?(dir)
-      result = { :keys => {}, :folders => [] }
-      Dir.glob(File.join(dir,'*')).each do |entry|
+      result = { keys: {}, folders: [] }
+      Dir.glob(File.join(dir, '*')).each do |entry|
         if File.directory?(entry)
           result[:folders] << File.basename(entry)
         else
-          key = entry.gsub(@root_path + File::SEPARATOR,'')
+          key = entry.gsub(@root_path + File::SEPARATOR, '')
           key_result = get(key)
           unless key_result[:result].nil?
             result[:keys][File.basename(key)] = key_result[:result]
@@ -253,16 +247,14 @@ plugin_class = Class.new do
       end
       result[:folders].sort!
     else
-       err_msg = "Key folder '#{keydir}' not found"
+      err_msg = "Key folder '#{keydir}' not found"
     end
 
-    { :result => result, :err_msg => err_msg }
+    { result: result, err_msg: err_msg }
   end
 
   # @return unique identifier assigned to this plugin instance
-  def name
-    @name
-  end
+  attr_reader :name
 
   # Sets the data at `key` to a `value` in the configured backend.
   #
@@ -290,9 +282,9 @@ plugin_class = Class.new do
       # To ensure all threads are not sharing the same file descriptor
       # do **NOT** use a File.open block!
       # Also, don't use 'w' as it truncates file before the lock is obtained
-      file = File.open(key_file, File::RDWR|File::CREAT)
+      file = File.open(key_file, File::RDWR | File::CREAT)
 
-      Timeout::timeout(@lock_timeout_seconds) do
+      Timeout.timeout(@lock_timeout_seconds) do
         # only wrap timeout around flock, so we don't end up with partially
         # modified files
         file.flock(File::LOCK_EX)
@@ -305,7 +297,7 @@ plugin_class = Class.new do
       file.close # lock released with close
       file = nil
 
-      if new_file || ( File.stat(key_file).uid == user_id )
+      if new_file || (File.stat(key_file).uid == user_id)
         # we set the permissions here, instead of when the file was opened,
         # so that the user's umask is ignored
         # NOTE: Group writable setting is specifically to support `simp passgen`
@@ -313,10 +305,9 @@ plugin_class = Class.new do
         # Do not want `simp passgen` to create a file/directory that
         # subsequent `puppet agent` runs as puppet:puppet will not be able
         # to manage.
-        File.chmod(0660, key_file)
+        File.chmod(0o660, key_file)
       end
       success = true
-
     rescue Timeout::Error
       success = false
       err_msg = "Timed out waiting for lock of key file '#{key_file}'"
@@ -328,10 +319,10 @@ plugin_class = Class.new do
       success = false
       err_msg = "Key write to '#{key_file}' failed: #{e.message}"
     ensure
-      file.close unless file.nil?
+      file&.close
     end
 
-    { :result => success, :err_msg => err_msg }
+    { result: success, err_msg: err_msg }
   end
 
   ###### Internal Methods ######
@@ -355,7 +346,7 @@ plugin_class = Class.new do
           # Do not want `simp passgen` to create a file/directory that
           # subsequent `puppet agent` runs as puppet:puppet will not be able
           # to manage.
-          FileUtils.mkdir(path.to_s, :mode => 0770)
+          FileUtils.mkdir(path.to_s, mode: 0o770)
         end
       end
     end
@@ -382,7 +373,7 @@ plugin_class = Class.new do
     default_root_path_var = File.join('/', 'var', 'simp', 'simpkv', @name)
     default_root_path_puppet_vardir = File.join(Puppet.settings[:vardir], 'simp', 'simpkv', @name)
 
-    if options['backends'][backend].has_key?('root_path')
+    if options['backends'][backend].key?('root_path')
       root_path = options['backends'][backend]['root_path']
     elsif Dir.exist?(default_root_path_var)
       root_path = default_root_path_var
@@ -400,8 +391,8 @@ plugin_class = Class.new do
     else
       begin
         FileUtils.mkdir_p(root_path)
-      rescue Exception => e
-        if options['backends'][backend].has_key?('root_path')
+      rescue Exception
+        if options['backends'][backend].key?('root_path')
           # someone made an explicit config error
           err_msg = "Unable to create configured root path '#{root_path}'.\n"
           err_msg += ">>> Ensure '#{group}' group can create '#{root_path}' to fix."
@@ -410,10 +401,10 @@ plugin_class = Class.new do
           # try again using a fallback default that should work for 'puppet agent' runs
           begin
             FileUtils.mkdir_p(default_root_path_puppet_vardir)
-            Puppet.warning("simpkv plugin #{name}: Unable to create root path " +
+            Puppet.warning("simpkv plugin #{name}: Unable to create root path " \
             "'#{root_path}'. Defaulting to '#{default_root_path_puppet_vardir}'")
             root_path = default_root_path_puppet_vardir
-          rescue Exception => e
+          rescue Exception
             # our fallback default didn't work...
             err_msg = "Unable to create default root path '#{root_path}'.\n"
             err_msg += ">>> Ensure '#{group}' group can create '#{root_path}' to fix."
@@ -428,7 +419,7 @@ plugin_class = Class.new do
       # Do not want `simp passgen` to create a file/directory that subsequent
       # `puppet agent` runs as puppet:puppet will not be able to manage.
       begin
-        FileUtils.chmod(0770, root_path)
+        FileUtils.chmod(0o770, root_path)
       rescue Exception => e
         raise("Unable to set permissions on #{root_path}: #{e.message}")
       end
@@ -468,33 +459,30 @@ plugin_class = Class.new do
   # @param dir Directory to verify
   # @raise RuntimeError if process cannot read and write to the directory
   def verify_dir_access(dir)
-    begin
-      Dir.entries(dir)
+    Dir.entries(dir)
 
-      # We can read the directory, now make sure we can write to it
-      stat = File.stat(dir)
-      write_access = false
-      if (stat.uid == user_id)
-        # we own the dir, so go ahead and enforce desired permissions
-        FileUtils.chmod(0770, dir)
-        write_access = true
-      elsif (stat.gid == group_id) && ( (stat.mode & 00070) == 0070 )
-        write_access = true
-      elsif (stat.mode & 00007) == 0007
-        #  Yuk! Should we warn?
-        write_access = true
-      end
+    # We can read the directory, now make sure we can write to it
+    stat = File.stat(dir)
+    write_access = false
+    if stat.uid == user_id
+      # we own the dir, so go ahead and enforce desired permissions
+      FileUtils.chmod(0o770, dir)
+      write_access = true
+    elsif (stat.gid == group_id) && stat.mode.allbits?(0o0070)
+      write_access = true
+    elsif stat.mode.allbits?(0o0007)
+      #  Yuk! Should we warn?
+      write_access = true
+    end
 
-      unless write_access
-        err_msg = "Cannot modify '#{dir}' as #{user}:#{group}. \n"
-        err_msg += ">>> Enable '#{group}' group read AND write access on '#{dir}' to fix."
-        raise(err_msg)
-      end
-    rescue Errno::EACCES
-      err_msg = "Cannot access '#{dir}' as #{user}:#{group}. \n"
+    unless write_access
+      err_msg = "Cannot modify '#{dir}' as #{user}:#{group}. \n"
       err_msg += ">>> Enable '#{group}' group read AND write access on '#{dir}' to fix."
       raise(err_msg)
     end
+  rescue Errno::EACCES
+    err_msg = "Cannot access '#{dir}' as #{user}:#{group}. \n"
+    err_msg += ">>> Enable '#{group}' group read AND write access on '#{dir}' to fix."
+    raise(err_msg)
   end
-
 end
