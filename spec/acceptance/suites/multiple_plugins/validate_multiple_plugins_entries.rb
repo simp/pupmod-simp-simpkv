@@ -34,24 +34,22 @@ include Acceptance::Helpers::Utils
 #
 # @return Whether validation of keys succeeded
 #
-def validate_multiple_plugin_entries(key_info, keys_should_exist, backend_hiera, host)
+def validate_multiple_plugin_entries(key_info, keys_should_exist, backend_hiera, _host)
   errors = []
   key_info.each do |app_id, key_struct|
     config = backend_config_for_app_id(app_id, nil, backend_hiera)
     unless (config['type'] == 'file') || (config['type'] == 'ldap')
-      fail("Unsupported backend type '#{config['type']}' found in backend hiera:\n#{backend_hiera}")
+      raise("Unsupported backend type '#{config['type']}' found in backend hiera:\n#{backend_hiera}")
     end
 
-    key_struct.each do |key_type, keys|
-      keys.each do |key, key_data|
-        result = {}
-        if keys_should_exist
-          exp = "validate_#{config['type']}_key_entry_present(key, key_type, key_data, config, host)"
-          result = eval(exp)
-        else
-          exp = "validate_#{config['type']}_key_entry_absent(key, key_type, config, host)"
-          result = eval(exp)
-        end
+    key_struct.each_value do |keys|
+      keys.each do |_key, _key_data|
+        exp = if keys_should_exist
+                "validate_#{config['type']}_key_entry_present(key, key_type, key_data, config, host)"
+              else
+                "validate_#{config['type']}_key_entry_absent(key, key_type, config, host)"
+              end
+        result = eval(exp)
 
         unless result[:success]
           errors << result[:err_msg]
@@ -60,7 +58,7 @@ def validate_multiple_plugin_entries(key_info, keys_should_exist, backend_hiera,
     end
   end
 
-  if errors.size == 0
+  if errors.empty?
     true
   else
     warn('Validation Failures:')

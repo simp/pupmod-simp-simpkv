@@ -13,7 +13,6 @@ describe 'simpkv configured file plugin' do
   #   a local filesystem command is appropriate.
   let(:clear_data_cmd) { 'rm -rf /var/simp/simpkv/file' }
 
-
   # The ids below are the backend/app_id names used in the test:
   # - One must be 'default' or simpkv::options validation will fail.
   # - 'a simpkv plugin test' shared_examples assumes there is a one-to-one
@@ -33,7 +32,7 @@ describe 'simpkv configured file plugin' do
 
   # simpkv::options hieradata for 3 distinct backends, one of which must
   # be 'default'
-  let(:backend_hiera) {
+  let(:backend_hiera) do
     backend_configs = {
       id1 => {
         'type'      => 'file',
@@ -50,16 +49,16 @@ describe 'simpkv configured file plugin' do
     }
 
     generate_backend_hiera(backend_configs)
-  }
+  end
 
   # Hash of initial key information for the 3 test backends/app_ids.
   #
   # 'a simpkv plugin test' uses this data to test key storage operations
   # and then transform the data into subsets that it uses to test key/folder
   # existence, folder lists, and key and folder delete operations.
-  let(:initial_key_info) {
+  let(:initial_key_info) do
     generate_initial_key_info(id1, id2, id3)
-  }
+  end
 
   hosts.each do |host|
     context "configured simpkv file plugin on #{host}" do

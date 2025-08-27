@@ -40,52 +40,52 @@ shared_examples 'simpkv::deletetree tests' do |host|
 
   context "simpkv::deletetree operation on #{host}" do
     let(:initial_foldername_info) { to_foldername_info(initial_key_info) }
-    let(:subfolders_to_delete) {
+    let(:subfolders_to_delete) do
       subfolders = select_subfolders_subset(initial_foldername_info)
       if subfolders.empty?
         raise('No subfolders from initial_key_info selected for deletion: data too sparse')
       end
 
       subfolders
-    }
+    end
 
-    let(:test_key_infos_after_subfolder_delete) {
+    let(:test_key_infos_after_subfolder_delete) do
       key_infos = split_key_info_per_subfolder_deletes(initial_key_info, subfolders_to_delete)
-      { :retain => key_infos[0], :remove => key_infos[1] }
-    }
+      { retain: key_infos[0], remove: key_infos[1] }
+    end
 
     # Any root folder that originally had key data.
-    let(:root_folders) {
+    let(:root_folders) do
       foldername_info = root_foldername_info(initial_key_info)
       if foldername_info.empty?
         raise('All root folders found in initial_key_info are empty:  No keys!')
       end
 
       foldername_info
-    }
+    end
 
     let(:remove_manifest) { 'include simpkv_test::remove_folders' }
-    let(:remove_subfolders_hieradata) {
-      backend_hiera.merge( {
-        'simpkv_test::remove_folders::foldername_info' => subfolders_to_delete
-      } )
-    }
+    let(:remove_subfolders_hieradata) do
+      backend_hiera.merge({
+                            'simpkv_test::remove_folders::foldername_info' => subfolders_to_delete
+                          })
+    end
 
-    let(:remove_root_folders_hieradata) {
-      backend_hiera.merge( {
-        'simpkv_test::remove_folders::foldername_info' => root_folders
-      } )
-    }
+    let(:remove_root_folders_hieradata) do
+      backend_hiera.merge({
+                            'simpkv_test::remove_folders::foldername_info' => root_folders
+                          })
+    end
 
     let(:verify_manifest) { 'include simpkv_test::retrieve_and_verify_folders' }
-    let(:verify_hieradata_after_subfolders_delete) {
-      backend_hiera.merge( {
-        'simpkv_test::retrieve_and_verify_folders::valid_folder_info'   => to_folder_info(test_key_infos_after_subfolder_delete[:retain]),
+    let(:verify_hieradata_after_subfolders_delete) do
+      backend_hiera.merge({
+                            'simpkv_test::retrieve_and_verify_folders::valid_folder_info'   => to_folder_info(test_key_infos_after_subfolder_delete[:retain]),
         'simpkv_test::retrieve_and_verify_folders::invalid_folder_info' => to_folder_info(test_key_infos_after_subfolder_delete[:remove], true)
-      } )
-    }
+                          })
+    end
 
-    let(:verify_empty_backend_folders_hieradata) {
+    let(:verify_empty_backend_folders_hieradata) do
       # Expected results after root directories have been removed:
       # - The root folder for the Puppet environment in each backend will no
       #   longer exist, and so a listing of if will fail.
@@ -96,50 +96,49 @@ shared_examples 'simpkv::deletetree tests' do |host|
       env_folder_info = {}
       global_folder_info = {}
       empty_folders = { '/' => { 'keys' => {}, 'folders' => [] } }
-      initial_key_info.keys.each do |app_id|
+      initial_key_info.each_key do |app_id|
         env_folder_info[app_id] = { 'env' => Marshal.load(Marshal.dump(empty_folders)) }
         global_folder_info[app_id] = { 'global' => Marshal.load(Marshal.dump(empty_folders)) }
       end
 
-      backend_hiera.merge( {
-        'simpkv_test::retrieve_and_verify_folders::valid_folder_info'   => global_folder_info,
+      backend_hiera.merge({
+                            'simpkv_test::retrieve_and_verify_folders::valid_folder_info'   => global_folder_info,
         'simpkv_test::retrieve_and_verify_folders::invalid_folder_info' => env_folder_info
-      } )
-    }
+                          })
+    end
 
-    it 'should call simpkv::deletetree with valid sub-folders without errors' do
+    it 'calls simpkv::deletetree with valid sub-folders without errors' do
       set_hiera_and_apply_on(host, remove_subfolders_hieradata, remove_manifest,
-        { :catch_failures => true })
+        { catch_failures: true })
     end
 
-    it 'should retain only untouched keys/folders in backends' do
+    it 'retains only untouched keys/folders in backends' do
       set_hiera_and_apply_on(host, verify_hieradata_after_subfolders_delete,
-        verify_manifest, { :catch_failures => true })
+        verify_manifest, { catch_failures: true })
     end
 
-    it 'should call simpkv::deletetree with root folders without errors' do
+    it 'calls simpkv::deletetree with root folders without errors' do
       set_hiera_and_apply_on(host, remove_root_folders_hieradata,
-        remove_manifest, { :catch_failures => true })
+        remove_manifest, { catch_failures: true })
     end
 
-    it 'should retain no key data in the backends' do
-     # This makes sure there is no key data, but does not verify that the
-     # directory tree is absent. That verification is done by the next test
-     # example.
-      expect( validator.call(initial_key_info, false, backend_hiera, host) ).to be true
+    it 'retains no key data in the backends' do
+      # This makes sure there is no key data, but does not verify that the
+      # directory tree is absent. That verification is done by the next test
+      # example.
+      expect(validator.call(initial_key_info, false, backend_hiera, host)).to be true
     end
 
-    it 'should retrieve non-existent or empty root dir list results from the backends' do
+    it 'retrieves non-existent or empty root dir list results from the backends' do
       # non-existent: Puppet environment root dirs
       # empty:        global root dirs
       set_hiera_and_apply_on(host, verify_empty_backend_folders_hieradata,
-        verify_manifest, { :catch_failures => true })
+        verify_manifest, { catch_failures: true })
     end
 
-    it 'should call simpkv::deletetree with invalid folders without errors' do
+    it 'calls simpkv::deletetree with invalid folders without errors' do
       set_hiera_and_apply_on(host, remove_subfolders_hieradata,
-        remove_manifest, { :catch_failures => true })
+        remove_manifest, { catch_failures: true })
     end
   end
 end
-

@@ -6,7 +6,6 @@
 # @author https://github.com/simp/pupmod-simp-simpkv/graphs/contributors
 #
 Puppet::Functions.create_function(:'simpkv::list') do
-
   # @param keydir The key folder to list. Must conform to the following:
   #
   #   * Key folder must contain only the following characters:
@@ -115,7 +114,7 @@ Puppet::Functions.create_function(:'simpkv::list') do
     optional_param 'Hash',      :options
   end
 
-  def list(keydir, options={})
+  def list(keydir, options = {})
     # keydir validation difficult to do via a type alias, so validate via function
     call_function('simpkv::support::key::validate', keydir)
 
@@ -126,11 +125,11 @@ Puppet::Functions.create_function(:'simpkv::list') do
     # and the list of backends for which plugins have been loaded
     begin
       catalog = closure_scope.find_global_scope.catalog
-      merged_options = call_function( 'simpkv::support::config::merge', options,
+      merged_options = call_function('simpkv::support::config::merge', options,
         catalog.simpkv.backends)
     rescue ArgumentError => e
       msg = "simpkv Configuration Error for simpkv::list with keydir='#{keydir}': #{e.message}"
-      raise ArgumentError.new(msg)
+      raise ArgumentError, msg
     end
 
     # use simpkv for list operation
@@ -138,17 +137,15 @@ Puppet::Functions.create_function(:'simpkv::list') do
 
     result = backend_result[:result]
     if result.nil?
-      err_msg =  "simpkv Error for simpkv::list with keydir='#{keydir}': #{backend_result[:err_msg]}"
-      if merged_options['softfail']
-        Puppet.warning(err_msg)
-      else
-        raise(err_msg)
-      end
+      err_msg = "simpkv Error for simpkv::list with keydir='#{keydir}': #{backend_result[:err_msg]}"
+      raise(err_msg) unless merged_options['softfail']
+      Puppet.warning(err_msg)
+
     else
       result = { 'keys' => {}, 'folders' => backend_result[:result][:folders] }
-      backend_result[:result][:keys].each do |key,info|
-         result['keys'][key] = { 'value' => info[:value] }
-         unless info[:metadata].empty?
+      backend_result[:result][:keys].each do |key, info|
+        result['keys'][key] = { 'value' => info[:value] }
+        unless info[:metadata].empty?
           result['keys'][key]['metadata'] = info[:metadata]
         end
       end

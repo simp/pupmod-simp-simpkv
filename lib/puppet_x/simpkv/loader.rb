@@ -18,15 +18,11 @@
 
 # Get simpkv adapter
 # @return simpkv adapter object
-def simpkv
-  @simpkv
-end
+attr_reader :simpkv
 
 # Set simpkv adapter
 # @param value simpkv wrapper object
-def simpkv=(value)
-  @simpkv = value
-end
+attr_writer :simpkv
 
 # Load simpkv.rb.  The code evaluated will set this local scope variable
 # 'simp_simpkv_adapter_class' to an anonymous Class object for the simpkv adapter
@@ -34,9 +30,9 @@ end
 # NOTE:  'simp_simpkv_adapter_class' **MUST** be defined prior to the eval
 #        in order to be in scope
 simp_simpkv_adapter_class = nil
-self.instance_eval(
+instance_eval(
   File.read(File.join(File.dirname(__FILE__), 'simpkv.rb')),
-  File.join(File.dirname(__FILE__), 'simpkv.rb')
+  File.join(File.dirname(__FILE__), 'simpkv.rb'),
 )
 
 # Set simpkv attribute of the object loading this file to a new simpkv

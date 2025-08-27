@@ -88,7 +88,6 @@
 #   independent verification commands executed
 #
 shared_examples 'a simpkv plugin test' do |host|
-
   # This is a very high level, test configuration sanity check, but will not
   # detect all misconfiguration errors (especially ones that result in
   # non-unique keys, e.g., when multiple app_ids unexpectedly end up in the
@@ -97,15 +96,15 @@ shared_examples 'a simpkv plugin test' do |host|
   # Included examples may have more specific validation, especially WRT to
   # whether initial_key_info has appropriate data for derived data used to
   # stimulate the key/folder removal tests.
-  it 'should have basic test configuration' do
-    expect( backend_hiera.key?('simpkv::options')).to be true
-    expect( backend_hiera['simpkv::options'].key?('backends')).to be true
-    expect( backend_hiera['simpkv::options']['backends'].key?('default')).to be true
+  it 'has basic test configuration' do
+    expect(backend_hiera.key?('simpkv::options')).to be true
+    expect(backend_hiera['simpkv::options'].key?('backends')).to be true
+    expect(backend_hiera['simpkv::options']['backends'].key?('default')).to be true
 
-    expect(initial_key_info).to_not be_empty
-    initial_key_info.keys.each do |app_id|
+    expect(initial_key_info).not_to be_empty
+    initial_key_info.each_key do |app_id|
       appid = app_id.empty? ? 'default' : app_id
-      expect( backend_hiera['simpkv::options']['backends'].keys.include?(appid) ).to be true
+      expect(backend_hiera['simpkv::options']['backends'].keys.include?(appid)).to be true
     end
   end
 
@@ -125,4 +124,3 @@ shared_examples 'a simpkv plugin test' do |host|
   include_examples('simpkv::delete tests', host)
   include_examples('simpkv::deletetree tests', host)
 end
-
