@@ -29,12 +29,12 @@ module DataHelper
       'Boolean' => {
         value: true,
         metadata: { 'foo' => 'bar', 'baz' => 42 },
-        serialized_value: '{"value":true,"metadata":{"foo":"bar","baz":42}}'
+        serialized_value: '{"value":true,"metadata":{"foo":"bar","baz":42}}',
       },
       'valid UTF-8 String' =>  {
         value: 'some string',
         metadata: {},
-        serialized_value: '{"value":"some string","metadata":{}}'
+        serialized_value: '{"value":"some string","metadata":{}}',
       },
       'malformed UTF-8 String' => {
         value: binary_file1_content.dup.force_encoding('UTF-8'),
@@ -46,7 +46,7 @@ module DataHelper
         # only difference is encoding: deserialized value will have the
         # correct encoding of ASCII-8BIT, as the simpkv adapter 'fixes'
         # the encoding...this behavior is subject to change
-        deserialized_value: binary_file1_content
+        deserialized_value: binary_file1_content,
       },
       'ASCII-8BIT String' => {
         value: binary_file2_content,
@@ -54,23 +54,23 @@ module DataHelper
         serialized_value:           '{"value":"' + Base64.strict_encode64(binary_file2_content) + '",' \
           '"encoding":"base64",' \
           '"original_encoding":"ASCII-8BIT",' \
-          '"metadata":{"foo":"bar","baz":42}}'
+          '"metadata":{"foo":"bar","baz":42}}',
       },
       'Integer' => {
         value: 255,
         metadata: {},
-        serialized_value: '{"value":255,"metadata":{}}'
+        serialized_value: '{"value":255,"metadata":{}}',
       },
       'Float' => {
         value: 2.3849,
         metadata: { 'foo' => { 'bar' => 'baz' } },
-        serialized_value: '{"value":2.3849,"metadata":{"foo":{"bar":"baz"}}}'
+        serialized_value: '{"value":2.3849,"metadata":{"foo":{"bar":"baz"}}}',
       },
       'Array of valid UTF-8 strings' => {
         value: [ 'valid UTF-8 1', 'valid UTF-8 2'],
         metadata: { 'foo' => 'bar', 'baz' => 42 },
         serialized_value:           '{"value":["valid UTF-8 1","valid UTF-8 2"],' \
-          '"metadata":{"foo":"bar","baz":42}}'
+          '"metadata":{"foo":"bar","baz":42}}',
       },
       'Array of binary strings' => {
         skip: 'Not yet supported',
@@ -79,14 +79,14 @@ module DataHelper
           binary_file1_content.dup.force_encoding('UTF-8'),
           binary_file2_content,
         ],
-        serialized_value: 'TBD'
+        serialized_value: 'TBD',
       },
       'Hash with valid UTF-8 strings' => {
         value: {
           'key1' => 'test_string',
           'key2' => 1000,
           'key3' => false,
-          'key4' => { 'nestedkey1' => 'nested_test_string' }
+          'key4' => { 'nestedkey1' => 'nested_test_string' },
         },
         metadata: { 'foo' => 'bar', 'baz' => 42 },
         serialized_value:           '{"value":' \
@@ -96,7 +96,7 @@ module DataHelper
           '"key3":false,' \
           '"key4":{"nestedkey1":"nested_test_string"}' \
           '},' \
-          '"metadata":{"foo":"bar","baz":42}}'
+          '"metadata":{"foo":"bar","baz":42}}',
       },
       'Hash with binary strings' => {
         skip: 'Not yet supported',
@@ -104,11 +104,11 @@ module DataHelper
           'key1' => binary_file1_content.dup.force_encoding('UTF-8'),
           'key2' => 1000,
           'key3' => false,
-          'key4' => { 'nestedkey1' => binary_file2_content }
+          'key4' => { 'nestedkey1' => binary_file2_content },
         },
         metadata: {},
-        serialized_value: 'TBD'
-      }
+        serialized_value: 'TBD',
+      },
     }
   end
 end

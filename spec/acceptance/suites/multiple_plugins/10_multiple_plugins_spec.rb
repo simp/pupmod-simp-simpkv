@@ -23,7 +23,7 @@ describe 'multiple plugins' do
   let(:file_backend_config) do
     {
       'type' => 'file',
-   'root_path' => "/var/simp/simpkv/file/#{id1}"
+   'root_path' => "/var/simp/simpkv/file/#{id1}",
     }
   end
 
@@ -38,7 +38,7 @@ describe 'multiple plugins' do
    'ldap_uri'      => ldap1_uri,
    'base_dn'       => ldap1[:simpkv_base_dn],
    'admin_dn'      => ldap1[:admin_dn],
-   'admin_pw_file' => ldap1[:admin_pw_file]
+   'admin_pw_file' => ldap1[:admin_pw_file],
     }
   end
 
@@ -59,7 +59,7 @@ describe 'multiple plugins' do
    'ldap_uri'      => ldap2_uri,
    'base_dn'       => ldap2[:simpkv_base_dn],
    'admin_dn'      => ldap2[:admin_dn],
-   'admin_pw_file' => ldap2[:admin_pw_file]
+   'admin_pw_file' => ldap2[:admin_pw_file],
     }
   end
 
@@ -84,7 +84,7 @@ describe 'multiple plugins' do
     backend_configs = {
       id1 => file_backend_config,
       id2 => ldap1_backend_config,
-      id3 => ldap2_backend_config
+      id3 => ldap2_backend_config,
     }
 
     generate_backend_hiera(backend_configs)

@@ -57,25 +57,25 @@ describe 'simpkv::list' do
         'test_failer' => {
           'id' => 'test',
            'type'             => 'failer',
-           'fail_constructor' => false # true = raise in constructor
+           'fail_constructor' => false, # true = raise in constructor
         },
         # will use file plugin for non-catastrophic test cases
         'test_file' => {
           'id'        => 'test',
           'type'      => 'file',
-          'root_path' => @root_path_test_file
+          'root_path' => @root_path_test_file,
         },
         'myapp' => {
           'id'        => 'default_app_id',
           'type'      => 'file',
-          'root_path' => @root_path_default_app_id
+          'root_path' => @root_path_default_app_id,
         },
         'default' => {
           'id'        => 'default',
           'type'      => 'file',
-          'root_path' => @root_path_default
-        }
-      }
+          'root_path' => @root_path_default,
+        },
+      },
     }
     @options_failer         = options_base.merge({ 'backend' => 'test_failer' })
     @options_test_file      = options_base.merge({ 'backend' => 'test_file' })

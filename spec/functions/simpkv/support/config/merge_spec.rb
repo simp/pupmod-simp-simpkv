@@ -15,9 +15,9 @@ describe 'simpkv::support::config::merge' do
         'backends'    => {
           'default' => {
             'id'   => 'test',
-            'type' => 'file'
-          }
-        }
+            'type' => 'file',
+          },
+        },
       }
       output_config = input_config.dup
       output_config['environment'] = environment
@@ -32,9 +32,9 @@ describe 'simpkv::support::config::merge' do
         'backends'    => {
           'default' => {
             'id'   => 'test',
-            'type' => 'file'
-          }
-        }
+            'type' => 'file',
+          },
+        },
       }
       output_config = input_config.dup
       output_config['environment'] = environment
@@ -51,9 +51,9 @@ describe 'simpkv::support::config::merge' do
         'backends'    => {
           'default' => {
             'id'   => 'test',
-            'type' => 'file'
-          }
-        }
+            'type' => 'file',
+          },
+        },
       }
       output_config = input_config.dup
       output_config['environment'] = environment
@@ -70,9 +70,9 @@ describe 'simpkv::support::config::merge' do
         'backends'    => {
           'default' => {
             'id'   => 'test',
-            'type' => 'file'
-          }
-        }
+            'type' => 'file',
+          },
+        },
       }
       output_config = input_config.dup
       output_config['environment'] = environment
@@ -91,9 +91,9 @@ describe 'simpkv::support::config::merge' do
         'backends'    => {
           'default' => {
             'id'   => 'auto_default',
-            'type' => 'file'
-          }
-        }
+            'type' => 'file',
+          },
+        },
       }
       is_expected.to run.with_params({}, backends)
                         .and_return(output_config)
@@ -104,9 +104,9 @@ describe 'simpkv::support::config::merge' do
         'backends' => {
           'default' => {
             'id'   => 'test',
-            'type' => 'does_not_exist'
-          }
-        }
+            'type' => 'does_not_exist',
+          },
+        },
       }
       is_expected.to run.with_params(options, backends)
                         .and_raise_error(ArgumentError,
@@ -128,9 +128,9 @@ describe 'simpkv::support::config::merge' do
             'type'                 => 'file',
             'id'                   => 'file',
             'root_path'            => '/var/simp/simpkv/file',
-            'lock_timeout_seconds' => 30
-          }
-        }
+            'lock_timeout_seconds' => 30,
+          },
+        },
       }
 
       is_expected.to run.with_params({}, backends)
@@ -147,8 +147,8 @@ describe 'simpkv::support::config::merge' do
             'type'      => 'file',
             'id'        => 'test',
             'root_path' => '/tmp/test',
-          }
-        }
+          },
+        },
       }
 
       output_config = {
@@ -161,14 +161,14 @@ describe 'simpkv::support::config::merge' do
             'type'                 => 'file',
             'id'                   => 'file',
             'root_path'            => '/var/simp/simpkv/file',
-            'lock_timeout_seconds' => 30
+            'lock_timeout_seconds' => 30,
           },
           'test' => {
             'type'      => 'file',
             'id'        => 'test',
             'root_path' => '/tmp/test',
-          }
-        }
+          },
+        },
       }
       is_expected.to run.with_params(input_config, backends)
                         .and_return(output_config)
@@ -198,26 +198,26 @@ describe 'simpkv::support::config::merge' do
           'type'                 => 'file',
           'id'                   => 'file',
           'root_path'            => '/var/simp/simpkv/file',
-          'lock_timeout_seconds' => 30
+          'lock_timeout_seconds' => 30,
         },
         'myapp1' => {
           'type'                 => 'file',
           'id'                   => 'file',
           'root_path'            => '/var/simp/simpkv/file',
-          'lock_timeout_seconds' => 30
+          'lock_timeout_seconds' => 30,
         },
         'myapp' => {
           'type'      => 'file',
           'id'        => 'alt_file',
-          'root_path' => '/some/other/path'
+          'root_path' => '/some/other/path',
         },
         'default' => {
           'type'                 => 'file',
           'id'                   => 'file',
           'root_path'            => '/var/simp/simpkv/file',
-          'lock_timeout_seconds' => 30
-        }
-      }
+          'lock_timeout_seconds' => 30,
+        },
+      },
       }
     end
 

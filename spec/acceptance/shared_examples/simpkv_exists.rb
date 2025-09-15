@@ -23,7 +23,7 @@ shared_examples 'simpkv::exists tests' do |host|
     let(:hieradata_with_valid_keys) do
       backend_hiera.merge({
                             'simpkv_test::verify_keys_exist::valid_keyname_info'   => initial_keyname_info,
-        'simpkv_test::verify_keys_exist::invalid_keyname_info' => {}
+        'simpkv_test::verify_keys_exist::invalid_keyname_info' => {},
                           })
     end
 
@@ -34,7 +34,7 @@ shared_examples 'simpkv::exists tests' do |host|
     let(:hieradata_with_invalid_keys) do
       backend_hiera.merge({
                             'simpkv_test::verify_keys_exist::valid_keyname_info'   => {},
-        'simpkv_test::verify_keys_exist::invalid_keyname_info' => new_keyname_info
+        'simpkv_test::verify_keys_exist::invalid_keyname_info' => new_keyname_info,
                           })
     end
 
@@ -56,7 +56,7 @@ shared_examples 'simpkv::exists tests' do |host|
     let(:hieradata_with_valid_folders) do
       backend_hiera.merge({
                             'simpkv_test::verify_folders_exist::valid_foldername_info'   => initial_foldername_info,
-        'simpkv_test::verify_folders_exist::invalid_foldername_info' => {}
+        'simpkv_test::verify_folders_exist::invalid_foldername_info' => {},
                           })
     end
 
@@ -65,7 +65,7 @@ shared_examples 'simpkv::exists tests' do |host|
     let(:hieradata_with_invalid_folders) do
       backend_hiera.merge({
                             'simpkv_test::verify_folders_exist::valid_foldername_info'   => {},
-        'simpkv_test::verify_folders_exist::invalid_foldername_info' => new_foldername_info
+        'simpkv_test::verify_folders_exist::invalid_foldername_info' => new_foldername_info,
                           })
     end
 

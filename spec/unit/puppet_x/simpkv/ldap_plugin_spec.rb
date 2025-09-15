@@ -41,7 +41,7 @@ describe 'simpkv ldap plugin anonymous class' do
           'enable_tls'    => true,
           'tls_cert'      => '/certdir/public/client.example.com.pub',
           'tls_key'       => '/certdir/private/client.example.com.pem',
-          'tls_cacert'    => '/certdir/cacerts/cacerts.pem'
+          'tls_cacert'    => '/certdir/cacerts/cacerts.pem',
         },
         'tls' => {
           'id'            => 'tls',
@@ -50,9 +50,9 @@ describe 'simpkv ldap plugin anonymous class' do
           'admin_pw_file' => @admin_pw_file,
           'tls_cert'      => '/certdir/public/client.example.com.pub',
           'tls_key'       => '/certdir/private/client.example.com.pem',
-          'tls_cacert'    => '/certdir/cacerts/cacerts.pem'
-        }
-      }
+          'tls_cacert'    => '/certdir/cacerts/cacerts.pem',
+        },
+      },
     }
   end
 
@@ -79,7 +79,7 @@ describe 'simpkv ldap plugin anonymous class' do
       success: false,
     exitstatus: 51,
     stdout: '',
-    stderr: 'ldapxxx failed:\nServer busy'
+    stderr: 'ldapxxx failed:\nServer busy',
     }
   end
 
@@ -88,7 +88,7 @@ describe 'simpkv ldap plugin anonymous class' do
       success: false,
     exitstatus: 32,
     stdout: '',
-    stderr: 'No such object'
+    stderr: 'No such object',
     }
   end
 
@@ -97,7 +97,7 @@ describe 'simpkv ldap plugin anonymous class' do
       success: false,
     exitstatus: 1,
     stdout: '',
-    stderr: 'ldapxxx failed:\nOther error'
+    stderr: 'ldapxxx failed:\nOther error',
     }
   end
 
@@ -148,7 +148,7 @@ describe 'simpkv ldap plugin anonymous class' do
       it "fails when options 'backends' key is not a Hash" do
         options = {
           'backend'  => 'test',
-          'backends' => 'oops'
+          'backends' => 'oops',
         }
         expect { @plugin.configure(options) }
           .to raise_error(%r{Plugin misconfigured})
@@ -158,8 +158,8 @@ describe 'simpkv ldap plugin anonymous class' do
         options = {
           'backend'  => 'test',
           'backends' => {
-            'test1' => { 'id' => 'test', 'type' => 'file' }
-          }
+            'test1' => { 'id' => 'test', 'type' => 'file' },
+          },
         }
         expect { @plugin.configure(options) }
           .to raise_error(%r{Plugin misconfigured})
@@ -170,8 +170,8 @@ describe 'simpkv ldap plugin anonymous class' do
           'backend' => 'test',
           'backends' => {
             'test1' => { 'id' => 'test', 'type' => 'file' },
-            'test' => {}
-          }
+            'test' => {},
+          },
         }
 
         expect { @plugin.configure(options) }
@@ -183,8 +183,8 @@ describe 'simpkv ldap plugin anonymous class' do
           'backend'  => 'test',
           'backends' => {
             'test1' => { 'id' => 'test', 'type' => 'file' },
-            'test'  => { 'id' => 'test' }
-          }
+            'test'  => { 'id' => 'test' },
+          },
         }
         expect { @plugin.configure(options) }
           .to raise_error(%r{Plugin misconfigured})
@@ -195,8 +195,8 @@ describe 'simpkv ldap plugin anonymous class' do
           'backend'  => 'test',
           'backends' => {
             'test1' => { 'id' => 'test', 'type' => 'file' },
-            'test'  => { 'id' => 'test', 'type' => 'file' }
-          }
+            'test'  => { 'id' => 'test', 'type' => 'file' },
+          },
         }
         expect { @plugin.configure(options) }
           .to raise_error(%r{Plugin misconfigured})
@@ -345,7 +345,7 @@ describe 'simpkv ldap plugin anonymous class' do
           {
             success: true,
          exitstatus: 0,
-         stdout: "dn: #{key_dn}"
+         stdout: "dn: #{key_dn}",
           }
         end
 
@@ -384,12 +384,12 @@ describe 'simpkv ldap plugin anonymous class' do
           {
             success: true,
          exitstatus: 0,
-         stdout: <<~EOM
-            dn: #{key_dn}
-            objectClass: simpkvEntry
-            objectClass: top
-            simpkvKey: #{base_key}
-            simpkvJsonValue: #{stored_value}
+         stdout: <<~EOM,
+           dn: #{key_dn}
+           objectClass: simpkvEntry
+           objectClass: top
+           simpkvKey: #{base_key}
+           simpkvJsonValue: #{stored_value}
           EOM
           }
         end
@@ -410,7 +410,7 @@ describe 'simpkv ldap plugin anonymous class' do
           success_response_malformed_simpkvKey = {
             success: true,
             exitstatus: 0,
-            stdout: <<~EOM
+            stdout: <<~EOM,
               dn: #{key_dn}
               objectClass: simpkvEntry
               objectClass: top
@@ -452,17 +452,17 @@ describe 'simpkv ldap plugin anonymous class' do
           {
             success: true,
          exitstatus: 0,
-         stdout: <<~EOM
-            dn: #{folder_dn}
-            ou: #{base_folder}
-            objectClass: top
-            objectClass: organizationalUnit
+         stdout: <<~EOM,
+           dn: #{folder_dn}
+           ou: #{base_folder}
+           objectClass: top
+           objectClass: organizationalUnit
 
-            dn: #{key_dn}
-            objectClass: simpkvEntry
-            objectClass: top
-            simpkvKey: #{base_key}
-            simpkvJsonValue: #{stored_value}
+           dn: #{key_dn}
+           objectClass: simpkvEntry
+           objectClass: top
+           simpkvKey: #{base_key}
+           simpkvJsonValue: #{stored_value}
           EOM
           }
         end
@@ -475,7 +475,7 @@ describe 'simpkv ldap plugin anonymous class' do
           result = @plugin.list(File.dirname(folder))
           expected_list = {
             keys: { base_key => stored_value },
-            folders: [ base_folder ]
+            folders: [ base_folder ],
           }
 
           expect(result[:result]).to eq(expected_list)
@@ -507,21 +507,21 @@ describe 'simpkv ldap plugin anonymous class' do
           {
             success: false,
          exitstatus: 1,
-         err_msg: 'Some interim ldap operation failed'
+         err_msg: 'Some interim ldap operation failed',
           }
         end
 
         let(:successful_ldap_result) do
           {
             success: true,
-         exitstatus: 0
+         exitstatus: 0,
           }
         end
 
         let(:failed_update_result) do
           {
             result: false,
-         err_msg: 'Update failed'
+         err_msg: 'Update failed',
           }
         end
 
@@ -543,7 +543,7 @@ describe 'simpkv ldap plugin anonymous class' do
           already_exists_result = {
             success: false,
             exitstatus: 68,
-            err_msg: 'Already exists'
+            err_msg: 'Already exists',
           }
           expect(@plugin).to receive(:ldap_add).and_return(already_exists_result)
           expect(@plugin).to receive(:update_value_if_changed).with(key, value)
@@ -635,7 +635,7 @@ describe 'simpkv ldap plugin anonymous class' do
         failed_add_response = {
           success: false,
           exitstatus: 1,
-          err_msg: 'ldapadd failed'
+          err_msg: 'ldapadd failed',
 
         }
 
@@ -656,7 +656,7 @@ describe 'simpkv ldap plugin anonymous class' do
           success: false,
         exitstatus: 68,
         stdout: '',
-        stderr: 'ldapadd failed:\nDN already exists'
+        stderr: 'ldapadd failed:\nDN already exists',
         }
       end
 
@@ -817,7 +817,7 @@ describe 'simpkv ldap plugin anonymous class' do
         it 'transforms valid ldapi config with admin_dn and admin_pw_file' do
           config = @options['backends']['default'].merge({
                                                            'admin_dn' => 'cn=My_Directory_Manager',
-            'admin_pw_file' => @admin_pw_file
+            'admin_pw_file' => @admin_pw_file,
                                                          })
           opts = @plugin.parse_config(config)
           expect(opts[:cmd_env]).to eq('')
@@ -939,43 +939,43 @@ describe 'simpkv ldap plugin anonymous class' do
       it 'skips a malformed organizationalUnit' do
         # don't know how this could ever happen...totally artifical example
         ldif = <<~EOM
-            dn: #{folder_dn}
-            ou: #{base_folder}
-            objectClass: top
-            objectClass: organizationalUnit
+          dn: #{folder_dn}
+          ou: #{base_folder}
+          objectClass: top
+          objectClass: organizationalUnit
 
-            dn: custom=something,#{production_dn}
-            custom: something
-            objectClass: top
-            objectClass: organizationalUnit
-            objectClass: custom
+          dn: custom=something,#{production_dn}
+          custom: something
+          objectClass: top
+          objectClass: organizationalUnit
+          objectClass: custom
 
-            dn: #{key_dn}
-            objectClass: simpkvEntry
-            objectClass: top
-            simpkvKey: #{base_key}
-            simpkvJsonValue: #{stored_value}
+          dn: #{key_dn}
+          objectClass: simpkvEntry
+          objectClass: top
+          simpkvKey: #{base_key}
+          simpkvJsonValue: #{stored_value}
         EOM
 
         result = @plugin.parse_list_ldif(ldif)
         expected = {
           keys: { base_key => stored_value },
-          folders: [ base_folder ]
+          folders: [ base_folder ],
         }
         expect(result).to eq(expected)
       end
 
       it 'skips simpkvEntry missing the simpkvJsonValue attribute' do
         ldif = <<~EOM
-            dn: #{folder_dn}
-            ou: #{base_folder}
-            objectClass: top
-            objectClass: organizationalUnit
+          dn: #{folder_dn}
+          ou: #{base_folder}
+          objectClass: top
+          objectClass: organizationalUnit
 
-            dn: #{key_dn}
-            objectClass: simpkvEntry
-            objectClass: top
-            simpkvKey: #{base_key}
+          dn: #{key_dn}
+          objectClass: simpkvEntry
+          objectClass: top
+          simpkvKey: #{base_key}
         EOM
 
         result = @plugin.parse_list_ldif(ldif)
@@ -985,15 +985,15 @@ describe 'simpkv ldap plugin anonymous class' do
 
       it 'skips simpkvEntry missing the simpkvKey attribute' do
         ldif = <<~EOM
-            dn: #{folder_dn}
-            ou: #{base_folder}
-            objectClass: top
-            objectClass: organizationalUnit
+          dn: #{folder_dn}
+          ou: #{base_folder}
+          objectClass: top
+          objectClass: organizationalUnit
 
-            dn: #{key_dn}
-            objectClass: simpkvEntry
-            objectClass: top
-            simpkvJsonValue: #{stored_value}
+          dn: #{key_dn}
+          objectClass: simpkvEntry
+          objectClass: top
+          simpkvJsonValue: #{stored_value}
         EOM
 
         result = @plugin.parse_list_ldif(ldif)
@@ -1003,27 +1003,27 @@ describe 'simpkv ldap plugin anonymous class' do
 
       it 'skips any object that is not a simpkvEntry or organizationalUnit' do
         ldif = <<~EOM
-            dn: #{folder_dn}
-            ou: #{base_folder}
-            objectClass: top
-            objectClass: organizationalUnit
+          dn: #{folder_dn}
+          ou: #{base_folder}
+          objectClass: top
+          objectClass: organizationalUnit
 
-            dn: custom=something,#{production_dn}
-            custom: something
-            objectClass: top
-            objectClass: custom
+          dn: custom=something,#{production_dn}
+          custom: something
+          objectClass: top
+          objectClass: custom
 
-            dn: #{key_dn}
-            objectClass: simpkvEntry
-            objectClass: top
-            simpkvKey: #{base_key}
-            simpkvJsonValue: #{stored_value}
+          dn: #{key_dn}
+          objectClass: simpkvEntry
+          objectClass: top
+          simpkvKey: #{base_key}
+          simpkvJsonValue: #{stored_value}
         EOM
 
         result = @plugin.parse_list_ldif(ldif)
         expected = {
           keys: { base_key => stored_value },
-          folders: [ base_folder ]
+          folders: [ base_folder ],
         }
         expect(result).to eq(expected)
       end

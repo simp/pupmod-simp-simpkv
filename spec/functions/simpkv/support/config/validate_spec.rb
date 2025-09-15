@@ -11,26 +11,26 @@ describe 'simpkv::support::config::validate' do
         'backends'    => {
           'test_file' => {
             'id'        => 'test',
-            'type'      => 'file'
+            'type'      => 'file',
           },
           # this duplicate is OK because its config exactly matches test_file
           'test_file_dup' => {
             'id'        => 'test',
-            'type'      => 'file'
+            'type'      => 'file',
           },
           'another_file' => {
             'id'        => 'another_test',
-            'type'      => 'file'
+            'type'      => 'file',
           },
           'consul_1' => {
             'id'        => 'primary',
-            'type'      => 'consul'
+            'type'      => 'consul',
           },
           'consul_2' => {
             'id'        => 'secondary',
-            'type'      => 'consul'
-          }
-        }
+            'type'      => 'consul',
+          },
+        },
       }
 
       is_expected.to run.with_params(config, backends)
@@ -90,7 +90,7 @@ describe 'simpkv::support::config::validate' do
     it "fails when the plugin for 'backend' has not been loaded" do
       options = {
         'backend'  => 'file',
-        'backends' => { 'file' => { 'id' => 'test', 'type' => 'file' } }
+        'backends' => { 'file' => { 'id' => 'test', 'type' => 'file' } },
       }
       is_expected.to run.with_params(options, [ 'consul' ])
                         .and_raise_error(ArgumentError,
@@ -104,8 +104,8 @@ describe 'simpkv::support::config::validate' do
           'file1'     => { 'id' => 'test', 'type' => 'file' },
 
           # this should have a different id because it has different config
-          'file2'     => { 'id' => 'test', 'type' => 'file', 'foo' => 'bar' }
-        }
+          'file2'     => { 'id' => 'test', 'type' => 'file', 'foo' => 'bar' },
+        },
       }
       is_expected.to run.with_params(options, backends)
                         .and_raise_error(ArgumentError,

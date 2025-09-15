@@ -24,7 +24,7 @@ shared_examples 'simpkv::list tests' do |host|
     let(:hieradata_with_valid_folders) do
       backend_hiera.merge({
                             'simpkv_test::retrieve_and_verify_folders::valid_folder_info'   => initial_folder_info,
-        'simpkv_test::retrieve_and_verify_folders::invalid_folder_info' => {}
+        'simpkv_test::retrieve_and_verify_folders::invalid_folder_info' => {},
                           })
     end
 
@@ -33,7 +33,7 @@ shared_examples 'simpkv::list tests' do |host|
     let(:hieradata_with_invalid_folders) do
       backend_hiera.merge({
                             'simpkv_test::retrieve_and_verify_folders::valid_folder_info'   => {},
-        'simpkv_test::retrieve_and_verify_folders::invalid_folder_info' => new_folder_info
+        'simpkv_test::retrieve_and_verify_folders::invalid_folder_info' => new_folder_info,
                           })
     end
 
