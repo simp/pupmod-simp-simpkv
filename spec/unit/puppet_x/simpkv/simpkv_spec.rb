@@ -3,15 +3,18 @@ require 'spec_helper'
 require 'fileutils'
 require 'tmpdir'
 
-# mimic loading that is done in loader.rb, but be sure to load what is in
-# the fixtures dir
-project_dir = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'spec', 'fixtures', 'modules', 'simpkv'))
-simpkv_adapter_file = File.join(project_dir, 'lib', 'puppet_x', 'simpkv', 'simpkv.rb')
-simp_simpkv_adapter_class = nil
-obj = Object.new
-obj.instance_eval(File.read(simpkv_adapter_file), simpkv_adapter_file)
-
 describe 'simpkv adapter anonymous class' do
+  # mimic loading that is done in loader.rb, but be sure to load what is in
+  # the fixtures dir
+  let(:project_dir) { File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'spec', 'fixtures', 'modules', 'simpkv')) }
+  let(:simpkv_adapter_file) { File.join(project_dir, 'lib', 'puppet_x', 'simpkv', 'simpkv.rb') }
+  let(:adapter_class) do
+    simp_simpkv_adapter_class = nil
+    obj = Object.new
+    obj.instance_eval(File.read(simpkv_adapter_file), simpkv_adapter_file)
+    simp_simpkv_adapter_class
+  end
+
   # tell puppet-rspec to set Puppet environment to 'production'
   let(:environment) { 'production' }
 
@@ -61,8 +64,8 @@ describe 'simpkv adapter anonymous class' do
 
   context 'constructor' do
     it 'loads valid plugin classes' do
-      expect { simp_simpkv_adapter_class.new }.not_to raise_error
-      adapter = simp_simpkv_adapter_class.new
+      expect { adapter_class.new }.not_to raise_error
+      adapter = adapter_class.new
       expect(adapter.plugin_info).not_to be_empty
       expect(adapter.plugin_info.keys.include?('file')).to be true
       expect(adapter.plugin_info.keys.include?('failer')).to be true
@@ -72,13 +75,13 @@ describe 'simpkv adapter anonymous class' do
 
     it 'discards a plugin class with malformed Ruby' do
       allow(Puppet).to receive(:warning)
-      simp_simpkv_adapter_class.new
+      adapter_class.new
       expect(Puppet).to receive(:warning).with(%r{simpkv plugin from .*malformed_plugin.rb failed to load})
     end
   end
 
   context 'helper methods' do
-    let(:adapter) { simp_simpkv_adapter_class.new }
+    let(:adapter) { adapter_class.new }
 
     context '#filter_backtrace' do
       it 'filter-outs backtrace lines containing Puppet library internals' do
@@ -257,7 +260,7 @@ describe 'simpkv adapter anonymous class' do
   end
 
   context 'serialization operations' do
-    let(:adapter) { simp_simpkv_adapter_class.new }
+    let(:adapter) { adapter_class.new }
 
     context '#serialize and #serialize_string_value' do
       data_info.each do |summary, info|
@@ -302,7 +305,7 @@ describe 'simpkv adapter anonymous class' do
   end
 
   context 'public API' do
-    let(:adapter) { simp_simpkv_adapter_class.new }
+    let(:adapter) { adapter_class.new }
 
     # create our own file plugin instance so we can manipulate key/store
     # independent of the simpkv adapter
