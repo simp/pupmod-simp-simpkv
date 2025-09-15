@@ -23,7 +23,7 @@ shared_examples 'simpkv::get tests' do |host|
     let(:hieradata_with_valid_keys) do
       backend_hiera.merge({
                             'simpkv_test::retrieve_and_verify_keys::valid_key_info'   => initial_key_info,
-        'simpkv_test::retrieve_and_verify_keys::invalid_key_info' => {}
+        'simpkv_test::retrieve_and_verify_keys::invalid_key_info' => {},
                           })
     end
 
@@ -33,7 +33,7 @@ shared_examples 'simpkv::get tests' do |host|
     let(:hieradata_with_invalid_keys) do
       backend_hiera.merge({
                             'simpkv_test::retrieve_and_verify_keys::valid_key_info'   => {},
-        'simpkv_test::retrieve_and_verify_keys::invalid_key_info' => new_key_info
+        'simpkv_test::retrieve_and_verify_keys::invalid_key_info' => new_key_info,
                           })
     end
 

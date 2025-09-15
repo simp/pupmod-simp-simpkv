@@ -95,7 +95,7 @@ def validate_ldap_key_entry_present(key, key_type, key_data, config, host)
   if cmd_result.stdout.match(%r{^dn: .*#{dn}}).nil?
     result = {
       success: false,
-      err_msg: "Validation of #{key} presence failed: Could not find #{dn}"
+      err_msg: "Validation of #{key} presence failed: Could not find #{dn}",
     }
   else
     expected_key_string = key_data_string(key_data)
@@ -106,7 +106,7 @@ def validate_ldap_key_entry_present(key, key_type, key_data, config, host)
           "Data for #{key} did not match expected:",
           "  Expected: simpkvJsonValue: #{expected_key_string}",
           "  Actual:   #{result.stdout}",
-        ].join("\n")
+        ].join("\n"),
       }
     end
   end
@@ -139,7 +139,7 @@ def validate_ldap_key_entry_absent(key, key_type, config, host)
   unless cmd_result.exit_code == 32 # No such object
     result = {
       success: false,
-      err_msg: "Validation of #{key} absence failed: Found #{dn}:\n#{result.stdout}"
+      err_msg: "Validation of #{key} absence failed: Found #{dn}:\n#{result.stdout}",
     }
   end
 

@@ -36,16 +36,16 @@ describe 'simpkv configured file plugin' do
     backend_configs = {
       id1 => {
         'type'      => 'file',
-        'root_path' => "/var/simp/simpkv/file/#{id1}"
+        'root_path' => "/var/simp/simpkv/file/#{id1}",
       },
       id2 => {
         'type'      => 'file',
-        'root_path' => "/var/simp/simpkv/file/#{id2}"
+        'root_path' => "/var/simp/simpkv/file/#{id2}",
       },
       id3 => {
         'type'      => 'file',
-        'root_path' => "/var/simp/simpkv/file/#{id3}"
-      }
+        'root_path' => "/var/simp/simpkv/file/#{id3}",
+      },
     }
 
     generate_backend_hiera(backend_configs)

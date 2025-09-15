@@ -159,7 +159,7 @@ Class.new do
     unless @configured
       return {
         result: false,
-        err_msg: 'Internal error: delete called before configure'
+        err_msg: 'Internal error: delete called before configure',
       }
     end
 
@@ -206,7 +206,7 @@ Class.new do
     unless @configured
       return {
         result: false,
-        err_msg: 'Internal error: deletetree called before configure'
+        err_msg: 'Internal error: deletetree called before configure',
       }
     end
 
@@ -261,7 +261,7 @@ Class.new do
     unless @configured
       return {
         result: nil,
-        err_msg: 'Internal error: exists called before configure'
+        err_msg: 'Internal error: exists called before configure',
       }
     end
 
@@ -326,7 +326,7 @@ Class.new do
     unless @configured
       return {
         result: nil,
-        err_msg: 'Internal error: get called before configure'
+        err_msg: 'Internal error: get called before configure',
       }
     end
 
@@ -386,7 +386,7 @@ Class.new do
     unless @configured
       return {
         result: nil,
-        err_msg: 'Internal error: list called before configure'
+        err_msg: 'Internal error: list called before configure',
       }
     end
     full_keydir_path = File.join(@instance_path, keydir)
@@ -448,7 +448,7 @@ Class.new do
     unless @configured
       return {
         result: false,
-        err_msg: 'Internal error: put called before configure'
+        err_msg: 'Internal error: put called before configure',
       }
     end
 
@@ -993,7 +993,7 @@ Class.new do
       success: (exitstatus == 0),
       exitstatus: exitstatus,
       stdout: stdout,
-      stderr: stderr
+      stderr: stderr,
     }
   end
 
@@ -1018,7 +1018,7 @@ Class.new do
       'ldapadd'    => ldapadd,
       'ldapdelete' => ldapdelete,
       'ldapmodify' => ldapmodify,
-      'ldapsearch' => ldapsearch
+      'ldapsearch' => ldapsearch,
     }.each do |base_cmd, cmd|
       if cmd.nil?
         raise("Missing required #{base_cmd} command. Ensure openldap-clients RPM is installed")

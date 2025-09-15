@@ -79,7 +79,7 @@ Class.new do
         else
           @plugin_info[plugin_type] = {
             class: plugin_class,
-            source: filename
+            source: filename,
           }
         end
       rescue SyntaxError => e
@@ -237,7 +237,7 @@ Class.new do
       if raw_result[:result]
         result = {
           result: { keys: {}, folders: [] },
-           err_msg: nil
+           err_msg: nil,
         }
 
         raw_result[:result][:folders].each do |raw_folder|
@@ -492,7 +492,7 @@ Class.new do
       'value'             =>  encoded_value,
       'encoding'          => 'base64',
       'original_encoding' => 'ASCII-8BIT',
-      'metadata'          => metadata
+      'metadata'          => metadata,
     }
   end
 

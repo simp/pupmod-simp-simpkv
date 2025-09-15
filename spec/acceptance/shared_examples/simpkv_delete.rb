@@ -54,14 +54,14 @@ shared_examples 'simpkv::delete tests' do |host|
 
       {
         remove: key_infos[0],
-        retain: key_infos[1]
+        retain: key_infos[1],
       }
     end
 
     let(:remove_manifest) { 'include simpkv_test::remove_keys' }
     let(:remove_hieradata) do
       backend_hiera.merge({
-                            'simpkv_test::remove_keys::keyname_info' => to_keyname_info(test_key_infos[:remove])
+                            'simpkv_test::remove_keys::keyname_info' => to_keyname_info(test_key_infos[:remove]),
                           })
     end
 
@@ -69,7 +69,7 @@ shared_examples 'simpkv::delete tests' do |host|
     let(:verify_hieradata) do
       backend_hiera.merge({
                             'simpkv_test::retrieve_and_verify_keys::valid_key_info' => test_key_infos[:retain],
-        'simpkv_test::retrieve_and_verify_keys::invalid_key_info' => test_key_infos[:remove]
+        'simpkv_test::retrieve_and_verify_keys::invalid_key_info' => test_key_infos[:remove],
                           })
     end
 

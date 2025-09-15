@@ -62,9 +62,9 @@ describe 'simpkv file plugin anonymous class' do
           'id'        => 'test',
           'type'      => 'file',
           'root_path' => @root_path,
-          'lock_timeout_seconds' => 1
-        }
-      }
+          'lock_timeout_seconds' => 1,
+        },
+      },
     }
 
     @plugin_name = 'file/test'
@@ -117,7 +117,7 @@ describe 'simpkv file plugin anonymous class' do
       it "fails when options 'backends' key is not a Hash" do
         options = {
           'backend'  => 'test',
-          'backends' => 'oops'
+          'backends' => 'oops',
         }
         expect { @plugin.configure(options) }
           .to raise_error(%r{Plugin misconfigured})
@@ -127,8 +127,8 @@ describe 'simpkv file plugin anonymous class' do
         options = {
           'backend'  => 'test',
           'backends' => {
-            'test1' => { 'id' => 'test', 'type' => 'consul' }
-          }
+            'test1' => { 'id' => 'test', 'type' => 'consul' },
+          },
         }
         expect { @plugin.configure(options) }
           .to raise_error(%r{Plugin misconfigured})
@@ -139,8 +139,8 @@ describe 'simpkv file plugin anonymous class' do
           'backend' => 'test',
           'backends' => {
             'test1' => { 'id' => 'test', 'type' => 'consul' },
-            'test'  => {}
-          }
+            'test'  => {},
+          },
         }
         expect { @plugin.configure(options) }
           .to raise_error(%r{Plugin misconfigured})
@@ -151,8 +151,8 @@ describe 'simpkv file plugin anonymous class' do
           'backend'  => 'test',
           'backends' => {
             'test1' => { 'id' => 'test', 'type' => 'consul' },
-            'test'  => { 'id' => 'test' }
-          }
+            'test'  => { 'id' => 'test' },
+          },
         }
         expect { @plugin.configure(options) }
           .to raise_error(%r{Plugin misconfigured})
@@ -163,8 +163,8 @@ describe 'simpkv file plugin anonymous class' do
           'backend'  => 'test',
           'backends' => {
             'test1' => { 'id' => 'test', 'type' => 'consul' },
-            'test'  => { 'id' => 'test', 'type' => 'filex' }
-          }
+            'test'  => { 'id' => 'test', 'type' => 'filex' },
+          },
         }
         expect { @plugin.configure(options) }
           .to raise_error(%r{Plugin misconfigured})
@@ -177,9 +177,9 @@ describe 'simpkv file plugin anonymous class' do
             'test'  => {
               'id'        => 'test',
               'type'      => 'file',
-              'root_path' => '/can/not/be/created'
-            }
-          }
+              'root_path' => '/can/not/be/created',
+            },
+          },
         }
 
         allow(Dir).to receive(:exist?).with('/can/not/be/created').and_return(false)
@@ -349,12 +349,12 @@ describe 'simpkv file plugin anonymous class' do
           keys: {
             'key1' => 'value for key1',
             'key2' => 'value for key2',
-            'key3' => 'value for key3'
+            'key3' => 'value for key3',
           },
           folders: [
             'app1',
             'app2',
-          ]
+          ],
         }
         expected[:keys].each { |key, value| @plugin.put("production/#{key}", value) }
         expected[:folders].each { |folder| @plugin.put("production/#{folder}/key", "#{folder}/key value") }
@@ -367,9 +367,9 @@ describe 'simpkv file plugin anonymous class' do
         expected = {
           keys: {
             'key1' => 'value for key1',
-            'key3' => 'value for key3'
+            'key3' => 'value for key3',
           },
-          folders: []
+          folders: [],
         }
         expected[:keys].each { |key, value| @plugin.put("production/#{key}", value) }
 
@@ -530,9 +530,9 @@ describe 'simpkv file plugin anonymous class' do
         'backends' => {
           'test' => {
             'id'        => 'test',
-            'type'      => 'file'
-          }
-        }
+            'type'      => 'file',
+          },
+        },
         }
       end
 

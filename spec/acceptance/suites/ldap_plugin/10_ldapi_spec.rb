@@ -38,8 +38,8 @@ describe 'ldap_plugin using ldapi' do
       id2 => common_ldap_config,
       id3 => common_ldap_config.merge({
                                         'admin_dn' => ldap_instance[:admin_dn],
-        'admin_pw_file' => ldap_instance[:admin_pw_file]
-                                      })
+        'admin_pw_file' => ldap_instance[:admin_pw_file],
+                                      }),
     }
 
     # will set each 'id' to its corresponding backend name, which

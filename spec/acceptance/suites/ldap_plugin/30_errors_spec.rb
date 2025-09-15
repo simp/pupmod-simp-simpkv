@@ -60,7 +60,7 @@ describe 'ldap_plugin errors' do
            'ldap_uri'      => valid_ldap_uri,
            'base_dn'       => ldap_without_tls[:simpkv_base_dn],
            'admin_dn'      => ldap_without_tls[:admin_dn],
-           'admin_pw_file' => ldap_without_tls[:admin_pw_file]
+           'admin_pw_file' => ldap_without_tls[:admin_pw_file],
             }
           end
 

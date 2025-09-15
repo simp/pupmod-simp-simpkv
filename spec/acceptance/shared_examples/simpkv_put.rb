@@ -46,14 +46,14 @@ shared_examples 'simpkv::put tests' do |host|
   context "simpkv::put operation on #{host}" do
     let(:hieradata) do
       backend_hiera.merge({
-                            'simpkv_test::store_keys::key_info' => initial_key_info
+                            'simpkv_test::store_keys::key_info' => initial_key_info,
                           })
     end
 
     let(:updated_key_info) { modify_key_data(initial_key_info) }
     let(:updated_hieradata) do
       backend_hiera.merge({
-                            'simpkv_test::store_keys::key_info' => updated_key_info
+                            'simpkv_test::store_keys::key_info' => updated_key_info,
                           })
     end
 

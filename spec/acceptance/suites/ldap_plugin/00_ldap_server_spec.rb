@@ -41,7 +41,7 @@ describe 'ldap server setup' do
               'root_dn_password'       => ldap_instances['simp_data_without_tls'][:root_pw],
               'listen_address'         => '0.0.0.0',
               'port'                   => ldap_instances['simp_data_without_tls'][:port],
-              'bootstrap_ldif_content' => bootstrap_ldif
+              'bootstrap_ldif_content' => bootstrap_ldif,
             },
 
             'simp_data_with_tls' => {
@@ -54,10 +54,10 @@ describe 'ldap server setup' do
               'bootstrap_ldif_content' => bootstrap_ldif,
               'enable_tls'             => true,
               'tls_params'             => {
-                'source' => certdir
-              }
-            }
-          }
+                'source' => certdir,
+              },
+            },
+          },
         }
       end
 

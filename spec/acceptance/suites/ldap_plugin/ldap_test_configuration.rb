@@ -56,7 +56,7 @@ shared_context 'ldap test configuration' do
       admin_dn: admin_dn,
       admin_pw: 'P@ssw0rdP@ssw0rd!TLS',
       admin_pw_file: '/etc/simp/simp_data_with_tls_pw.txt',
-    }
+    },
     }
   end
 

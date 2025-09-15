@@ -62,7 +62,7 @@ describe 'ldap_plugin using unencrypted and encrypted LDAP' do
            'ldap_uri'      => ldap_uri,
            'base_dn'       => ldap_without_tls[:simpkv_base_dn],
            'admin_dn'      => ldap_without_tls[:admin_dn],
-           'admin_pw_file' => ldap_without_tls[:admin_pw_file]
+           'admin_pw_file' => ldap_without_tls[:admin_pw_file],
             }
           end
 
@@ -85,7 +85,7 @@ describe 'ldap_plugin using unencrypted and encrypted LDAP' do
             backend_configs = {
               id1 => ldaps_config,
               id2 => ldap_starttls_config,
-              id3 => ldap_config
+              id3 => ldap_config,
             }
 
             # will set each 'id' to its corresponding backend name, which

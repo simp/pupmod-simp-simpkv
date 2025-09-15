@@ -79,8 +79,8 @@ Puppet::Functions.create_function(:'simpkv::support::config::merge') do
       merged_options['backends'] = {
         'default' => {
           'type' => 'file',
-          'id'   => 'auto_default'
-        }
+          'id'   => 'auto_default',
+        },
       }
     end
 

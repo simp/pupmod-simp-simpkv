@@ -62,7 +62,7 @@ module Acceptance::Helpers::TestData
     hiera['simpkv::options'] = {
       'environment' => '%{server_facts.environment}',
       'softfail'    => false,
-      'backends'    => backends
+      'backends'    => backends,
     }
 
     hiera

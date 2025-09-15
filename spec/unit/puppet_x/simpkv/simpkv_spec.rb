@@ -29,15 +29,15 @@ describe 'simpkv adapter anonymous class' do
         'test_failer' => {
           'id' => 'test',
            'type'           => 'failer',
-           'fail_configure' => false # true = raise in configure()
+           'fail_configure' => false, # true = raise in configure()
         },
         # will use file plugin for non-catastrophic test cases
         'test_file' => {
           'id'        => 'test',
           'type'      => 'file',
-          'root_path' => @root_path
-        }
-      }
+          'root_path' => @root_path,
+        },
+      },
     }
     @options_file   = options_base.merge({ 'backend' => 'test_file' })
     @options_failer = options_base.merge({ 'backend' => 'test_failer' })
@@ -47,9 +47,9 @@ describe 'simpkv adapter anonymous class' do
         'test_failer' => {
           'id'             => 'test',
           'type'           => 'failer',
-          'fail_configure' => true # true = raise in configure()
-        }
-      }
+          'fail_configure' => true, # true = raise in configure()
+        },
+      },
     }
   end
 
@@ -186,7 +186,7 @@ describe 'simpkv adapter anonymous class' do
 
         it "fails when options missing 'backends' key" do
           options = {
-            'backend' => 'test'
+            'backend' => 'test',
           }
           expect { @adapter.plugin_instance(options) }
             .to raise_error(%r{Malformed backend config})
@@ -195,7 +195,7 @@ describe 'simpkv adapter anonymous class' do
         it "fails when options 'backends' key is not a Hash" do
           options = {
             'backend'  => 'test',
-            'backends' => 'oops'
+            'backends' => 'oops',
           }
           expect { @adapter.plugin_instance(options) }
             .to raise_error(%r{Malformed backend config})
@@ -205,8 +205,8 @@ describe 'simpkv adapter anonymous class' do
           options = {
             'backend'  => 'test',
             'backends' => {
-              'test1' => { 'id' => 'test', 'type' => 'consul' }
-            }
+              'test1' => { 'id' => 'test', 'type' => 'consul' },
+            },
           }
           expect { @adapter.plugin_instance(options) }
             .to raise_error(%r{Malformed backend config})
@@ -217,8 +217,8 @@ describe 'simpkv adapter anonymous class' do
             'backend' => 'test',
             'backends' => {
               'test1' => { 'id' => 'test', 'type' => 'consul' },
-              'test'  => {}
-            }
+              'test'  => {},
+            },
           }
           expect { @adapter.plugin_instance(options) }
             .to raise_error(%r{Malformed backend config})
@@ -229,8 +229,8 @@ describe 'simpkv adapter anonymous class' do
             'backend'  => 'test',
             'backends' => {
               'test1' => { 'id' => 'test', 'type' => 'consul' },
-              'test'  => { 'id' => 'test' }
-            }
+              'test'  => { 'id' => 'test' },
+            },
           }
           expect { @adapter.plugin_instance(options) }
             .to raise_error(%r{Malformed backend config})
@@ -241,8 +241,8 @@ describe 'simpkv adapter anonymous class' do
             'backend'  => 'test',
             'backends' => {
               'test1' => { 'id' => 'test', 'type' => 'consul' },
-              'test'  => { 'id' => 'test', 'type' => 'filex' }
-            }
+              'test'  => { 'id' => 'test', 'type' => 'filex' },
+            },
           }
           expect { @adapter.plugin_instance(options) }
             .to raise_error(%r{Malformed backend config})
@@ -408,7 +408,7 @@ describe 'simpkv adapter anonymous class' do
         expect(@adapter.get(key, @options_file))
           .to eq({
                    result: { value: value, metadata: metadata },
-            err_msg: nil
+            err_msg: nil,
                  })
       end
 
@@ -445,9 +445,9 @@ describe 'simpkv adapter anonymous class' do
                      keys: {
                        File.basename(key) => { value: value, metadata: metadata },
                      },
-                     folders: [ 'app1' ]
+                     folders: [ 'app1' ],
                    },
-            err_msg: nil
+            err_msg: nil,
                  })
       end
 
@@ -457,9 +457,9 @@ describe 'simpkv adapter anonymous class' do
           .to eq({
                    result: {
                      keys: {},
-                     folders: [ 'my' ]
+                     folders: [ 'my' ],
                    },
-            err_msg: nil
+            err_msg: nil,
                  })
       end
 
@@ -471,9 +471,9 @@ describe 'simpkv adapter anonymous class' do
           .to eq({
                    result: {
                      keys: {},
-                     folders: [ 'production' ]
+                     folders: [ 'production' ],
                    },
-            err_msg: nil
+            err_msg: nil,
                  })
       end
 

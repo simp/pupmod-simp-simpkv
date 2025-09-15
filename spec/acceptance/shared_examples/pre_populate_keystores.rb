@@ -18,7 +18,7 @@ shared_examples 'pre-populate keystores' do |host|
   context "ensure keystores are pre-populated with initial keys on #{host}" do
     let(:hieradata) do
       backend_hiera.merge({
-                            'simpkv_test::store_keys::key_info' => initial_key_info
+                            'simpkv_test::store_keys::key_info' => initial_key_info,
                           })
     end
 

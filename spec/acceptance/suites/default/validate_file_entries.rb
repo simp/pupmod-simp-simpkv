@@ -97,13 +97,13 @@ def validate_file_key_entry_present(key, key_type, key_data, config, host)
           "Data for #{key} did not match expected:",
           "  Expected: #{expected_key_string}",
           "  Actual:   #{result.stdout}",
-        ].join("\n")
+        ].join("\n"),
       }
     end
   else
     result = {
       success: false,
-      err_msg: "Validation of #{key} presence failed: Could not find #{key_path}"
+      err_msg: "Validation of #{key} presence failed: Could not find #{key_path}",
     }
   end
 
@@ -134,7 +134,7 @@ def validate_file_key_entry_absent(key, key_type, config, host)
   if result.exit_code == 0
     result = {
       success: false,
-      err_msg: "Validation of #{key} absence failed: Found #{key_path}"
+      err_msg: "Validation of #{key} absence failed: Found #{key_path}",
     }
   end
 
