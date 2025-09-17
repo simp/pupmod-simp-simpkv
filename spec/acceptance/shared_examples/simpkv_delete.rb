@@ -45,53 +45,52 @@ shared_examples 'simpkv::delete tests' do |host|
     #
     # Hashes are subsets of initial_key_info
     #
-    let(:test_key_infos) {
+    let(:test_key_infos) do
       key_infos = split_key_info(initial_key_info, 2)
 
-      if key_infos[0].empty? or key_infos[1].empty?
-        raise("Unable to split the initial_key_info into two non-empty Hashes. Data provided is too sparse")
+      if key_infos[0].empty? || key_infos[1].empty?
+        raise('Unable to split the initial_key_info into two non-empty Hashes. Data provided is too sparse')
       end
 
       {
-        :remove => key_infos[0],
-        :retain => key_infos[1]
+        remove: key_infos[0],
+        retain: key_infos[1],
       }
-    }
+    end
 
     let(:remove_manifest) { 'include simpkv_test::remove_keys' }
-    let(:remove_hieradata) {
-      backend_hiera.merge( {
-        'simpkv_test::remove_keys::keyname_info' => to_keyname_info(test_key_infos[:remove])
-      } )
-    }
+    let(:remove_hieradata) do
+      backend_hiera.merge({
+                            'simpkv_test::remove_keys::keyname_info' => to_keyname_info(test_key_infos[:remove]),
+                          })
+    end
 
     let(:verify_manifest) { 'include simpkv_test::retrieve_and_verify_keys' }
-    let(:verify_hieradata) {
-      backend_hiera.merge( {
-        'simpkv_test::retrieve_and_verify_keys::valid_key_info'   => test_key_infos[:retain],
-        'simpkv_test::retrieve_and_verify_keys::invalid_key_info' => test_key_infos[:remove]
-      } )
-    }
+    let(:verify_hieradata) do
+      backend_hiera.merge({
+                            'simpkv_test::retrieve_and_verify_keys::valid_key_info' => test_key_infos[:retain],
+        'simpkv_test::retrieve_and_verify_keys::invalid_key_info' => test_key_infos[:remove],
+                          })
+    end
 
-    it 'should call simpkv::delete with valid keys without errors' do
+    it 'calls simpkv::delete with valid keys without errors' do
       set_hiera_and_apply_on(host, remove_hieradata, remove_manifest,
-        { :catch_failures => true })
+        { catch_failures: true })
     end
 
-    it 'should retain only untouched keys in backends' do
-      expect( validator.call(test_key_infos[:retain], true, backend_hiera, host) ).to be true
-      expect( validator.call(test_key_infos[:remove], false, backend_hiera, host) ).to be true
+    it 'retains only untouched keys in backends' do
+      expect(validator.call(test_key_infos[:retain], true, backend_hiera, host)).to be true
+      expect(validator.call(test_key_infos[:remove], false, backend_hiera, host)).to be true
     end
 
-    it 'should only be able to retrieve untouched keys via simpkv::get' do
+    it 'onlies be able to retrieve untouched keys via simpkv::get' do
       set_hiera_and_apply_on(host, verify_hieradata, verify_manifest,
-        { :catch_failures => true })
+        { catch_failures: true })
     end
 
-    it 'should call simpkv::delete with invalid keys without errors' do
+    it 'calls simpkv::delete with invalid keys without errors' do
       set_hiera_and_apply_on(host, remove_hieradata, remove_manifest,
-        { :catch_failures => true })
+        { catch_failures: true })
     end
   end
 end
-

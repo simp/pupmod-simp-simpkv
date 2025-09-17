@@ -38,12 +38,11 @@ def validate_file_entries(key_info, keys_should_exist, backend_hiera, host)
     config = backend_config_for_app_id(app_id, 'file', backend_hiera)
     key_struct.each do |key_type, keys|
       keys.each do |key, key_data|
-        result = {}
-        if keys_should_exist
-          result = validate_file_key_entry_present(key, key_type, key_data, config, host)
-        else
-          result = validate_file_key_entry_absent(key, key_type, config, host)
-        end
+        result = if keys_should_exist
+                   validate_file_key_entry_present(key, key_type, key_data, config, host)
+                 else
+                   validate_file_key_entry_absent(key, key_type, config, host)
+                 end
 
         unless result[:success]
           errors << result[:err_msg]
@@ -52,7 +51,7 @@ def validate_file_entries(key_info, keys_should_exist, backend_hiera, host)
     end
   end
 
-  if errors.size == 0
+  if errors.empty?
     true
   else
     warn('Validation Failures:')
@@ -85,26 +84,26 @@ end
 #   * :err_msg - error message upon failure or nil otherwise
 #
 def validate_file_key_entry_present(key, key_type, key_data, config, host)
-  result = { :success => true }
+  result = { success: true }
 
   key_path = filesystem_key_path(key, key_type, config)
-  cmd_result = on(host, "cat #{key_path}", :accept_all_exit_codes => true)
+  cmd_result = on(host, "cat #{key_path}", accept_all_exit_codes: true)
   if cmd_result.exit_code == 0
     expected_key_string = key_data_string(key_data)
     if cmd_result.stdout.strip != expected_key_string
       result = {
-        :success => false,
-        :err_msg => [
+        success: false,
+        err_msg: [
           "Data for #{key} did not match expected:",
           "  Expected: #{expected_key_string}",
-          "  Actual:   #{result.stdout}"
-        ].join("\n")
+          "  Actual:   #{result.stdout}",
+        ].join("\n"),
       }
     end
   else
     result = {
-      :success => false,
-      :err_msg => "Validation of #{key} presence failed: Could not find #{key_path}"
+      success: false,
+      err_msg: "Validation of #{key} presence failed: Could not find #{key_path}",
     }
   end
 
@@ -128,14 +127,14 @@ end
 #   * :err_msg - error message upon failure or nil otherwise
 #
 def validate_file_key_entry_absent(key, key_type, config, host)
-  result = { :success => true }
+  result = { success: true }
 
   key_path = filesystem_key_path(key, key_type, config)
-  cmd_result = on(host, "ls -l #{key_path}", :accept_all_exit_codes => true)
+  on(host, "ls -l #{key_path}", accept_all_exit_codes: true)
   if result.exit_code == 0
     result = {
-      :success => false,
-      :err_msg => "Validation of #{key} absence failed: Found #{key_path}"
+      success: false,
+      err_msg: "Validation of #{key} absence failed: Found #{key_path}",
     }
   end
 

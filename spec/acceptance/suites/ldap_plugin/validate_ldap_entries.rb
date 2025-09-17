@@ -32,7 +32,7 @@ include Acceptance::Helpers::Utils
 #   cannot be found in backend_hiera
 #
 def validate_ldap_entries(key_info, keys_should_exist, backend_hiera, host)
-  #TODO: Make the iteration through keys and backend config selection part
+  # TODO: Make the iteration through keys and backend config selection part
   #      of the test infrastructure instead of having this code replicated
   #      in each plugin-provided validator
   #
@@ -41,12 +41,11 @@ def validate_ldap_entries(key_info, keys_should_exist, backend_hiera, host)
     config = backend_config_for_app_id(app_id, 'ldap', backend_hiera)
     key_struct.each do |key_type, keys|
       keys.each do |key, key_data|
-        result = {}
-        if keys_should_exist
-          result = validate_ldap_key_entry_present(key, key_type, key_data, config, host)
-        else
-          result = validate_ldap_key_entry_absent(key, key_type, config, host)
-        end
+        result = if keys_should_exist
+                   validate_ldap_key_entry_present(key, key_type, key_data, config, host)
+                 else
+                   validate_ldap_key_entry_absent(key, key_type, config, host)
+                 end
 
         unless result[:success]
           errors << result[:err_msg]
@@ -55,7 +54,7 @@ def validate_ldap_entries(key_info, keys_should_exist, backend_hiera, host)
     end
   end
 
-  if errors.size == 0
+  if errors.empty?
     true
   else
     warn('Validation Failures:')
@@ -87,27 +86,27 @@ end
 #   * :err_msg - error message upon failure or nil otherwise
 #
 def validate_ldap_key_entry_present(key, key_type, key_data, config, host)
-  result = { :success => true }
+  result = { success: true }
 
   full_path = ldap_key_path(key, key_type, config)
   dn = build_key_dn(full_path, config['base_dn'])
   cmd = build_ldapsearch_cmd(dn, config, false)
-  cmd_result = on(host, cmd, :accept_all_exit_codes => true)
+  cmd_result = on(host, cmd, accept_all_exit_codes: true)
   if cmd_result.stdout.match(%r{^dn: .*#{dn}}).nil?
     result = {
-      :success => false,
-      :err_msg => "Validation of #{key} presence failed: Could not find #{dn}"
+      success: false,
+      err_msg: "Validation of #{key} presence failed: Could not find #{dn}",
     }
   else
     expected_key_string = key_data_string(key_data)
-    if cmd_result.stdout.match(/simpkvJsonValue: #{Regexp.escape(expected_key_string)}/).nil?
+    if cmd_result.stdout.match(%r{simpkvJsonValue: #{Regexp.escape(expected_key_string)}}).nil?
       result = {
-        :success => false,
-        :err_msg => [
+        success: false,
+        err_msg: [
           "Data for #{key} did not match expected:",
           "  Expected: simpkvJsonValue: #{expected_key_string}",
-          "  Actual:   #{result.stdout}"
-        ].join("\n")
+          "  Actual:   #{result.stdout}",
+        ].join("\n"),
       }
     end
   end
@@ -131,16 +130,16 @@ end
 #   * :err_msg - error message upon failure or nil otherwise
 #
 def validate_ldap_key_entry_absent(key, key_type, config, host)
-  result = { :success => true }
+  result = { success: true }
 
   full_path = ldap_key_path(key, key_type, config)
   dn = build_key_dn(full_path, config['base_dn'])
   cmd = build_ldapsearch_cmd(dn, config, true)
-  cmd_result = on(host, cmd, :accept_all_exit_codes => true)
+  cmd_result = on(host, cmd, accept_all_exit_codes: true)
   unless cmd_result.exit_code == 32 # No such object
     result = {
-      :success => false,
-      :err_msg => "Validation of #{key} absence failed: Found #{dn}:\n#{result.stdout}"
+      success: false,
+      err_msg: "Validation of #{key} absence failed: Found #{dn}:\n#{result.stdout}",
     }
   end
 
@@ -170,12 +169,12 @@ def build_ldapsearch_cmd(dn, config, existence_only)
     '-s base',
     "-b #{dn}",
 
-    # TODO switch to ldif_wrap when we drop support for EL7
+    # TODO: switch to ldif_wrap when we drop support for EL7
     # - EL7 only supports ldif-wrap
     # - EL8 says it supports ldif_wrap (--help and man page), but actually
     #   accepts ldif-wrap or ldif_wrap
     '-o "ldif-wrap=no"',
     '-LLL',
-    existence_only ? '1.1' : ''
+    existence_only ? '1.1' : '',
   ].join(' ')
 end

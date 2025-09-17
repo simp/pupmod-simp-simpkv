@@ -38,49 +38,49 @@
 #
 shared_examples 'simpkv::put tests' do |host|
   context "ensure empty keystore(s) on #{host}" do
-    it 'should remove all backend instance data' do
-      on(host, clear_data_cmd, :accept_all_exit_codes => true)
+    it 'removes all backend instance data' do
+      on(host, clear_data_cmd, accept_all_exit_codes: true)
     end
   end
 
   context "simpkv::put operation on #{host}" do
-    let(:hieradata) {
-      backend_hiera.merge( {
-        'simpkv_test::store_keys::key_info' => initial_key_info
-      } )
-    }
+    let(:hieradata) do
+      backend_hiera.merge({
+                            'simpkv_test::store_keys::key_info' => initial_key_info,
+                          })
+    end
 
     let(:updated_key_info) { modify_key_data(initial_key_info) }
-    let(:updated_hieradata) {
-      backend_hiera.merge( {
-        'simpkv_test::store_keys::key_info' => updated_key_info
-      } )
-    }
+    let(:updated_hieradata) do
+      backend_hiera.merge({
+                            'simpkv_test::store_keys::key_info' => updated_key_info,
+                          })
+    end
 
     let(:manifest) { 'include simpkv_test::store_keys' }
 
-    it 'should call simpkv::put without errors' do
-      set_hiera_and_apply_on(host, hieradata, manifest, { :catch_failures => true })
+    it 'calls simpkv::put without errors' do
+      set_hiera_and_apply_on(host, hieradata, manifest, { catch_failures: true })
     end
 
-    it 'should store the keys in the configured backends' do
-      expect( validator.call(initial_key_info, true, backend_hiera, host) ).to be true
+    it 'stores the keys in the configured backends' do
+      expect(validator.call(initial_key_info, true, backend_hiera, host)).to be true
     end
 
-    it 'should call simpkv::put without errors when keys already exist with same value' do
-      apply_manifest_on(host, manifest, :catch_failures => true)
+    it 'calls simpkv::put without errors when keys already exist with same value' do
+      apply_manifest_on(host, manifest, catch_failures: true)
     end
 
-    it 'should retain the keys in the configured backends' do
-      expect( validator.call(initial_key_info, true, backend_hiera, host) ).to be true
+    it 'retains the keys in the configured backends' do
+      expect(validator.call(initial_key_info, true, backend_hiera, host)).to be true
     end
 
-    it 'should call simpkv::put without errors when keys already exist with different values' do
-      set_hiera_and_apply_on(host, updated_hieradata, manifest, { :catch_failures => true })
+    it 'calls simpkv::put without errors when keys already exist with different values' do
+      set_hiera_and_apply_on(host, updated_hieradata, manifest, { catch_failures: true })
     end
 
-    it 'should update the keys in the configured backends' do
-      expect( validator.call(updated_key_info, true, backend_hiera, host) ).to be true
+    it 'updates the keys in the configured backends' do
+      expect(validator.call(updated_key_info, true, backend_hiera, host)).to be true
     end
   end
 end

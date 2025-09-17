@@ -19,7 +19,7 @@ describe 'ldap_plugin errors' do
   let(:ldap_without_tls) { ldap_instances['simp_data_without_tls'] }
 
   # key will go to the default backend
-  let(:manifest) { %Q{simpkv::put('mykey', "Value for mykey", {})} }
+  let(:manifest) { %{simpkv::put('mykey', "Value for mykey", {})} }
   let(:new_pki_certs_dir) { '/etc/pki/simp-testing-new' }
 
   context 'TLS error test prep' do
@@ -44,25 +44,25 @@ describe 'ldap_plugin errors' do
       let(:server_fqdn) { fact_on(server, 'fqdn').strip }
       let(:valid_ldaps_uri)         { "ldaps://#{server_fqdn}:#{ldap_with_tls[:secure_port]}" }
       let(:valid_ldap_uri)          { "ldap://#{server_fqdn}:#{ldap_without_tls[:port]}" }
-      let(:failed_regex)  {
+      let(:failed_regex) do
         # The full failure message tells the user the ldapsearch command that failed
         # and its error messages, so that the user doesn't have to apply the manifest
         # with --debug to figure out what is going on!
         %r{Unable to construct 'ldap/default': Plugin could not access ou=simpkv,o=puppet,dc=simp.*ldapsearch}
-      }
+      end
 
       hosts_with_role(hosts, 'client').each do |client|
         context "with LDAP client #{client}" do
-
           # valid backend config for ldap
-          let(:valid_ldap_config) {{
-            'type'          => 'ldap',
-            'ldap_uri'      => valid_ldap_uri,
-            'base_dn'       => ldap_without_tls[:simpkv_base_dn],
-            'admin_dn'      => ldap_without_tls[:admin_dn],
-            'admin_pw_file' => ldap_without_tls[:admin_pw_file]
-          }}
-
+          let(:valid_ldap_config) do
+            {
+              'type' => 'ldap',
+           'ldap_uri'      => valid_ldap_uri,
+           'base_dn'       => ldap_without_tls[:simpkv_base_dn],
+           'admin_dn'      => ldap_without_tls[:admin_dn],
+           'admin_pw_file' => ldap_without_tls[:admin_pw_file],
+            }
+          end
 
           context 'with LDAP configuration errors' do
             it 'fails to compile when LDAP URI has invalid host' do
@@ -72,9 +72,9 @@ describe 'ldap_plugin errors' do
               backend_hiera = generate_backend_hiera(backend_configs)
 
               result = set_hiera_and_apply_on(client, backend_hiera, manifest,
-                { :expect_failures => true } )
+                { expect_failures: true })
 
-              expect( result.stderr ).to match(failed_regex)
+              expect(result.stderr).to match(failed_regex)
             end
 
             it 'fails to compile when LDAP URI has invalid port' do
@@ -85,10 +85,10 @@ describe 'ldap_plugin errors' do
               backend_configs = { 'default' => invalid_config }
               backend_hiera = generate_backend_hiera(backend_configs)
 
-              result =set_hiera_and_apply_on(client, backend_hiera, manifest,
-                { :expect_failures => true } )
+              result = set_hiera_and_apply_on(client, backend_hiera, manifest,
+                { expect_failures: true })
 
-              expect( result.stderr ).to match(failed_regex)
+              expect(result.stderr).to match(failed_regex)
             end
 
             it 'fails to compile when base DN is invalid' do
@@ -98,21 +98,21 @@ describe 'ldap_plugin errors' do
               backend_hiera = generate_backend_hiera(backend_configs)
 
               result = set_hiera_and_apply_on(client, backend_hiera, manifest,
-                { :expect_failures => true } )
+                { expect_failures: true })
 
-              expect( result.stderr ).to match(failed_regex)
+              expect(result.stderr).to match(failed_regex)
             end
 
             it 'fails to compile when admin DN is invalid' do
-              bad_admin_dn =  valid_ldap_config['admin_dn'] + ',dc=oops'
+              bad_admin_dn = valid_ldap_config['admin_dn'] + ',dc=oops'
               invalid_config = valid_ldap_config.merge({ 'admin_dn' => bad_admin_dn })
               backend_configs = { 'default' => invalid_config }
               backend_hiera = generate_backend_hiera(backend_configs)
 
               result = set_hiera_and_apply_on(client, backend_hiera, manifest,
-                { :expect_failures => true } )
+                { expect_failures: true })
 
-              expect( result.stderr ).to match(failed_regex)
+              expect(result.stderr).to match(failed_regex)
             end
 
             it 'fails to compile when admin password is invalid' do
@@ -126,9 +126,9 @@ describe 'ldap_plugin errors' do
               backend_hiera = generate_backend_hiera(backend_configs)
 
               result = set_hiera_and_apply_on(client, backend_hiera, manifest,
-                { :expect_failures => true } )
+                { expect_failures: true })
 
-              expect( result.stderr ).to match(failed_regex)
+              expect(result.stderr).to match(failed_regex)
             end
 
             it 'fails to compile when TLS certs are invalid' do
@@ -153,9 +153,9 @@ describe 'ldap_plugin errors' do
               backend_hiera = generate_backend_hiera(backend_configs)
 
               result = set_hiera_and_apply_on(client, backend_hiera, manifest,
-                { :expect_failures => true } )
+                { expect_failures: true })
 
-              expect( result.stderr ).to match(failed_regex)
+              expect(result.stderr).to match(failed_regex)
             end
           end
         end

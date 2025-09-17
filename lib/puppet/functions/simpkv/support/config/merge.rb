@@ -29,7 +29,6 @@
 # @author https://github.com/simp/pupmod-simp-simpkv/graphs/contributors
 #
 Puppet::Functions.create_function(:'simpkv::support::config::merge') do
-
   # @param options Hash that specifies simpkv backend options to be merged with
   #   `simpkv::options`.
   #
@@ -51,7 +50,7 @@ Puppet::Functions.create_function(:'simpkv::support::config::merge') do
   def merge(options, backends)
     merged_options = merge_options(options)
     call_function('simpkv::support::config::validate', merged_options, backends)
-    return merged_options
+    merged_options
   end
 
   # merge options; set defaults for 'backend', 'environment', 'global' and
@@ -65,13 +64,13 @@ Puppet::Functions.create_function(:'simpkv::support::config::merge') do
     # deep_merge will not work with frozen options, so make a deep copy
     # (options.dup is a shallow copy of contained Hashes)
     options_dup = Marshal.load(Marshal.dump(options))
-    app_id = options.has_key?('app_id') ? options['app_id'] : 'default'
+    app_id = options.key?('app_id') ? options['app_id'] : 'default'
 
     merged_options = call_function('lookup', 'simpkv::options', { 'default_value' => {} })
     merged_options.deep_merge!(options_dup)
 
     backend_names = [ 'default' ]
-    if merged_options.has_key?('backends')
+    if merged_options.key?('backends')
       # reverse sort by length of string so we get the longest match when using
       # a partial match
       backend_names = merged_options['backends'].keys.sort_by(&:length).reverse
@@ -80,12 +79,12 @@ Puppet::Functions.create_function(:'simpkv::support::config::merge') do
       merged_options['backends'] = {
         'default' => {
           'type' => 'file',
-          'id'   => 'auto_default'
-        }
+          'id'   => 'auto_default',
+        },
       }
     end
 
-    unless merged_options.has_key?('backend')
+    unless merged_options.key?('backend')
       backend = 'default'
       if backend_names.include?(app_id)
         backend = app_id
@@ -100,11 +99,11 @@ Puppet::Functions.create_function(:'simpkv::support::config::merge') do
       merged_options['backend'] = backend
     end
 
-    unless merged_options.has_key?('softfail')
+    unless merged_options.key?('softfail')
       merged_options['softfail'] = false
     end
 
-    unless merged_options.has_key?('global')
+    unless merged_options.key?('global')
       merged_options['global'] = false
     end
 
@@ -113,4 +112,3 @@ Puppet::Functions.create_function(:'simpkv::support::config::merge') do
     merged_options
   end
 end
-

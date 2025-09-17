@@ -16,20 +16,20 @@
 #
 shared_examples 'pre-populate keystores' do |host|
   context "ensure keystores are pre-populated with initial keys on #{host}" do
-    let(:hieradata) {
-      backend_hiera.merge( {
-        'simpkv_test::store_keys::key_info' => initial_key_info
-      } )
-    }
+    let(:hieradata) do
+      backend_hiera.merge({
+                            'simpkv_test::store_keys::key_info' => initial_key_info,
+                          })
+    end
 
     let(:manifest) { 'include simpkv_test::store_keys' }
 
-    it 'should remove all backend instance data' do
-      on(host, clear_data_cmd, :accept_all_exit_codes => true)
+    it 'removes all backend instance data' do
+      on(host, clear_data_cmd, accept_all_exit_codes: true)
     end
 
-    it 'should store keys' do
-      set_hiera_and_apply_on(host, hieradata, manifest, { :catch_failures => true })
+    it 'stores keys' do
+      set_hiera_and_apply_on(host, hieradata, manifest, { catch_failures: true })
     end
   end
 end

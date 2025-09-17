@@ -4,7 +4,6 @@
 # @author https://github.com/simp/pupmod-simp-simpkv/graphs/contributors
 #
 Puppet::Functions.create_function(:'simpkv::get') do
-
   # @param key The key to retrieve. Must conform to the following:
   #
   #   * Key must contain only the following characters:
@@ -113,7 +112,7 @@ Puppet::Functions.create_function(:'simpkv::get') do
     optional_param 'Hash',      :options
   end
 
-  def get(key, options={})
+  def get(key, options = {})
     # key validation difficult to do via a type alias, so validate via function
     call_function('simpkv::support::key::validate', key)
 
@@ -124,11 +123,11 @@ Puppet::Functions.create_function(:'simpkv::get') do
     # and the list of backends for which plugins have been loaded
     begin
       catalog = closure_scope.find_global_scope.catalog
-      merged_options = call_function( 'simpkv::support::config::merge', options,
+      merged_options = call_function('simpkv::support::config::merge', options,
         catalog.simpkv.backends)
     rescue ArgumentError => e
       msg = "simpkv Configuration Error for simpkv::get with key='#{key}': #{e.message}"
-      raise ArgumentError.new(msg)
+      raise ArgumentError, msg
     end
 
     # use simpkv for get operation
@@ -136,12 +135,10 @@ Puppet::Functions.create_function(:'simpkv::get') do
 
     result = backend_result[:result]
     if result.nil?
-      err_msg =  "simpkv Error for simpkv::get with key='#{key}': #{backend_result[:err_msg]}"
-      if merged_options['softfail']
-        Puppet.warning(err_msg)
-      else
-        raise(err_msg)
-      end
+      err_msg = "simpkv Error for simpkv::get with key='#{key}': #{backend_result[:err_msg]}"
+      raise(err_msg) unless merged_options['softfail']
+      Puppet.warning(err_msg)
+
     else
       result = { 'value' => backend_result[:result][:value] }
       unless backend_result[:result][:metadata].empty?
