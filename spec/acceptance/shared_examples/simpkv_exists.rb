@@ -16,7 +16,7 @@
 #     backend_hiera
 #
 shared_examples 'simpkv::exists tests' do |host|
-  include_examples('pre-populate keystores', host)
+  it_behaves_like('pre-populate keystores', host)
 
   context "simpkv::exists operation for keys on #{host}" do
     let(:initial_keyname_info) { to_keyname_info(initial_key_info) }

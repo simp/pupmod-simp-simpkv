@@ -111,16 +111,16 @@ shared_examples 'a simpkv plugin test' do |host|
   # All other simpkv function tests depend upon the keystores being populated
   # by simpkv::put via simpkv_test manifests. So, make sure the simpkv::put
   # operation is verified **first**.
-  include_examples('simpkv::put tests', host)
+  it_behaves_like('simpkv::put tests', host)
 
-  include_examples('simpkv::exists tests', host)
-  include_examples('simpkv::get tests', host)
-  include_examples('simpkv::list tests', host)
+  it_behaves_like('simpkv::exists tests', host)
+  it_behaves_like('simpkv::get tests', host)
+  it_behaves_like('simpkv::list tests', host)
 
   # The simpkv::delete and simpkv::deletetree tests will use simpkv::get and
   # simpkv::list, respectively, as part of their removal verfication. So, make
   # sure these tests come **after** the simpkv:get and simpkv::list operations
   # are verified by their tests.
-  include_examples('simpkv::delete tests', host)
-  include_examples('simpkv::deletetree tests', host)
+  it_behaves_like('simpkv::delete tests', host)
+  it_behaves_like('simpkv::deletetree tests', host)
 end

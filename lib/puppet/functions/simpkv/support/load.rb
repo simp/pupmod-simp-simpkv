@@ -15,7 +15,7 @@ Puppet::Functions.create_function(:'simpkv::support::load') do
     return if catalog.respond_to?(:simpkv)
     # load and instantiate simpkv adapter and then add it as a
     # 'simpkv' attribute to the catalog instance
-    lib_dir = File.dirname(File.dirname(File.dirname(File.dirname(File.dirname(__FILE__.to_s)))))
+    lib_dir = File.dirname(File.dirname(File.dirname(File.dirname(File.dirname(__FILE__)))))
     filename = File.join(lib_dir, 'puppet_x', 'simpkv', 'loader.rb')
     if File.exist?(filename)
       begin

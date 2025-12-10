@@ -13,7 +13,7 @@
 # - Deserializes value data to be retrieved from common JSON format
 # - Delegates actions to appropriate plugin instance
 #
-simp_simpkv_adapter_class = Class.new do
+Class.new do
   require 'base64'
   require 'json'
   require 'pathname'
@@ -65,7 +65,7 @@ simp_simpkv_adapter_class = Class.new do
       Puppet.debug("Loading simpkv plugin from #{filename}")
       begin
         plugin_class = nil
-        self.instance_eval(File.read(filename), filename)
+        instance_eval(File.read(filename), filename)
         plugin_type = File.basename(filename, '_plugin.rb')
         if @plugin_info.key?(plugin_type)
           msg = "Skipping load of simpkv plugin from #{filename}: " \

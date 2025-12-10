@@ -36,7 +36,7 @@
 #                    the keystore resides.
 #
 shared_examples 'simpkv::delete tests' do |host|
-  include_examples('pre-populate keystores', host)
+  it_behaves_like('pre-populate keystores', host)
 
   context "simpkv::delete operation on #{host}" do
     # Hash with two keys:

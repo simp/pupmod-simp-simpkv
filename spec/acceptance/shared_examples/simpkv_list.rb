@@ -17,7 +17,7 @@
 #     backend_hiera
 #
 shared_examples 'simpkv::list tests' do |host|
-  include_examples('pre-populate keystores', host)
+  it_behaves_like('pre-populate keystores', host)
 
   context "simpkv::list operation on #{host}" do
     let(:initial_folder_info) { to_folder_info(initial_key_info) }

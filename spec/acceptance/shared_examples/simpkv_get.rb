@@ -17,7 +17,7 @@
 #     backend_hiera
 #
 shared_examples 'simpkv::get tests' do |host|
-  include_examples('pre-populate keystores', host)
+  it_behaves_like('pre-populate keystores', host)
 
   context "simpkv::get operation on #{host}" do
     let(:hieradata_with_valid_keys) do

@@ -36,7 +36,7 @@
 #                    the keystore resides.
 #
 shared_examples 'simpkv::deletetree tests' do |host|
-  include_examples('pre-populate keystores', host)
+  it_behaves_like('pre-populate keystores', host)
 
   context "simpkv::deletetree operation on #{host}" do
     let(:initial_foldername_info) { to_foldername_info(initial_key_info) }
