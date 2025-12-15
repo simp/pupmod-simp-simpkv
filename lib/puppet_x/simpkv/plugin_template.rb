@@ -44,7 +44,7 @@
 # Each plugin **MUST** be an anonymous class accessible only through
 # a `plugin_class` local variable.
 # DO NOT CHANGE THE LINE BELOW!!!!
-Class.new do
+plugin_class = Class.new do # rubocop:disable Lint/UselessAssignment
   # WARNING:
   # In typical Ruby code, using constants and class methods is quite normal.
   # Unfortunately, you cannot use constants or class methods in an anonymous

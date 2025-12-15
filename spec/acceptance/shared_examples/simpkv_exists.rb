@@ -21,10 +21,10 @@ shared_examples 'simpkv::exists tests' do |host|
   context "simpkv::exists operation for keys on #{host}" do
     let(:initial_keyname_info) { to_keyname_info(initial_key_info) }
     let(:hieradata_with_valid_keys) do
-      backend_hiera.merge({
-                            'simpkv_test::verify_keys_exist::valid_keyname_info'   => initial_keyname_info,
+      backend_hiera.merge(
+        'simpkv_test::verify_keys_exist::valid_keyname_info'   => initial_keyname_info,
         'simpkv_test::verify_keys_exist::invalid_keyname_info' => {},
-                          })
+      )
     end
 
     # copy of initial_key_info for which all key names have been modified
@@ -32,10 +32,10 @@ shared_examples 'simpkv::exists tests' do |host|
     let(:new_keyname_info) { to_keyname_info(new_key_info) }
 
     let(:hieradata_with_invalid_keys) do
-      backend_hiera.merge({
-                            'simpkv_test::verify_keys_exist::valid_keyname_info'   => {},
+      backend_hiera.merge(
+        'simpkv_test::verify_keys_exist::valid_keyname_info'   => {},
         'simpkv_test::verify_keys_exist::invalid_keyname_info' => new_keyname_info,
-                          })
+      )
     end
 
     let(:manifest) { 'include simpkv_test::verify_keys_exist' }
@@ -54,19 +54,19 @@ shared_examples 'simpkv::exists tests' do |host|
   context "simpkv::exists operation for folders on #{host}" do
     let(:initial_foldername_info) { to_foldername_info(initial_key_info) }
     let(:hieradata_with_valid_folders) do
-      backend_hiera.merge({
-                            'simpkv_test::verify_folders_exist::valid_foldername_info'   => initial_foldername_info,
+      backend_hiera.merge(
+        'simpkv_test::verify_folders_exist::valid_foldername_info'   => initial_foldername_info,
         'simpkv_test::verify_folders_exist::invalid_foldername_info' => {},
-                          })
+      )
     end
 
     # copy of inital_foldername_info for which all folder names have been modified
     let(:new_foldername_info) { rename_folders_in_name_info(initial_foldername_info) }
     let(:hieradata_with_invalid_folders) do
-      backend_hiera.merge({
-                            'simpkv_test::verify_folders_exist::valid_foldername_info'   => {},
+      backend_hiera.merge(
+        'simpkv_test::verify_folders_exist::valid_foldername_info'   => {},
         'simpkv_test::verify_folders_exist::invalid_foldername_info' => new_foldername_info,
-                          })
+      )
     end
 
     let(:manifest) { 'include simpkv_test::verify_folders_exist' }

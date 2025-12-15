@@ -13,9 +13,9 @@ describe 'ldap_plugin using ldapi' do
   let(:ldap_uri) { "ldapi://%2fvar%2frun%2fslapd-#{ldap_instance_name}.socket" }
   let(:common_ldap_config) do
     {
-      'type' => 'ldap',
-   'ldap_uri'      => ldap_uri,
-   'base_dn'       => ldap_instance[:simpkv_base_dn],
+      'type'     => 'ldap',
+      'ldap_uri' => ldap_uri,
+      'base_dn'  => ldap_instance[:simpkv_base_dn],
     }
   end
 
@@ -36,10 +36,10 @@ describe 'ldap_plugin using ldapi' do
     backend_configs = {
       id1 => common_ldap_config,
       id2 => common_ldap_config,
-      id3 => common_ldap_config.merge({
-                                        'admin_dn' => ldap_instance[:admin_dn],
+      id3 => common_ldap_config.merge(
+        'admin_dn' => ldap_instance[:admin_dn],
         'admin_pw_file' => ldap_instance[:admin_pw_file],
-                                      }),
+      ),
     }
 
     # will set each 'id' to its corresponding backend name, which

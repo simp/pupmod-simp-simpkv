@@ -66,23 +66,23 @@ shared_examples 'simpkv::deletetree tests' do |host|
 
     let(:remove_manifest) { 'include simpkv_test::remove_folders' }
     let(:remove_subfolders_hieradata) do
-      backend_hiera.merge({
-                            'simpkv_test::remove_folders::foldername_info' => subfolders_to_delete,
-                          })
+      backend_hiera.merge(
+        'simpkv_test::remove_folders::foldername_info' => subfolders_to_delete,
+      )
     end
 
     let(:remove_root_folders_hieradata) do
-      backend_hiera.merge({
-                            'simpkv_test::remove_folders::foldername_info' => root_folders,
-                          })
+      backend_hiera.merge(
+        'simpkv_test::remove_folders::foldername_info' => root_folders,
+      )
     end
 
     let(:verify_manifest) { 'include simpkv_test::retrieve_and_verify_folders' }
     let(:verify_hieradata_after_subfolders_delete) do
-      backend_hiera.merge({
-                            'simpkv_test::retrieve_and_verify_folders::valid_folder_info'   => to_folder_info(test_key_infos_after_subfolder_delete[:retain]),
+      backend_hiera.merge(
+        'simpkv_test::retrieve_and_verify_folders::valid_folder_info'   => to_folder_info(test_key_infos_after_subfolder_delete[:retain]),
         'simpkv_test::retrieve_and_verify_folders::invalid_folder_info' => to_folder_info(test_key_infos_after_subfolder_delete[:remove], true),
-                          })
+      )
     end
 
     let(:verify_empty_backend_folders_hieradata) do
@@ -101,10 +101,10 @@ shared_examples 'simpkv::deletetree tests' do |host|
         global_folder_info[app_id] = { 'global' => Marshal.load(Marshal.dump(empty_folders)) }
       end
 
-      backend_hiera.merge({
-                            'simpkv_test::retrieve_and_verify_folders::valid_folder_info'   => global_folder_info,
+      backend_hiera.merge(
+        'simpkv_test::retrieve_and_verify_folders::valid_folder_info'   => global_folder_info,
         'simpkv_test::retrieve_and_verify_folders::invalid_folder_info' => env_folder_info,
-                          })
+      )
     end
 
     # rubocop:disable RSpec/RepeatedExample

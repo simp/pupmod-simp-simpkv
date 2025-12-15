@@ -32,37 +32,37 @@ describe 'ldap_plugin using unencrypted and encrypted LDAP' do
           let(:ldaps_config) do
             {
               'type'          => 'ldap',
-           'ldap_uri'      => ldaps_uri,
-           'base_dn'       => ldap_with_tls[:simpkv_base_dn],
-           'admin_dn'      => ldap_with_tls[:admin_dn],
-           'admin_pw_file' => ldap_with_tls[:admin_pw_file],
-           'tls_cert'      => tls_cert,
-           'tls_key'       => tls_key,
-           'tls_cacert'    => tls_cacert,
+              'ldap_uri'      => ldaps_uri,
+              'base_dn'       => ldap_with_tls[:simpkv_base_dn],
+              'admin_dn'      => ldap_with_tls[:admin_dn],
+              'admin_pw_file' => ldap_with_tls[:admin_pw_file],
+              'tls_cert'      => tls_cert,
+              'tls_key'       => tls_key,
+              'tls_cacert'    => tls_cacert,
             }
           end
 
           let(:ldap_starttls_config) do
             {
               'type'          => 'ldap',
-           'ldap_uri'      => ldap_starttls_uri,
-           'base_dn'       => ldap_with_tls[:simpkv_base_dn],
-           'admin_dn'      => ldap_with_tls[:admin_dn],
-           'admin_pw_file' => ldap_with_tls[:admin_pw_file],
-           'enable_tls'    => true,
-           'tls_cert'      => tls_cert,
-           'tls_key'       => tls_key,
-           'tls_cacert'    => tls_cacert,
+              'ldap_uri'      => ldap_starttls_uri,
+              'base_dn'       => ldap_with_tls[:simpkv_base_dn],
+              'admin_dn'      => ldap_with_tls[:admin_dn],
+              'admin_pw_file' => ldap_with_tls[:admin_pw_file],
+              'enable_tls'    => true,
+              'tls_cert'      => tls_cert,
+              'tls_key'       => tls_key,
+              'tls_cacert'    => tls_cacert,
             }
           end
 
           let(:ldap_config) do
             {
               'type'          => 'ldap',
-           'ldap_uri'      => ldap_uri,
-           'base_dn'       => ldap_without_tls[:simpkv_base_dn],
-           'admin_dn'      => ldap_without_tls[:admin_dn],
-           'admin_pw_file' => ldap_without_tls[:admin_pw_file],
+              'ldap_uri'      => ldap_uri,
+              'base_dn'       => ldap_without_tls[:simpkv_base_dn],
+              'admin_dn'      => ldap_without_tls[:admin_dn],
+              'admin_pw_file' => ldap_without_tls[:admin_pw_file],
             }
           end
 

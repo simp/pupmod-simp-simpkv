@@ -60,17 +60,17 @@ shared_examples 'simpkv::delete tests' do |host|
 
     let(:remove_manifest) { 'include simpkv_test::remove_keys' }
     let(:remove_hieradata) do
-      backend_hiera.merge({
-                            'simpkv_test::remove_keys::keyname_info' => to_keyname_info(test_key_infos[:remove]),
-                          })
+      backend_hiera.merge(
+        'simpkv_test::remove_keys::keyname_info' => to_keyname_info(test_key_infos[:remove]),
+      )
     end
 
     let(:verify_manifest) { 'include simpkv_test::retrieve_and_verify_keys' }
     let(:verify_hieradata) do
-      backend_hiera.merge({
-                            'simpkv_test::retrieve_and_verify_keys::valid_key_info' => test_key_infos[:retain],
+      backend_hiera.merge(
+        'simpkv_test::retrieve_and_verify_keys::valid_key_info'   => test_key_infos[:retain],
         'simpkv_test::retrieve_and_verify_keys::invalid_key_info' => test_key_infos[:remove],
-                          })
+      )
     end
 
     # rubocop:disable RSpec/RepeatedExample

@@ -1,9 +1,10 @@
+require 'English'
+
 # Plugin implementation of an interface to an LDAP key/value store
 #
 # Each plugin **MUST** be an anonymous class accessible only through
 # a `plugin_class` local variable.
 # DO NOT CHANGE THE LINE BELOW!!!!
-require 'English'
 plugin_class = Class.new do # rubocop:disable Lint/UselessAssignment
   require 'facter'
   require 'pathname'
