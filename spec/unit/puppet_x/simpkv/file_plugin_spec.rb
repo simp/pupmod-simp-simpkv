@@ -52,22 +52,25 @@ def locked_key_file_operation(root_path, key, value)
 end
 
 describe 'simpkv file plugin anonymous class' do
-  before(:each) do
-    @tmpdir = Dir.mktmpdir
-    @root_path = File.join(@tmpdir, 'simpkv', 'file')
-    @options = {
+  let(:tmpdir) { Dir.mktmpdir }
+  let(:root_path) { File.join(tmpdir, 'simpkv', 'file') }
+  let(:plugin_name) { 'file/test' }
+  let(:options) do
+    {
       'backend'  => 'test',
       'backends' => {
         'test' => {
           'id'        => 'test',
           'type'      => 'file',
-          'root_path' => @root_path,
+          'root_path' => root_path,
           'lock_timeout_seconds' => 1,
         },
       },
     }
+  end
+  let(:plugin) { plugin_class.new(plugin_name) }
 
-    @plugin_name = 'file/test'
+  before(:each) do
     allow(Dir).to receive(:exist?).with(any_args).and_call_original
     allow(FileUtils).to receive(:chmod).with(any_args).and_call_original
     allow(FileUtils).to receive(:mkdir_p).with(any_args).and_call_original
@@ -76,41 +79,37 @@ describe 'simpkv file plugin anonymous class' do
   end
 
   after(:each) do
-    FileUtils.remove_entry_secure(@tmpdir)
+    FileUtils.remove_entry_secure(tmpdir)
   end
 
   context 'configure' do
-    before(:each) do
-      @plugin = plugin_class.new(@plugin_name)
-    end
-
     context 'success cases' do
       it 'creates the root_path tree when none exists' do
-        expect { @plugin.configure(@options) }.not_to raise_error
-        expect(Dir.exist?(@root_path)).to be true
-        expect(Dir.exist?(File.join(@root_path, 'globals'))).to be true
-        expect(Dir.exist?(File.join(@root_path, 'environments'))).to be true
+        expect { plugin.configure(options) }.not_to raise_error
+        expect(Dir.exist?(root_path)).to be true
+        expect(Dir.exist?(File.join(root_path, 'globals'))).to be true
+        expect(Dir.exist?(File.join(root_path, 'environments'))).to be true
       end
 
       it 'does not fail if the root_path tree exists' do
-        FileUtils.mkdir_p(@root_path)
-        expect { @plugin.configure(@options) }.not_to raise_error
+        FileUtils.mkdir_p(root_path)
+        expect { plugin.configure(options) }.not_to raise_error
       end
     end
 
     context 'error cases' do
       it 'fails when options is not a Hash' do
-        expect { @plugin.configure('oops') }
+        expect { plugin.configure('oops') }
           .to raise_error(%r{Plugin misconfigured})
       end
 
       it "fails when options missing 'backend' key" do
-        expect { @plugin.configure({}) }
+        expect { plugin.configure({}) }
           .to raise_error(%r{Plugin misconfigured})
       end
 
       it "fails when options missing 'backends' key" do
-        expect { @plugin.configure({}) }
+        expect { plugin.configure({}) }
           .to raise_error(%r{Plugin misconfigured: {}})
       end
 
@@ -119,7 +118,7 @@ describe 'simpkv file plugin anonymous class' do
           'backend'  => 'test',
           'backends' => 'oops',
         }
-        expect { @plugin.configure(options) }
+        expect { plugin.configure(options) }
           .to raise_error(%r{Plugin misconfigured})
       end
 
@@ -130,7 +129,7 @@ describe 'simpkv file plugin anonymous class' do
             'test1' => { 'id' => 'test', 'type' => 'consul' },
           },
         }
-        expect { @plugin.configure(options) }
+        expect { plugin.configure(options) }
           .to raise_error(%r{Plugin misconfigured})
       end
 
@@ -142,7 +141,7 @@ describe 'simpkv file plugin anonymous class' do
             'test'  => {},
           },
         }
-        expect { @plugin.configure(options) }
+        expect { plugin.configure(options) }
           .to raise_error(%r{Plugin misconfigured})
       end
 
@@ -154,7 +153,7 @@ describe 'simpkv file plugin anonymous class' do
             'test'  => { 'id' => 'test' },
           },
         }
-        expect { @plugin.configure(options) }
+        expect { plugin.configure(options) }
           .to raise_error(%r{Plugin misconfigured})
       end
 
@@ -166,7 +165,7 @@ describe 'simpkv file plugin anonymous class' do
             'test'  => { 'id' => 'test', 'type' => 'filex' },
           },
         }
-        expect { @plugin.configure(options) }
+        expect { plugin.configure(options) }
           .to raise_error(%r{Plugin misconfigured})
       end
 
@@ -186,7 +185,7 @@ describe 'simpkv file plugin anonymous class' do
         allow(FileUtils).to receive(:mkdir_p).with('/can/not/be/created')
                                              .and_raise(Errno::EACCES, 'Permission denied')
 
-        expect { @plugin.configure(options) }
+        expect { plugin.configure(options) }
           .to raise_error(%r{Unable to create configured root path})
       end
     end
@@ -194,38 +193,37 @@ describe 'simpkv file plugin anonymous class' do
 
   context 'public simpkv operations API' do
     before(:each) do
-      @plugin = plugin_class.new(@plugin_name)
-      @plugin.configure(@options)
+      plugin.configure(options)
     end
 
     describe 'delete' do
       it 'returns :result=true when the key file does not exist' do
-        expect(@plugin.delete('does/not/exist/key')[:result]).to be true
-        expect(@plugin.delete('does/not/exist/key')[:err_msg]).to be_nil
+        expect(plugin.delete('does/not/exist/key')[:result]).to be true
+        expect(plugin.delete('does/not/exist/key')[:err_msg]).to be_nil
       end
 
       it 'returns :result=true when the key file can be deleted' do
-        key_file = File.join(@root_path, 'key1')
+        key_file = File.join(root_path, 'key1')
         FileUtils.touch(key_file)
-        expect(@plugin.delete('key1')[:result]).to be true
-        expect(@plugin.delete('key1')[:err_msg]).to be_nil
+        expect(plugin.delete('key1')[:result]).to be true
+        expect(plugin.delete('key1')[:err_msg]).to be_nil
         expect(File.exist?(key_file)).to be false
       end
 
       it 'returns :result=false and an :err_msg when the key is a dir not a file' do
         keydir = 'keydir'
-        FileUtils.mkdir_p(File.join(@root_path, keydir))
-        result = @plugin.delete(keydir)
+        FileUtils.mkdir_p(File.join(root_path, keydir))
+        result = plugin.delete(keydir)
         expect(result[:result]).to be false
         expect(result[:err_msg]).to match(%r{Key specifies a folder})
       end
 
       it 'returns :result=false and an :err_msg when the key file delete fails' do
-        key_file = File.join(@root_path, 'key1')
+        key_file = File.join(root_path, 'key1')
         allow(File).to receive(:unlink).with(key_file)
                                        .and_raise(Errno::EACCES, 'Permission denied')
 
-        result = @plugin.delete('key1')
+        result = plugin.delete('key1')
         expect(result[:result]).to be false
         expect(result[:err_msg]).to match(%r{Delete of '.*' failed:})
       end
@@ -233,27 +231,27 @@ describe 'simpkv file plugin anonymous class' do
 
     describe 'deletetree' do
       it 'returns :result=true when the key folder does not exist' do
-        expect(@plugin.deletetree('does/not/exist/folder')[:result]).to be true
-        expect(@plugin.deletetree('does/not/exist/folder')[:err_msg]).to be_nil
+        expect(plugin.deletetree('does/not/exist/folder')[:result]).to be true
+        expect(plugin.deletetree('does/not/exist/folder')[:err_msg]).to be_nil
       end
 
       it 'returns :result=true when the key folder can be deleted' do
-        key_dir = File.join(@root_path, 'production')
+        key_dir = File.join(root_path, 'production')
         FileUtils.mkdir_p(key_dir)
         FileUtils.touch(File.join(key_dir, 'key1'))
         FileUtils.touch(File.join(key_dir, 'key2'))
-        expect(@plugin.deletetree('production')[:result]).to be true
-        expect(@plugin.deletetree('production')[:err_msg]).to be_nil
+        expect(plugin.deletetree('production')[:result]).to be true
+        expect(plugin.deletetree('production')[:err_msg]).to be_nil
         expect(Dir.exist?(key_dir)).to be false
       end
 
       it 'returns :result=false and an :err_msg when the key folder delete fails' do
-        key_dir = File.join(@root_path, 'production/gen_passwd')
+        key_dir = File.join(root_path, 'production/gen_passwd')
         FileUtils.mkdir_p(key_dir)
         allow(FileUtils).to receive(:rm_r).with(key_dir)
                                           .and_raise(Errno::EACCES, 'Permission denied')
 
-        result = @plugin.deletetree('production/gen_passwd')
+        result = plugin.deletetree('production/gen_passwd')
         expect(result[:result]).to be false
         expect(result[:err_msg]).to match(%r{Folder delete of '.*' failed:})
       end
@@ -261,23 +259,23 @@ describe 'simpkv file plugin anonymous class' do
 
     describe 'exists' do
       it 'returns :result=false when the key does not exist or is inaccessible' do
-        result = @plugin.exists('does/not/exist/key')
+        result = plugin.exists('does/not/exist/key')
         expect(result[:result]).to be false
         expect(result[:err_msg]).to be_nil
       end
 
       it 'returns :result=true when the key file exists and is accessible' do
-        key_file = File.join(@root_path, 'key1')
+        key_file = File.join(root_path, 'key1')
         FileUtils.touch(key_file)
-        result = @plugin.exists('key1')
+        result = plugin.exists('key1')
         expect(result[:result]).to be true
         expect(result[:err_msg]).to be_nil
       end
 
       it 'returns :result=true when the key folder exists and is accessible' do
-        key_folder = File.join(@root_path, 'app1')
+        key_folder = File.join(root_path, 'app1')
         FileUtils.mkdir_p(key_folder)
-        result = @plugin.exists('app1')
+        result = plugin.exists('app1')
         expect(result[:result]).to be true
         expect(result[:err_msg]).to be_nil
       end
@@ -285,24 +283,24 @@ describe 'simpkv file plugin anonymous class' do
 
     describe 'get' do
       it 'returns set :result when the key file exists and is accessible' do
-        key_file = File.join(@root_path, 'key1')
+        key_file = File.join(root_path, 'key1')
         value = 'value for key1'
         File.open(key_file, 'w') { |file| file.write(value) }
-        result = @plugin.get('key1')
+        result = plugin.get('key1')
         expect(result[:result]).to eq value
         expect(result[:err_msg]).to be_nil
       end
 
       it 'returns unset :result and an :err_msg when the key is a dir not a file' do
         keydir = 'keydir'
-        FileUtils.mkdir_p(File.join(@root_path, keydir))
-        result = @plugin.get(keydir)
+        FileUtils.mkdir_p(File.join(root_path, keydir))
+        result = plugin.get(keydir)
         expect(result[:result]).to be_nil
         expect(result[:err_msg]).to match(%r{Key specifies a folder})
       end
 
       it 'returns an unset :result and an :err_msg when the key file does not exist' do
-        result = @plugin.get('does/not/exist/key')
+        result = plugin.get('does/not/exist/key')
         expect(result[:result]).to be_nil
         expect(result[:err_msg]).to match(%r{Key not found})
       end
@@ -310,25 +308,25 @@ describe 'simpkv file plugin anonymous class' do
       it 'returns an unset :result and an :err_msg when times out waiting for key lock' do
         key = 'key1'
         value = 'value for key1'
-        locked_key_file_operation(@root_path, key, value) do
+        locked_key_file_operation(root_path, key, value) do
           puts "     >> Executing plugin get() for '#{key}'"
-          result = @plugin.get(key)
+          result = plugin.get(key)
           expect(result[:result]).to be_nil
           expect(result[:err_msg]).to match(%r{Timed out waiting for lock of key file})
         end
 
         # just to be sure lock is appropriately cleared...
-        result = @plugin.get(key)
+        result = plugin.get(key)
         expect(result[:result]).not_to be_nil
         expect(result[:err_msg]).to be_nil
       end
 
       it 'returns an unset :result and an :err_msg when the key file exists but is not accessible' do
         # mock a key file that is inaccessible
-        key_file = File.join(@root_path, 'production/key1')
+        key_file = File.join(root_path, 'production/key1')
         allow(File).to receive(:open).with(key_file, 'r')
                                      .and_raise(Errno::EACCES, 'Permission denied')
-        result = @plugin.get('production/key1')
+        result = plugin.get('production/key1')
         expect(result[:result]).to be_nil
         expect(result[:err_msg]).to match(%r{Cannot read '#{Regexp.escape(key_file)}'})
       end
@@ -337,9 +335,9 @@ describe 'simpkv file plugin anonymous class' do
     # using plugin's put() in this test, because it is fully tested below
     describe 'list' do
       it 'returns an empty :result when key folder is empty' do
-        key_dir = File.join(@root_path, 'production')
+        key_dir = File.join(root_path, 'production')
         FileUtils.mkdir_p(key_dir)
-        result = @plugin.list('production')
+        result = plugin.list('production')
         expect(result[:result]).to eq({ keys: {}, folders: [] })
         expect(result[:err_msg]).to be_nil
       end
@@ -356,9 +354,9 @@ describe 'simpkv file plugin anonymous class' do
             'app2',
           ],
         }
-        expected[:keys].each { |key, value| @plugin.put("production/#{key}", value) }
-        expected[:folders].each { |folder| @plugin.put("production/#{folder}/key", "#{folder}/key value") }
-        result = @plugin.list('production')
+        expected[:keys].each { |key, value| plugin.put("production/#{key}", value) }
+        expected[:folders].each { |folder| plugin.put("production/#{folder}/key", "#{folder}/key value") }
+        result = plugin.list('production')
         expect(result[:result]).to eq(expected)
         expect(result[:err_msg]).to be_nil
       end
@@ -371,19 +369,19 @@ describe 'simpkv file plugin anonymous class' do
           },
           folders: [],
         }
-        expected[:keys].each { |key, value| @plugin.put("production/#{key}", value) }
+        expected[:keys].each { |key, value| plugin.put("production/#{key}", value) }
 
         # create a file for 'production/key2', but make it inaccessible via a lock
-        locked_key_file_operation(@root_path, 'production/key2', 'value for key2') do
+        locked_key_file_operation(root_path, 'production/key2', 'value for key2') do
           puts "     >> Executing plugin list() for 'production'"
-          result = @plugin.list('production')
+          result = plugin.list('production')
           expect(result[:result]).to eq(expected)
           expect(result[:err_msg]).to be_nil
         end
       end
 
       it 'returns an unset :result and an :err_msg when key folder does not exist or is inaccessible' do
-        result = @plugin.list('production')
+        result = plugin.list('production')
         expect(result[:result]).to be_nil
         expect(result[:err_msg]).to match(%r{Key folder '.*' not found})
       end
@@ -391,7 +389,7 @@ describe 'simpkv file plugin anonymous class' do
 
     describe 'name' do
       it 'returns configured name' do
-        expect(@plugin.name).to eq @plugin_name
+        expect(plugin.name).to eq plugin_name
       end
     end
 
@@ -401,48 +399,48 @@ describe 'simpkv file plugin anonymous class' do
       it 'returns :result=true when the key file does not exist for a simple key' do
         key = 'key1'
         value = 'value for key1'
-        result = @plugin.put(key, value)
+        result = plugin.put(key, value)
         expect(result[:result]).to be true
         expect(result[:err_msg]).to be_nil
-        expect(@plugin.get(key)[:result]).to eq value
-        key_file = File.join(@root_path, key)
+        expect(plugin.get(key)[:result]).to eq value
+        key_file = File.join(root_path, key)
         expect(File.stat(key_file).mode & 0o777).to eq 0o660
       end
 
       it 'returns :result=true when the key file does not exist for a complex key' do
         key = 'production/gen_passwd/key1'
         value = 'value for key1'
-        result = @plugin.put(key, value)
+        result = plugin.put(key, value)
         expect(result[:result]).to be true
         expect(result[:err_msg]).to be_nil
-        expect(@plugin.get(key)[:result]).to eq value
-        key_file = File.join(@root_path, key)
+        expect(plugin.get(key)[:result]).to eq value
+        key_file = File.join(root_path, key)
         expect(File.stat(key_file).mode & 0o777).to eq 0o660
-        expect(File.stat(File.join(@root_path, 'production')).mode & 0o777).to eq 0o770
-        expect(File.stat(File.join(@root_path, 'production', 'gen_passwd')).mode & 0o777).to eq 0o770
+        expect(File.stat(File.join(root_path, 'production')).mode & 0o777).to eq 0o770
+        expect(File.stat(File.join(root_path, 'production', 'gen_passwd')).mode & 0o777).to eq 0o770
       end
 
       it 'fixes permissions and return :result=true when the key file exists and is owned by user' do
         key = 'key1'
-        key_file = File.join(@root_path, key)
+        key_file = File.join(root_path, key)
         FileUtils.touch(key_file)
         FileUtils.chmod(0o640, key_file)
 
         value1 = 'value for key1 which is longer than second value'
         value2 = 'second value for key1'
         value3 = 'third value for key1 which is longer than second value'
-        @plugin.put(key, value1)
+        plugin.put(key, value1)
         expect(File.stat(key_file).mode & 0o777).to eq 0o660
 
-        result = @plugin.put(key, value2)
+        result = plugin.put(key, value2)
         expect(result[:result]).to be true
         expect(result[:err_msg]).to be_nil
-        expect(@plugin.get(key)[:result]).to eq value2
+        expect(plugin.get(key)[:result]).to eq value2
 
-        result = @plugin.put(key, value3)
+        result = plugin.put(key, value3)
         expect(result[:result]).to be true
         expect(result[:err_msg]).to be_nil
-        expect(@plugin.get(key)[:result]).to eq value3
+        expect(plugin.get(key)[:result]).to eq value3
       end
 
       it 'returns :result=false and an :err_msg when times out waiting for key lock' do
@@ -450,25 +448,25 @@ describe 'simpkv file plugin anonymous class' do
         value1 = 'first value for key1'
         value2 = 'second value for key1'
 
-        locked_key_file_operation(@root_path, key, value1) do
+        locked_key_file_operation(root_path, key, value1) do
           puts "     >> Executing plugin.put() for '#{key}'"
-          result = @plugin.put(key, value2)
+          result = plugin.put(key, value2)
           expect(result[:result]).to be false
           expect(result[:err_msg]).to match(%r{Timed out waiting for lock of key file})
         end
 
         # just to be sure lock is appropriately cleared...
-        result = @plugin.put(key, value2)
+        result = plugin.put(key, value2)
         expect(result[:result]).to be true
         expect(result[:err_msg]).to be_nil
       end
 
       it 'returns :result=false an an :err_msg when the key file cannot be created' do
-        key_file = File.join(@root_path, 'key')
+        key_file = File.join(root_path, 'key')
         allow(File).to receive(:open).with(key_file, File::RDWR | File::CREAT)
                                      .and_raise(Errno::EACCES, 'Permission denied')
 
-        result = @plugin.put('key', 'value')
+        result = plugin.put('key', 'value')
         expect(result[:result]).to be false
         expect(result[:err_msg]).to match(%r{Cannot write to '#{Regexp.escape(key_file)}'})
       end
@@ -477,17 +475,16 @@ describe 'simpkv file plugin anonymous class' do
 
   context 'internal methods' do
     before(:each) do
-      @plugin = plugin_class.new(@plugin_name)
-      @plugin.configure(@options)
+      plugin.configure(options)
     end
 
     describe 'ensure_folder_path' do
       it 'creates folder path with correct permissions when not present' do
-        @plugin.ensure_folder_path('some/folder/path')
+        plugin.ensure_folder_path('some/folder/path')
         [
-          File.join(@root_path, 'some'),
-          File.join(@root_path, 'some', 'folder'),
-          File.join(@root_path, 'some', 'folder', 'path'),
+          File.join(root_path, 'some'),
+          File.join(root_path, 'some', 'folder'),
+          File.join(root_path, 'some', 'folder', 'path'),
         ].each do |path|
           expect(Dir.exist?(path)).to be true
           stat = File.stat(path)
@@ -496,11 +493,11 @@ describe 'simpkv file plugin anonymous class' do
       end
 
       it 'creates missing subdirs of folder path' do
-        FileUtils.mkdir(File.join(@root_path, 'some'))
-        @plugin.ensure_folder_path('some/folder/path')
+        FileUtils.mkdir(File.join(root_path, 'some'))
+        plugin.ensure_folder_path('some/folder/path')
         [
-          File.join(@root_path, 'some', 'folder'),
-          File.join(@root_path, 'some', 'folder', 'path'),
+          File.join(root_path, 'some', 'folder'),
+          File.join(root_path, 'some', 'folder', 'path'),
         ].each do |path|
           expect(Dir.exist?(path)).to be true
           stat = File.stat(path)
@@ -509,22 +506,22 @@ describe 'simpkv file plugin anonymous class' do
       end
 
       it 'calls verify_dir_access on existing subdirs of folder path' do
-        FileUtils.mkdir_p(File.join(@root_path, 'some', 'folder', 'path'))
-        allow(@plugin).to receive(:verify_dir_access).with(any_args).and_call_original
+        FileUtils.mkdir_p(File.join(root_path, 'some', 'folder', 'path'))
+        allow(plugin).to receive(:verify_dir_access).with(any_args).and_call_original
         [
           'some',
           File.join('some', 'folder'),
           File.join('some', 'folder', 'path'),
         ].each do |path|
-          expect(@plugin).to receive(:verify_dir_access).with(path).and_return(nil)
+          expect(plugin).to receive(:verify_dir_access).with(path).and_return(nil)
         end
 
-        @plugin.ensure_folder_path('some/folder/path')
+        plugin.ensure_folder_path('some/folder/path')
       end
     end
 
     describe 'ensure_root_path' do
-      let(:options) do
+      let(:ensure_root_path_options) do
         {
           'backend' => 'test',
           'backends' => {
@@ -538,84 +535,87 @@ describe 'simpkv file plugin anonymous class' do
 
       context 'root_path config present' do
         it 'returns configured root_path and call verify_dir_access when root_path exists' do
-          # @root_path was already created when @plugin was constructed
-          expect(@plugin).to receive(:verify_dir_access).with(@root_path).and_return(nil)
-          expect(@plugin.ensure_root_path(@options)).to eq(@root_path)
+          # root_path was already created when plugin was constructed
+          opts = ensure_root_path_options.dup
+          opts['backends']['test']['root_path'] = root_path
+          expect(plugin).to receive(:verify_dir_access).with(root_path).and_return(nil)
+          expect(plugin.ensure_root_path(opts)).to eq(root_path)
         end
 
         it 'returns configured root_path and create the paths when it does not exists' do
-          root_path = File.join(@tmpdir, 'file')
-          opts = options.dup
-          opts['backends']['test']['root_path'] = root_path
-          expect(@plugin.ensure_root_path(opts)).to eq(root_path)
-          expect(Dir.exist?(root_path)).to be true
-          expect(File.stat(root_path).mode & 0o777).to eq 0o770
+          test_root_path = File.join(tmpdir, 'file')
+          opts = ensure_root_path_options.dup
+          opts['backends']['test']['root_path'] = test_root_path
+          expect(plugin.ensure_root_path(opts)).to eq(test_root_path)
+          expect(Dir.exist?(test_root_path)).to be true
+          expect(File.stat(test_root_path).mode & 0o777).to eq 0o770
         end
 
         it 'fails when configured root_path does not exist and cannot be created' do
-          root_path = File.join(@tmpdir, 'file', 'test')
-          opts = options.dup
-          opts['backends']['test']['root_path'] = root_path
-          allow(FileUtils).to receive(:mkdir_p).with(root_path)
+          test_root_path = File.join(tmpdir, 'file', 'test')
+          opts = ensure_root_path_options.dup
+          opts['backends']['test']['root_path'] = test_root_path
+          allow(FileUtils).to receive(:mkdir_p).with(test_root_path)
                                                .and_raise(Errno::EACCES, 'Permission denied')
 
-          expect { @plugin.ensure_root_path(opts) }.to raise_error(
+          expect { plugin.ensure_root_path(opts) }.to raise_error(
             %r{Unable to create configured root path},
           )
         end
       end
 
       context 'root_path config absent' do
+        let(:vardir) { File.join(tmpdir, 'vardir') }
+        let(:default_path) { File.join('/', 'var', 'simp', 'simpkv', plugin_name) }
+        let(:fallback_path) { File.join(vardir, 'simp', 'simpkv', plugin_name) }
+
         before :each do
-          @vardir = File.join(@tmpdir, 'vardir')
-          @default_path = File.join('/', 'var', 'simp', 'simpkv', @plugin_name)
-          @fallback_path = File.join(@vardir, 'simp', 'simpkv', @plugin_name)
           allow(Puppet).to receive(:settings).with(any_args).and_call_original
-          allow(Puppet).to receive_message_chain(:settings, :[]).with(:vardir).and_return(@vardir)
+          allow(Puppet).to receive_message_chain(:settings, :[]).with(:vardir).and_return(vardir)
         end
 
         it 'returns default path in /var/simp and call verify_dir_access when path exists' do
-          expect(Dir).to receive(:exist?).with(@default_path).and_return(true).twice
-          expect(@plugin).to receive(:verify_dir_access).with(@default_path).and_return(nil)
-          expect(@plugin.ensure_root_path(options)).to eq(@default_path)
+          expect(Dir).to receive(:exist?).with(default_path).and_return(true).twice
+          expect(plugin).to receive(:verify_dir_access).with(default_path).and_return(nil)
+          expect(plugin.ensure_root_path(ensure_root_path_options)).to eq(default_path)
         end
 
         it 'returns fallback path in Puppet vardir and call verify_dir_access when default path does not exist but fallback path does' do
-          expect(Dir).to receive(:exist?).with(@default_path).and_return(false)
-          expect(Dir).to receive(:exist?).with(@fallback_path).and_return(true).twice
-          expect(@plugin).to receive(:verify_dir_access).with(@fallback_path).and_return(nil)
-          expect(@plugin.ensure_root_path(options)).to eq(@fallback_path)
+          expect(Dir).to receive(:exist?).with(default_path).and_return(false)
+          expect(Dir).to receive(:exist?).with(fallback_path).and_return(true).twice
+          expect(plugin).to receive(:verify_dir_access).with(fallback_path).and_return(nil)
+          expect(plugin.ensure_root_path(ensure_root_path_options)).to eq(fallback_path)
         end
 
         it 'creates and return default path when neither default path exists' do
-          expect(Dir).to receive(:exist?).with(@default_path).and_return(false).twice
-          expect(Dir).to receive(:exist?).with(@fallback_path).and_return(false)
-          expect(FileUtils).to receive(:mkdir_p).with(@default_path).and_return(nil)
-          expect(FileUtils).to receive(:chmod).with(0o770, @default_path).and_return(nil)
-          expect(@plugin.ensure_root_path(options)).to eq(@default_path)
+          expect(Dir).to receive(:exist?).with(default_path).and_return(false).twice
+          expect(Dir).to receive(:exist?).with(fallback_path).and_return(false)
+          expect(FileUtils).to receive(:mkdir_p).with(default_path).and_return(nil)
+          expect(FileUtils).to receive(:chmod).with(0o770, default_path).and_return(nil)
+          expect(plugin.ensure_root_path(ensure_root_path_options)).to eq(default_path)
         end
 
         it 'creates and return fallback path when neither default path exists and primary default cannot be created' do
-          expect(Dir).to receive(:exist?).with(@default_path).and_return(false).twice
-          expect(Dir).to receive(:exist?).with(@fallback_path).and_return(false)
-          expect(FileUtils).to receive(:mkdir_p).with(@default_path)
+          expect(Dir).to receive(:exist?).with(default_path).and_return(false).twice
+          expect(Dir).to receive(:exist?).with(fallback_path).and_return(false)
+          expect(FileUtils).to receive(:mkdir_p).with(default_path)
                                                 .and_raise(Errno::EACCES, 'Permission denied')
 
-          expect(@plugin.ensure_root_path(options)).to eq(@fallback_path)
-          expect(Dir.exist?(@fallback_path)).to be true
-          expect(File.stat(@fallback_path).mode & 0o777).to eq 0o770
+          expect(plugin.ensure_root_path(ensure_root_path_options)).to eq(fallback_path)
+          expect(Dir.exist?(fallback_path)).to be true
+          expect(File.stat(fallback_path).mode & 0o777).to eq 0o770
         end
 
         it 'fails when neither default path exists and neither can be created' do
-          expect(Dir).to receive(:exist?).with(@default_path).and_return(false).twice
-          expect(Dir).to receive(:exist?).with(@fallback_path).and_return(false)
-          expect(FileUtils).to receive(:mkdir_p).with(@default_path)
+          expect(Dir).to receive(:exist?).with(default_path).and_return(false).twice
+          expect(Dir).to receive(:exist?).with(fallback_path).and_return(false)
+          expect(FileUtils).to receive(:mkdir_p).with(default_path)
                                                 .and_raise(Errno::EACCES, 'Permission denied')
 
-          expect(FileUtils).to receive(:mkdir_p).with(@fallback_path)
+          expect(FileUtils).to receive(:mkdir_p).with(fallback_path)
                                                 .and_raise(Errno::EACCES, 'Permission denied')
 
-          expect { @plugin.ensure_root_path(options) }.to raise_error(
+          expect { plugin.ensure_root_path(ensure_root_path_options) }.to raise_error(
             %r{Unable to create default root path},
           )
         end
@@ -639,7 +639,7 @@ describe 'simpkv file plugin anonymous class' do
         expect(File).to receive(:stat).with(dir).and_return(mock_stat)
         expect(FileUtils).to receive(:chmod).with(0o770, dir).and_return(nil)
 
-        expect { @plugin.verify_dir_access(dir) }.not_to raise_error
+        expect { plugin.verify_dir_access(dir) }.not_to raise_error
       end
 
       it 'succeeds when process group can read and modify a dir it does not own' do
@@ -653,7 +653,7 @@ describe 'simpkv file plugin anonymous class' do
 
         allow(FileUtils).to receive(:chmod).with(0o770, dir).and_return(nil)
 
-        expect { @plugin.verify_dir_access(dir) }.not_to raise_error
+        expect { plugin.verify_dir_access(dir) }.not_to raise_error
       end
 
       it 'fails when directory cannot be read' do
@@ -661,7 +661,7 @@ describe 'simpkv file plugin anonymous class' do
           Errno::EACCES, 'Permission denied'
         )
 
-        expect { @plugin.verify_dir_access(dir) }.to raise_error(
+        expect { plugin.verify_dir_access(dir) }.to raise_error(
           %r{Cannot access '#{Regexp.escape(dir)}'},
         )
       end
@@ -675,7 +675,7 @@ describe 'simpkv file plugin anonymous class' do
         mock_stat.mode = 0o0750
         expect(File).to receive(:stat).with(dir).and_return(mock_stat)
 
-        expect { @plugin.verify_dir_access(dir) }.to raise_error(
+        expect { plugin.verify_dir_access(dir) }.to raise_error(
           %r{Cannot modify '#{Regexp.escape(dir)}'},
         )
       end
