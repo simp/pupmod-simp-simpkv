@@ -4,7 +4,7 @@
 # a `plugin_class` local variable.
 # DO NOT CHANGE THE LINE BELOW!!!!
 require 'English'
-Class.new do
+plugin_class = Class.new do
   require 'facter'
   require 'pathname'
   require 'set'

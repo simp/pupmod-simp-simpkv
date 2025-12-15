@@ -14,15 +14,15 @@
 #
 ################################################################################
 
-# Define attribute accessors
+# Define attribute accessors on the singleton class of the object
 
 # Get simpkv adapter
 # @return simpkv adapter object
-attr_reader :simpkv
+define_singleton_method(:simpkv) { @simpkv }
 
 # Set simpkv adapter
 # @param value simpkv wrapper object
-attr_writer :simpkv
+define_singleton_method(:simpkv=) { |value| @simpkv = value }
 
 # Load simpkv.rb.  The code evaluated will set this local scope variable
 # 'simp_simpkv_adapter_class' to an anonymous Class object for the simpkv adapter

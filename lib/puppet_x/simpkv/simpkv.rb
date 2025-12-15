@@ -13,7 +13,7 @@
 # - Deserializes value data to be retrieved from common JSON format
 # - Delegates actions to appropriate plugin instance
 #
-Class.new do
+simp_simpkv_adapter_class = Class.new do
   require 'base64'
   require 'json'
   require 'pathname'

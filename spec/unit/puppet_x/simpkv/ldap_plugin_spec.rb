@@ -824,7 +824,7 @@ describe 'simpkv ldap plugin anonymous class' do
         it 'transforms valid ldapi config with admin_dn and admin_pw_file' do
           config = options['backends']['default'].merge(
             'admin_dn'      => 'cn=My_Directory_Manager',
-            'admin_pw_file' => @admin_pw_file,
+            'admin_pw_file' => admin_pw_file,
           )
           opts = plugin.parse_config(config)
           expect(opts[:cmd_env]).to eq('')

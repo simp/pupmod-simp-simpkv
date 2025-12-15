@@ -4,7 +4,7 @@
 # Each plugin **MUST** be an anonymous class accessible only through
 # a `plugin_class` local variable.
 # DO NOT CHANGE THE LINE BELOW!!!!
-Class.new do
+plugin_class = Class.new do
   require 'etc'
   require 'fileutils'
   require 'timeout'
