@@ -34,7 +34,7 @@ include Acceptance::Helpers::Utils
 #
 # @return Whether validation of keys succeeded
 #
-def validate_multiple_plugin_entries(key_info, keys_should_exist, backend_hiera, _host)
+def validate_multiple_plugin_entries(key_info, keys_should_exist, backend_hiera, _host) # rubocop:disable Naming/PredicateMethod
   errors = []
   key_info.each do |app_id, key_struct|
     config = backend_config_for_app_id(app_id, nil, backend_hiera)
@@ -49,7 +49,7 @@ def validate_multiple_plugin_entries(key_info, keys_should_exist, backend_hiera,
               else
                 "validate_#{config['type']}_key_entry_absent(key, key_type, config, host)"
               end
-        result = eval(exp)
+        result = eval(exp) # rubocop:disable Security/Eval
 
         unless result[:success]
           errors << result[:err_msg]

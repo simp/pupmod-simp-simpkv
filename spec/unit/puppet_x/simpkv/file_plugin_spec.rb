@@ -570,8 +570,9 @@ describe 'simpkv file plugin anonymous class' do
         let(:fallback_path) { File.join(vardir, 'simp', 'simpkv', plugin_name) }
 
         before :each do
-          allow(Puppet).to receive(:settings).with(any_args).and_call_original
-          allow(Puppet).to receive_message_chain(:settings, :[]).with(:vardir).and_return(vardir)
+          settings = instance_double(Puppet::Settings)
+          allow(settings).to receive(:[]).with(:vardir).and_return(vardir)
+          allow(Puppet).to receive(:settings).and_return(settings)
         end
 
         it 'returns default path in /var/simp and call verify_dir_access when path exists' do

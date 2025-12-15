@@ -18,6 +18,8 @@ AllCops:
     - "**/Puppetfile"
     - "**/Vagrantfile"
     - "**/Guardfile"
+    # Test malformed plugin handling
+    - spec/support/modules/test_plugins1/lib/puppet_x/simpkv/malformed_plugin.rb
 Layout/LineLength:
   Description: People have wide screens, use them.
   Max: 200

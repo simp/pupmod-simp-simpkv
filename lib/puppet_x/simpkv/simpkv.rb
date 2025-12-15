@@ -13,7 +13,7 @@
 # - Deserializes value data to be retrieved from common JSON format
 # - Delegates actions to appropriate plugin instance
 #
-simp_simpkv_adapter_class = Class.new do
+simp_simpkv_adapter_class = Class.new do # rubocop:disable Lint/UselessAssignment
   require 'base64'
   require 'json'
   require 'pathname'
@@ -111,7 +111,7 @@ simp_simpkv_adapter_class = Class.new do
     begin
       instance = plugin_instance(options)
       result = instance.delete(normalize_key(key, options))
-    rescue Exception => e
+    rescue StandardError => e
       bt = filter_backtrace(e.backtrace)
       prefix = instance.nil? ? 'simpkv' : "simpkv #{instance.name}"
       err_msg = "#{prefix} Error: #{e.message}\n#{bt.join("\n")}".strip
@@ -137,7 +137,7 @@ simp_simpkv_adapter_class = Class.new do
     begin
       instance = plugin_instance(options)
       result = instance.deletetree(normalize_key(keydir, options))
-    rescue Exception => e
+    rescue StandardError => e
       bt = filter_backtrace(e.backtrace)
       prefix = instance.nil? ? 'simpkv' : "simpkv #{instance.name}"
       err_msg = "#{prefix} Error: #{e.message}\n#{bt.join("\n")}".strip
@@ -164,7 +164,7 @@ simp_simpkv_adapter_class = Class.new do
     begin
       instance = plugin_instance(options)
       result = instance.exists(normalize_key(key, options))
-    rescue Exception => e
+    rescue StandardError => e
       bt = filter_backtrace(e.backtrace)
       prefix = instance.nil? ? 'simpkv' : "simpkv #{instance.name}"
       err_msg = "#{prefix} Error: #{e.message}\n#{bt.join("\n")}".strip
@@ -198,7 +198,7 @@ simp_simpkv_adapter_class = Class.new do
       else
         result = raw_result
       end
-    rescue Exception => e
+    rescue StandardError => e
       bt = filter_backtrace(e.backtrace)
       prefix = instance.nil? ? 'simpkv' : "simpkv #{instance.name}"
       err_msg = "#{prefix} Error: #{e.message}\n#{bt.join("\n")}".strip
@@ -252,7 +252,7 @@ simp_simpkv_adapter_class = Class.new do
       else
         result = raw_result
       end
-    rescue Exception => e
+    rescue StandardError => e
       bt = filter_backtrace(e.backtrace)
       prefix = instance.nil? ? 'simpkv' : "simpkv #{instance.name}"
       err_msg = "#{prefix} Error: #{e.message}\n#{bt.join("\n")}".strip
@@ -279,7 +279,7 @@ simp_simpkv_adapter_class = Class.new do
       normalized_key = normalize_key(key, options)
       normalized_value = serialize(value, metadata)
       result = instance.put(normalized_key, normalized_value)
-    rescue Exception => e
+    rescue StandardError => e
       bt = filter_backtrace(e.backtrace)
       prefix = instance.nil? ? 'simpkv' : "simpkv #{instance.name}"
       err_msg = "#{prefix} Error: #{e.message}\n#{bt.join("\n")}".strip
@@ -344,8 +344,6 @@ simp_simpkv_adapter_class = Class.new do
       normalized_key = "#{prefix}/#{key}"
     when :remove_prefix
       normalized_key = key.gsub(%r{^#{prefix}/}, '')
-    else
-      # do nothing
     end
 
     # get rid of extraneous slashes
@@ -393,7 +391,7 @@ simp_simpkv_adapter_class = Class.new do
       begin
         plugin_instances[name] = plugin_info[type][:class].new(name)
         plugin_instances[name].configure(options)
-      rescue Exception => e
+      rescue StandardError => e
         raise("Unable to construct '#{name}': #{e.message}")
       end
     end

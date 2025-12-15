@@ -26,9 +26,11 @@ describe 'simpkv configured file plugin' do
   #   an app_id set.  In other words, 'default' maps to the expected, normal
   #   usage of simpkv functions.
   #
+  # rubocop:disable RSpec/IndexedLet
   let(:id1) { 'default' }
   let(:id2) { 'custom' }
   let(:id3) { 'custom_snowflake' }
+  # rubocop:enable RSpec/IndexedLet
 
   # simpkv::options hieradata for 3 distinct backends, one of which must
   # be 'default'

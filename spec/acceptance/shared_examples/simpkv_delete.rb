@@ -73,6 +73,7 @@ shared_examples 'simpkv::delete tests' do |host|
                           })
     end
 
+    # rubocop:disable RSpec/RepeatedExample
     it 'calls simpkv::delete with valid keys without errors' do
       set_hiera_and_apply_on(host, remove_hieradata, remove_manifest,
         { catch_failures: true })
@@ -92,5 +93,6 @@ shared_examples 'simpkv::delete tests' do |host|
       set_hiera_and_apply_on(host, remove_hieradata, remove_manifest,
         { catch_failures: true })
     end
+    # rubocop:enable RSpec/RepeatedExample
   end
 end

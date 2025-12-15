@@ -103,7 +103,7 @@ plugin_class = Class.new do # rubocop:disable Lint/UselessAssignment
         # if the key doesn't exist, doesn't need to be deleted...going
         # to consider this success
         success = true
-      rescue Exception => e
+      rescue StandardError => e
         success = false
         err_msg = "Delete of '#{key_file}' failed: #{e.message}"
       end
@@ -129,7 +129,7 @@ plugin_class = Class.new do # rubocop:disable Lint/UselessAssignment
       begin
         FileUtils.rm_r(dir)
         success = true
-      rescue Exception => e
+      rescue StandardError => e
         if Dir.exist?(dir)
           success = false
           err_msg = "Folder delete of '#{dir}' failed: #{e.message}"
@@ -200,7 +200,7 @@ plugin_class = Class.new do # rubocop:disable Lint/UselessAssignment
         err_msg += ">>> Enable '#{group}' group read AND write access on '#{key_file}' to fix."
       rescue Timeout::Error
         err_msg = "Timed out waiting for lock of key file '#{key_file}'"
-      rescue Exception => e
+      rescue StandardError => e
         err_msg = "Key retrieval at '#{key_file}' failed: #{e.message}"
       ensure
         # make sure lock is released even on failure
@@ -315,7 +315,7 @@ plugin_class = Class.new do # rubocop:disable Lint/UselessAssignment
       success = false
       err_msg = "Cannot write to '#{key_file}' as #{user}:#{group}. \n"
       err_msg += ">>> Enable '#{group}' group read AND write access on '#{key_file}' to fix."
-    rescue Exception => e
+    rescue StandardError => e
       success = false
       err_msg = "Key write to '#{key_file}' failed: #{e.message}"
     ensure
@@ -391,7 +391,7 @@ plugin_class = Class.new do # rubocop:disable Lint/UselessAssignment
     else
       begin
         FileUtils.mkdir_p(root_path)
-      rescue Exception
+      rescue StandardError
         if options['backends'][backend].key?('root_path')
           # someone made an explicit config error
           err_msg = "Unable to create configured root path '#{root_path}'.\n"
@@ -404,7 +404,7 @@ plugin_class = Class.new do # rubocop:disable Lint/UselessAssignment
             Puppet.warning("simpkv plugin #{name}: Unable to create root path " \
             "'#{root_path}'. Defaulting to '#{default_root_path_puppet_vardir}'")
             root_path = default_root_path_puppet_vardir
-          rescue Exception
+          rescue StandardError
             # our fallback default didn't work...
             err_msg = "Unable to create default root path '#{root_path}'.\n"
             err_msg += ">>> Ensure '#{group}' group can create '#{root_path}' to fix."
@@ -420,7 +420,7 @@ plugin_class = Class.new do # rubocop:disable Lint/UselessAssignment
       # `puppet agent` runs as puppet:puppet will not be able to manage.
       begin
         FileUtils.chmod(0o770, root_path)
-      rescue Exception => e
+      rescue StandardError => e
         raise("Unable to set permissions on #{root_path}: #{e.message}")
       end
     end

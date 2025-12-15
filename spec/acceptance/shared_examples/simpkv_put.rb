@@ -45,16 +45,16 @@ shared_examples 'simpkv::put tests' do |host|
 
   context "simpkv::put operation on #{host}" do
     let(:hieradata) do
-      backend_hiera.merge({
-                            'simpkv_test::store_keys::key_info' => initial_key_info,
-                          })
+      backend_hiera.merge(
+        'simpkv_test::store_keys::key_info' => initial_key_info,
+      )
     end
 
     let(:updated_key_info) { modify_key_data(initial_key_info) }
     let(:updated_hieradata) do
-      backend_hiera.merge({
-                            'simpkv_test::store_keys::key_info' => updated_key_info,
-                          })
+      backend_hiera.merge(
+        'simpkv_test::store_keys::key_info' => updated_key_info,
+      )
     end
 
     let(:manifest) { 'include simpkv_test::store_keys' }
@@ -63,6 +63,7 @@ shared_examples 'simpkv::put tests' do |host|
       set_hiera_and_apply_on(host, hieradata, manifest, { catch_failures: true })
     end
 
+    # rubocop:disable RSpec/RepeatedExample
     it 'stores the keys in the configured backends' do
       expect(validator.call(initial_key_info, true, backend_hiera, host)).to be true
     end
@@ -74,6 +75,7 @@ shared_examples 'simpkv::put tests' do |host|
     it 'retains the keys in the configured backends' do
       expect(validator.call(initial_key_info, true, backend_hiera, host)).to be true
     end
+    # rubocop:enable RSpec/RepeatedExample
 
     it 'calls simpkv::put without errors when keys already exist with different values' do
       set_hiera_and_apply_on(host, updated_hieradata, manifest, { catch_failures: true })

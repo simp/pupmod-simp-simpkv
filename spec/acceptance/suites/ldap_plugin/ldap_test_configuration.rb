@@ -82,9 +82,11 @@ shared_context 'ldap test configuration' do
   #   an app_id set.  In other words, 'default' maps to the expected, normal
   #   usage of simpkv functions.
   #
+  # rubocop:disable RSpec/IndexedLet
   let(:id1) { 'default' }
   let(:id2) { 'custom' }
   let(:id3) { 'custom_snowflake' }
+  # rubocop:enable RSpec/IndexedLet
 
   # Hash of initial key information for the 3 test backends/app_ids.
   #

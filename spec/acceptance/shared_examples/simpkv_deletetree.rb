@@ -107,6 +107,7 @@ shared_examples 'simpkv::deletetree tests' do |host|
                           })
     end
 
+    # rubocop:disable RSpec/RepeatedExample
     it 'calls simpkv::deletetree with valid sub-folders without errors' do
       set_hiera_and_apply_on(host, remove_subfolders_hieradata, remove_manifest,
         { catch_failures: true })
@@ -140,5 +141,6 @@ shared_examples 'simpkv::deletetree tests' do |host|
       set_hiera_and_apply_on(host, remove_subfolders_hieradata,
         remove_manifest, { catch_failures: true })
     end
+    # rubocop:enable RSpec/RepeatedExample
   end
 end

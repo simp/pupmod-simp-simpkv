@@ -32,7 +32,7 @@ include Acceptance::Helpers::Utils
 # @raise RuntimeError if the appropriate backend for each app_id within key_info
 #   cannot be found in backend_hiera
 #
-def validate_file_entries(key_info, keys_should_exist, backend_hiera, host)
+def validate_file_entries(key_info, keys_should_exist, backend_hiera, host) # rubocop:disable Naming/PredicateMethod
   errors = []
   key_info.each do |app_id, key_struct|
     config = backend_config_for_app_id(app_id, 'file', backend_hiera)

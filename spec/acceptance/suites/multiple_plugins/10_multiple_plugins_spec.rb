@@ -22,23 +22,23 @@ describe 'multiple plugins' do
 
   let(:file_backend_config) do
     {
-      'type' => 'file',
-   'root_path' => "/var/simp/simpkv/file/#{id1}",
+      'type'      => 'file',
+      'root_path' => "/var/simp/simpkv/file/#{id1}",
     }
   end
 
   let(:file_clear_data_cmd) { 'rm -rf /var/simp/simpkv/file' }
 
   let(:ldap1_name) { 'simp_data_with_tls' }
-  let(:ldap1) { ldap_instances[ldap1_name] }
+  let(:ldap1) { ldap_instances[ldap1_name] } # rubocop:disable RSpec/IndexedLet
   let(:ldap1_uri) { "ldapi://%2fvar%2frun%2fslapd-#{ldap1_name}.socket" }
   let(:ldap1_backend_config) do
     {
-      'type' => 'ldap',
-   'ldap_uri'      => ldap1_uri,
-   'base_dn'       => ldap1[:simpkv_base_dn],
-   'admin_dn'      => ldap1[:admin_dn],
-   'admin_pw_file' => ldap1[:admin_pw_file],
+      'type'          => 'ldap',
+      'ldap_uri'      => ldap1_uri,
+      'base_dn'       => ldap1[:simpkv_base_dn],
+      'admin_dn'      => ldap1[:admin_dn],
+      'admin_pw_file' => ldap1[:admin_pw_file],
     }
   end
 
@@ -51,15 +51,15 @@ describe 'multiple plugins' do
   end
 
   let(:ldap2_name) { 'simp_data_without_tls' }
-  let(:ldap2) { ldap_instances[ldap2_name] }
+  let(:ldap2) { ldap_instances[ldap2_name] } # rubocop:disable RSpec/IndexedLet
   let(:ldap2_uri) { "ldapi://%2fvar%2frun%2fslapd-#{ldap2_name}.socket" }
   let(:ldap2_backend_config) do
     {
-      'type' => 'ldap',
-   'ldap_uri'      => ldap2_uri,
-   'base_dn'       => ldap2[:simpkv_base_dn],
-   'admin_dn'      => ldap2[:admin_dn],
-   'admin_pw_file' => ldap2[:admin_pw_file],
+      'type'          => 'ldap',
+      'ldap_uri'      => ldap2_uri,
+      'base_dn'       => ldap2[:simpkv_base_dn],
+      'admin_dn'      => ldap2[:admin_dn],
+      'admin_pw_file' => ldap2[:admin_pw_file],
     }
   end
 
