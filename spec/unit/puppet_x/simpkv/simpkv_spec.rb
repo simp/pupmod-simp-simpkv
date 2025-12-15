@@ -74,9 +74,9 @@ describe 'simpkv adapter anonymous class' do
     end
 
     it 'discards a plugin class with malformed Ruby' do
+      expect(Puppet).to receive(:warning).with(%r{simpkv plugin from .*malformed_plugin.rb failed to load}).at_least(:once)
       allow(Puppet).to receive(:warning)
       adapter_class.new
-      expect(Puppet).to have_received(:warning).with(%r{simpkv plugin from .*malformed_plugin.rb failed to load})
     end
   end
 

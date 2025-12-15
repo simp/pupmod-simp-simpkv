@@ -4,7 +4,7 @@
 # a `plugin_class` local variable.
 # DO NOT CHANGE THE LINE BELOW!!!!
 require 'English'
-plugin_class = Class.new do
+plugin_class = Class.new do # rubocop:disable Lint/UselessAssignment
   require 'facter'
   require 'pathname'
   require 'set'

@@ -527,12 +527,12 @@ describe 'simpkv file plugin anonymous class' do
       let(:options) do
         {
           'backend' => 'test',
-        'backends' => {
-          'test' => {
-            'id'        => 'test',
-            'type'      => 'file',
+          'backends' => {
+            'test' => {
+              'id'        => 'test',
+              'type'      => 'file',
+            },
           },
-        },
         }
       end
 

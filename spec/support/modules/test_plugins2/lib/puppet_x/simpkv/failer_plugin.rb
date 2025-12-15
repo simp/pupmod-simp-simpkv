@@ -4,7 +4,7 @@
 
 # Each plugin **MUST** be an anonymous class accessible only through
 # a `plugin_class` local variable.
-plugin_class = Class.new do
+plugin_class = Class.new do # rubocop:disable Lint/UselessAssignment
   ###### Public Plugin API ######
 
   # Construct an instance of this plugin setting its instance name

@@ -4,7 +4,7 @@
 # Each plugin **MUST** be an anonymous class accessible only through
 # a `plugin_class` local variable.
 # DO NOT CHANGE THE LINE BELOW!!!!
-plugin_class = Class.new do
+plugin_class = Class.new do # rubocop:disable Lint/UselessAssignment
   require 'etc'
   require 'fileutils'
   require 'timeout'

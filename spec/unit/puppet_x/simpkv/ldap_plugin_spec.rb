@@ -387,24 +387,24 @@ describe 'simpkv ldap plugin anonymous class' do
       end
 
       describe '#get' do
-        let(:success_response_simpkvKey) do
+        let(:success_response_simpkv_key) do
           {
             success: true,
-         exitstatus: 0,
-         stdout: <<~EOM,
-           dn: #{key_dn}
-           objectClass: simpkvEntry
-           objectClass: top
-           simpkvKey: #{base_key}
-           simpkvJsonValue: #{stored_value}
-          EOM
+            exitstatus: 0,
+            stdout: <<~EOM,
+              dn: #{key_dn}
+              objectClass: simpkvEntry
+              objectClass: top
+              simpkvKey: #{base_key}
+              simpkvJsonValue: #{stored_value}
+            EOM
           }
         end
 
         it 'returns success when retries succeed' do
           # ldapsearch will return busy code first time and then success
           expect(plugin).to receive(:run_command).with(%r{ldapsearch})
-                                                 .and_return(ldap_busy_response, success_response_simpkvKey)
+                                                 .and_return(ldap_busy_response, success_response_simpkv_key)
 
           result = plugin.get(key)
           expect(result[:result]).to eq(stored_value)
@@ -414,7 +414,7 @@ describe 'simpkv ldap plugin anonymous class' do
         it 'fails when simpkvKey object missing simpkvJsonValue attribute' do
           # successful query result, but instead of simpkvJsonValue attribute
           # has simpkvValue attribute
-          success_response_malformed_simpkvKey = {
+          success_response_malformed_simpkv_key = {
             success: true,
             exitstatus: 0,
             stdout: <<~EOM,
@@ -427,7 +427,7 @@ describe 'simpkv ldap plugin anonymous class' do
           }
 
           expect(plugin).to receive(:run_command).with(%r{ldapsearch})
-                                                 .and_return(success_response_malformed_simpkvKey)
+                                                 .and_return(success_response_malformed_simpkv_key)
 
           result = plugin.get(key)
           expect(result[:result]).to be_nil

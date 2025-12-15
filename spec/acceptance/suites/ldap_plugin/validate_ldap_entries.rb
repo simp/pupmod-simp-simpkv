@@ -31,7 +31,7 @@ include Acceptance::Helpers::Utils
 # @raise RuntimeError if the appropriate backend for each app_id within key_info
 #   cannot be found in backend_hiera
 #
-def validate_ldap_entries(key_info, keys_should_exist, backend_hiera, host)
+def validate_ldap_entries(key_info, keys_should_exist, backend_hiera, host) # rubocop:disable Naming/PredicateMethod
   # TODO: Make the iteration through keys and backend config selection part
   #      of the test infrastructure instead of having this code replicated
   #      in each plugin-provided validator
