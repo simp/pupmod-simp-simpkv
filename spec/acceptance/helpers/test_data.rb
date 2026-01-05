@@ -16,7 +16,6 @@ module Acceptance::Helpers; end
 #   generation/transformation methods.
 
 module Acceptance::Helpers::TestData
-
   # @return simpkv::options hieradata with aliases to backend configuration
   #   derived from backend_configs
   #
@@ -57,13 +56,13 @@ module Acceptance::Helpers::TestData
       backend_tag = "simpkv::backend::#{name}"
       hiera[backend_tag] = Marshal.load(Marshal.dump(config))
       hiera[backend_tag]['id'] = name
-      backends[name]= "%{alias('#{backend_tag}')}"
+      backends[name] = "%{alias('#{backend_tag}')}"
     end
 
     hiera['simpkv::options'] = {
       'environment' => '%{server_facts.environment}',
       'softfail'    => false,
-      'backends'    => backends
+      'backends'    => backends,
     }
 
     hiera
@@ -98,7 +97,7 @@ module Acceptance::Helpers::TestData
     appid3 = (app_id3 == 'default') ? '' : app_id3
 
     data_yaml = ERB.new(File.read(data_template)).result(binding)
-    YAML.load(data_yaml)
+    YAML.safe_load(data_yaml)
   end
 
   # @return transformed copy of original_key_info in which the key values and/or
@@ -113,9 +112,9 @@ module Acceptance::Helpers::TestData
   #
   def modify_key_data(original_key_info)
     updated_key_info = Marshal.load(Marshal.dump(original_key_info))
-    updated_key_info.each do |app_id, key_struct|
-      key_struct.each do |key_type, keys|
-        keys.each do |key, key_data|
+    updated_key_info.each_value do |key_struct|
+      key_struct.each_value do |keys|
+        keys.each_value do |key_data|
           # modify non-binary values
           if key_data.key?('value')
             if key_data['value'].is_a?(Array) || key_data['value'].is_a?(String)
@@ -123,7 +122,7 @@ module Acceptance::Helpers::TestData
             end
 
             if key_data['value'].is_a?(TrueClass) || key_data['value'].is_a?(FalseClass)
-              key_data['value'] = ! key_data['value']
+              key_data['value'] = !key_data['value']
             end
 
             if key_data['value'].is_a?(Hash)
@@ -135,11 +134,11 @@ module Acceptance::Helpers::TestData
             end
           end
 
-          #TODO modify binary values specified by a 'file' attribute
+          # TODO: modify binary values specified by a 'file' attribute
 
           # modify metadata
           if key_data.key?('metadata')
-             key_data.delete('metadata')
+            key_data.delete('metadata')
           else
             key_data['metadata'] = { 'version' => 2 }
           end
@@ -158,13 +157,13 @@ module Acceptance::Helpers::TestData
   #
   # @param suffix Suffix to be appended to each original folder name
   #
-  def rename_folders_in_folder_info(original_folder_info, suffix='new')
+  def rename_folders_in_folder_info(original_folder_info, suffix = 'new')
     new_info = {}
-    original_folder_info.each do |app_id,folder_struct|
+    original_folder_info.each do |app_id, folder_struct|
       new_info[app_id] = {}
-      folder_struct.each do |folder_type,folders|
+      folder_struct.each do |folder_type, folders|
         new_info[app_id][folder_type] = {}
-        folders.each do |folder,folder_data|
+        folders.each do |folder, folder_data|
           new_info[app_id][folder_type]["#{folder}#{suffix}"] = folder_data
         end
       end
@@ -181,9 +180,9 @@ module Acceptance::Helpers::TestData
   #
   # @param suffix Suffix to be appended to each original folder name
   #
-  def rename_folders_in_name_info(original_foldername_info, suffix='new')
+  def rename_folders_in_name_info(original_foldername_info, suffix = 'new')
     new_info = Marshal.load(Marshal.dump(original_foldername_info))
-    new_info.each do |app_id,folder_struct|
+    new_info.each_value do |folder_struct|
       folder_struct.each do |folder_type, folder_names|
         folder_struct[folder_type] = folder_names.map { |folder| "#{folder}#{suffix}" }
       end
@@ -200,7 +199,7 @@ module Acceptance::Helpers::TestData
   #
   # @param suffix String to be appended to original key names
   #
-  def rename_keys_in_key_info(original_key_info, suffix='new')
+  def rename_keys_in_key_info(original_key_info, suffix = 'new')
     key_info = {}
     original_key_info.each do |app_id, key_struct|
       key_info[app_id] = {}
@@ -229,7 +228,7 @@ module Acceptance::Helpers::TestData
   def root_foldername_info(key_info)
     foldername_info = {}
     full_foldername_info = to_foldername_info(key_info)
-    full_foldername_info.each do |app_id,folder_struct|
+    full_foldername_info.each do |app_id, folder_struct|
       folder_struct.each do |folder_type, folder_names|
         if folder_names.include?('/')
           foldername_info[app_id] = {} unless foldername_info.key?(app_id)
@@ -255,7 +254,7 @@ module Acceptance::Helpers::TestData
   #
   def select_subfolders_subset(original_foldername_info)
     subset_info = {}
-    original_foldername_info.each do |app_id,folder_struct|
+    original_foldername_info.each do |app_id, folder_struct|
       folder_struct.each do |folder_type, folder_names|
         count = 0
         selected = []
@@ -270,7 +269,7 @@ module Acceptance::Helpers::TestData
             end
           end
 
-          if !within_selected_folder && ( (count % 2) == 0)
+          if !within_selected_folder && count.even?
             selected << folder
             count += 1
           end
@@ -303,7 +302,7 @@ module Acceptance::Helpers::TestData
   def split_key_info_per_subfolder_deletes(original_key_info, delete_foldernames_info)
     retain_index = 0
     remove_index = 1
-    key_infos = [ Hash.new, Hash.new ]
+    key_infos = [ {}, {} ]
     original_key_info.each do |app_id, key_struct|
       key_struct.each do |key_type, keys|
         keys.each do |key, key_data|
@@ -318,7 +317,7 @@ module Acceptance::Helpers::TestData
             end
           end
 
-          key_infos[type][app_id] = {} unless  key_infos[type].key?(app_id)
+          key_infos[type][app_id] = {} unless key_infos[type].key?(app_id)
           key_infos[type][app_id][key_type] = {} unless key_infos[type][app_id].key?(key_type)
           key_infos[type][app_id][key_type][key] = key_data
         end
@@ -342,13 +341,13 @@ module Acceptance::Helpers::TestData
   #    the Simpkv_test::KeyInfo type alias or is empty, if input key info hash is
   #    too sparse to support the split size specified.
   #
-  def split_key_info(original_key_info, split_size=2)
-    key_infos = Array.new(split_size) { Hash.new }
+  def split_key_info(original_key_info, split_size = 2)
+    key_infos = Array.new(split_size) { {} }
 
     original_key_info.each do |app_id, key_struct|
-      key_infos.each { |key_info| key_info[app_id] = Hash.new }
+      key_infos.each { |key_info| key_info[app_id] = {} }
       key_struct.each do |key_type, keys|
-        key_infos.each { |key_info| key_info[app_id][key_type] = Hash.new }
+        key_infos.each { |key_info| key_info[app_id][key_type] = {} }
 
         count = 0
         keys.each do |key, key_data|
@@ -365,7 +364,7 @@ module Acceptance::Helpers::TestData
 
       key_infos.each do |key_info|
         if key_info[app_id].empty?
-         key_info.delete(app_id)
+          key_info.delete(app_id)
         end
       end
     end
@@ -386,7 +385,7 @@ module Acceptance::Helpers::TestData
   # @param exclude_root_folder Whether to exclude the root folder from the returned
   #   listing
   #
-  def to_folder_info(key_info, exclude_root_folder=false)
+  def to_folder_info(key_info, exclude_root_folder = false)
     folder_info = {}
     key_info.each do |app_id, key_struct|
       folder_info[app_id] = {}
@@ -413,11 +412,11 @@ module Acceptance::Helpers::TestData
       end
     end
 
-    folder_info.each do |app_id, folder_struct|
-      folder_struct.each do |folder_type, folders|
-        folders.delete_if do |folder, folder_data|
+    folder_info.each_value do |folder_struct|
+      folder_struct.each_value do |folders|
+        folders.delete_if do |_folder, folder_data|
           binary_data = false
-          folder_data['keys'].each do |key, key_data|
+          folder_data['keys'].each_value do |key_data|
             if key_data.key?('file')
               binary_data = true
               break
@@ -445,12 +444,11 @@ module Acceptance::Helpers::TestData
       key_struct.each do |key_type, keys|
         foldername_info[app_id][key_type] = Set.new
         foldername_info[app_id][key_type] << '/'
-        keys.each do |key, key_data|
+        keys.each_key do |key|
           path = File.dirname(key)
-          unless path == '.'
-            Pathname.new(path).descend do |folder|
-              foldername_info[app_id][key_type] << folder.to_s
-            end
+          next if path == '.'
+          Pathname.new(path).descend do |folder|
+            foldername_info[app_id][key_type] << folder.to_s
           end
         end
 
@@ -479,4 +477,3 @@ module Acceptance::Helpers::TestData
     keyname_info
   end
 end
-
