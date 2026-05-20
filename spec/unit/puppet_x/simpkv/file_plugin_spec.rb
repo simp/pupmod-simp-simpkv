@@ -7,7 +7,7 @@ require 'ostruct'
 # mimic loading that is done in simpkv.rb
 project_dir = File.join(File.dirname(__FILE__), '..', '..', '..', '..')
 plugin_file = File.join(project_dir, 'lib', 'puppet_x', 'simpkv', 'file_plugin.rb')
-plugin_class = nil
+plugin_class = nil # rubocop:disable RSpec/LeakyLocalVariable
 obj = Object.new
 obj.instance_eval(File.read(plugin_file), plugin_file)
 
@@ -21,8 +21,8 @@ def locked_key_file_operation(root_path, key, value)
   locked = ConditionVariable.new
   begin
     locker_thread = Thread.new do
-      puts "     >> Locking key file #{key_file}"
-      file = File.open(key_file, 'r')
+      warn "     >> Locking key file #{key_file}"
+      file = File.open(key_file, 'r') # rubocop:disable Style/FileOpen
       file.flock(File::LOCK_EX)
 
       # signal the lock has taken place
@@ -31,7 +31,7 @@ def locked_key_file_operation(root_path, key, value)
       # pause the thread until we are done our access attempt
       Thread.stop
       file.close
-      puts '     >> Lock released with close'
+      warn '     >> Lock released with close'
     end
 
     # wait for the thread to signal the lock has taken place
@@ -309,7 +309,7 @@ describe 'simpkv file plugin anonymous class' do
         key = 'key1'
         value = 'value for key1'
         locked_key_file_operation(root_path, key, value) do
-          puts "     >> Executing plugin get() for '#{key}'"
+          warn "     >> Executing plugin get() for '#{key}'"
           result = plugin.get(key)
           expect(result[:result]).to be_nil
           expect(result[:err_msg]).to match(%r{Timed out waiting for lock of key file})
@@ -373,7 +373,7 @@ describe 'simpkv file plugin anonymous class' do
 
         # create a file for 'production/key2', but make it inaccessible via a lock
         locked_key_file_operation(root_path, 'production/key2', 'value for key2') do
-          puts "     >> Executing plugin list() for 'production'"
+          warn "     >> Executing plugin list() for 'production'"
           result = plugin.list('production')
           expect(result[:result]).to eq(expected)
           expect(result[:err_msg]).to be_nil
@@ -449,7 +449,7 @@ describe 'simpkv file plugin anonymous class' do
         value2 = 'second value for key1'
 
         locked_key_file_operation(root_path, key, value1) do
-          puts "     >> Executing plugin.put() for '#{key}'"
+          warn "     >> Executing plugin.put() for '#{key}'"
           result = plugin.put(key, value2)
           expect(result[:result]).to be false
           expect(result[:err_msg]).to match(%r{Timed out waiting for lock of key file})

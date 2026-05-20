@@ -6,7 +6,7 @@ require 'tmpdir'
 # mimic loading that is done in simpkv.rb
 project_dir = File.join(File.dirname(__FILE__), '..', '..', '..', '..')
 plugin_file = File.join(project_dir, 'lib', 'puppet_x', 'simpkv', 'ldap_plugin.rb')
-plugin_class = nil
+plugin_class = nil # rubocop:disable RSpec/LeakyLocalVariable
 obj = Object.new
 obj.instance_eval(File.read(plugin_file), plugin_file)
 

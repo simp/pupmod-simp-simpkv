@@ -184,7 +184,7 @@ plugin_class = Class.new do # rubocop:disable Lint/UselessAssignment
       begin
         # To ensure all threads are not sharing the same file descriptor
         # do **NOT** use a File.open block!
-        file = File.open(key_file, 'r')
+        file = File.open(key_file, 'r') # rubocop:disable Style/FileOpen
 
         Timeout.timeout(@lock_timeout_seconds) do
           file.flock(File::LOCK_EX)
@@ -282,7 +282,7 @@ plugin_class = Class.new do # rubocop:disable Lint/UselessAssignment
       # To ensure all threads are not sharing the same file descriptor
       # do **NOT** use a File.open block!
       # Also, don't use 'w' as it truncates file before the lock is obtained
-      file = File.open(key_file, File::RDWR | File::CREAT)
+      file = File.open(key_file, File::RDWR | File::CREAT) # rubocop:disable Style/FileOpen
 
       Timeout.timeout(@lock_timeout_seconds) do
         # only wrap timeout around flock, so we don't end up with partially
