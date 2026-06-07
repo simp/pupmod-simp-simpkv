@@ -215,7 +215,7 @@ describe 'simpkv file plugin anonymous class' do
         FileUtils.mkdir_p(File.join(root_path, keydir))
         result = plugin.delete(keydir)
         expect(result[:result]).to be false
-        expect(result[:err_msg]).to match(%r{Key specifies a folder})
+        expect(result[:err_msg]).to include('Key specifies a folder')
       end
 
       it 'returns :result=false and an :err_msg when the key file delete fails' do
@@ -296,13 +296,13 @@ describe 'simpkv file plugin anonymous class' do
         FileUtils.mkdir_p(File.join(root_path, keydir))
         result = plugin.get(keydir)
         expect(result[:result]).to be_nil
-        expect(result[:err_msg]).to match(%r{Key specifies a folder})
+        expect(result[:err_msg]).to include('Key specifies a folder')
       end
 
       it 'returns an unset :result and an :err_msg when the key file does not exist' do
         result = plugin.get('does/not/exist/key')
         expect(result[:result]).to be_nil
-        expect(result[:err_msg]).to match(%r{Key not found})
+        expect(result[:err_msg]).to include('Key not found')
       end
 
       it 'returns an unset :result and an :err_msg when times out waiting for key lock' do
@@ -312,7 +312,7 @@ describe 'simpkv file plugin anonymous class' do
           warn "     >> Executing plugin get() for '#{key}'"
           result = plugin.get(key)
           expect(result[:result]).to be_nil
-          expect(result[:err_msg]).to match(%r{Timed out waiting for lock of key file})
+          expect(result[:err_msg]).to include('Timed out waiting for lock of key file')
         end
 
         # just to be sure lock is appropriately cleared...
@@ -452,7 +452,7 @@ describe 'simpkv file plugin anonymous class' do
           warn "     >> Executing plugin.put() for '#{key}'"
           result = plugin.put(key, value2)
           expect(result[:result]).to be false
-          expect(result[:err_msg]).to match(%r{Timed out waiting for lock of key file})
+          expect(result[:err_msg]).to include('Timed out waiting for lock of key file')
         end
 
         # just to be sure lock is appropriately cleared...
