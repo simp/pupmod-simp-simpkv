@@ -343,13 +343,13 @@ describe 'simpkv adapter anonymous class' do
       it 'returns a failed result when plugin instance cannot be created' do
         result = adapter.delete(key, options_failer_ctr)
         expect(result[:result]).to be false
-        expect(result[:err_msg]).to match(%r{simpkv Error: Unable to construct 'failer/test'})
+        expect(result[:err_msg]).to include("simpkv Error: Unable to construct 'failer/test'")
       end
 
       it 'fails when plugin delete raises an exception' do
         result = adapter.delete(key, options_failer)
         expect(result[:result]).to be false
-        expect(result[:err_msg]).to match(%r{simpkv failer/test Error: delete catastrophic failure})
+        expect(result[:err_msg]).to include('simpkv failer/test Error: delete catastrophic failure')
       end
     end
 
@@ -368,13 +368,13 @@ describe 'simpkv adapter anonymous class' do
       it 'returns a failed result when plugin instance cannot be created' do
         result = adapter.deletetree(keydir, options_failer_ctr)
         expect(result[:result]).to be false
-        expect(result[:err_msg]).to match(%r{simpkv Error: Unable to construct 'failer/test'})
+        expect(result[:err_msg]).to include("simpkv Error: Unable to construct 'failer/test'")
       end
 
       it 'fails when plugin deletetree raises an exception' do
         result = adapter.deletetree(keydir, options_failer)
         expect(result[:result]).to be false
-        expect(result[:err_msg]).to match(%r{simpkv failer/test Error: deletetree catastrophic failure})
+        expect(result[:err_msg]).to include('simpkv failer/test Error: deletetree catastrophic failure')
       end
     end
 
@@ -394,13 +394,13 @@ describe 'simpkv adapter anonymous class' do
       it 'returns a failed result when plugin instance cannot be created' do
         result = adapter.exists(key, options_failer_ctr)
         expect(result[:result]).to be nil
-        expect(result[:err_msg]).to match(%r{simpkv Error: Unable to construct 'failer/test'})
+        expect(result[:err_msg]).to include("simpkv Error: Unable to construct 'failer/test'")
       end
 
       it 'fails when plugin exists raises an exception' do
         result = adapter.exists(key, options_failer)
         expect(result[:result]).to be nil
-        expect(result[:err_msg]).to match(%r{simpkv failer/test Error: exists catastrophic failure})
+        expect(result[:err_msg]).to include('simpkv failer/test Error: exists catastrophic failure')
       end
     end
 
@@ -418,19 +418,19 @@ describe 'simpkv adapter anonymous class' do
         plugin.put(key_plus_env, 'This is not JSON')
         result = adapter.get(key, options_file)
         expect(result.fetch(:result)).to be_nil
-        expect(result[:err_msg]).to match(%r{simpkv file/test Error: Failed to deserialize})
+        expect(result[:err_msg]).to include('simpkv file/test Error: Failed to deserialize')
       end
 
       it 'returns a failed result when plugin instance cannot be created' do
         result = adapter.get(key, options_failer_ctr)
         expect(result[:result]).to be nil
-        expect(result[:err_msg]).to match(%r{simpkv Error: Unable to construct 'failer/test'})
+        expect(result[:err_msg]).to include("simpkv Error: Unable to construct 'failer/test'")
       end
 
       it 'fails when plugin get raises an exception' do
         result = adapter.get(key, options_failer)
         expect(result[:result]).to be nil
-        expect(result[:err_msg]).to match(%r{simpkv failer/test Error: get catastrophic failure})
+        expect(result[:err_msg]).to include('simpkv failer/test Error: get catastrophic failure')
       end
     end
 
@@ -483,19 +483,19 @@ describe 'simpkv adapter anonymous class' do
         plugin.put(key_plus_env, 'This is not JSON')
         result = adapter.list(keydir, options_file)
         expect(result.fetch(:result)).to be_nil
-        expect(result[:err_msg]).to match(%r{simpkv file/test Error: Failed to deserialize})
+        expect(result[:err_msg]).to include('simpkv file/test Error: Failed to deserialize')
       end
 
       it 'returns a failed result when plugin instance cannot be created' do
         result = adapter.list(keydir, options_failer_ctr)
         expect(result[:result]).to be nil
-        expect(result[:err_msg]).to match(%r{simpkv Error: Unable to construct 'failer/test'})
+        expect(result[:err_msg]).to include("simpkv Error: Unable to construct 'failer/test'")
       end
 
       it 'fails when plugin list raises an exception' do
         result = adapter.list(keydir, options_failer)
         expect(result[:result]).to be nil
-        expect(result[:err_msg]).to match(%r{simpkv failer/test Error: list catastrophic failure})
+        expect(result[:err_msg]).to include('simpkv failer/test Error: list catastrophic failure')
       end
     end
 
@@ -511,13 +511,13 @@ describe 'simpkv adapter anonymous class' do
       it 'returns a failed result when plugin instance cannot be created' do
         result = adapter.put(key, value, metadata, options_failer_ctr)
         expect(result[:result]).to be false
-        expect(result[:err_msg]).to match(%r{simpkv Error: Unable to construct 'failer/test'})
+        expect(result[:err_msg]).to include("simpkv Error: Unable to construct 'failer/test'")
       end
 
       it 'fails when plugin put raises an exception' do
         result = adapter.put(key, value, metadata, options_failer)
         expect(result[:result]).to be false
-        expect(result[:err_msg]).to match(%r{simpkv failer/test Error: put catastrophic failure})
+        expect(result[:err_msg]).to include('simpkv failer/test Error: put catastrophic failure')
       end
     end
   end

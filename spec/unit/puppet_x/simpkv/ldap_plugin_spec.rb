@@ -431,7 +431,7 @@ describe 'simpkv ldap plugin anonymous class' do
 
           result = plugin.get(key)
           expect(result[:result]).to be_nil
-          expect(result[:err_msg]).to match(%r{Key retrieval did not return key/value entry})
+          expect(result[:err_msg]).to include('Key retrieval did not return key/value entry')
         end
 
         it 'returns failure when retries fail' do
@@ -805,7 +805,7 @@ describe 'simpkv ldap plugin anonymous class' do
         it 'defaults admin_dn to cn=Directory_Manager' do
           config = options['backends']['unencrypted']
           opts = plugin.parse_config(config)
-          expect(opts[:base_opts]).to match(%r{-D "cn=Directory_Manager"})
+          expect(opts[:base_opts]).to include('-D "cn=Directory_Manager"')
         end
 
         it 'defaults retries to 1' do
@@ -1052,7 +1052,7 @@ describe 'simpkv ldap plugin anonymous class' do
         expect(result[:success]).to eq false
         expect(result[:exitstatus]).to eq 2
         expect(result[:stdout]).to eq ''
-        expect(result[:stderr]).to match(%r{No such file or directory})
+        expect(result[:stderr]).to include('No such file or directory')
       end
     end
 
@@ -1106,7 +1106,7 @@ describe 'simpkv ldap plugin anonymous class' do
 
         result = plugin.update_value_if_changed(key, new_stored_value)
         expect(result[:result]).to be false
-        expect(result[:err_msg]).to match(%r{Failed to retrieve current value for comparison})
+        expect(result[:err_msg]).to include('Failed to retrieve current value for comparison')
       end
 
       it 'reports failure when ldap_modify() fails' do
