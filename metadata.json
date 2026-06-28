@@ -1,12 +1,12 @@
 {
   "name": "simp-simpkv",
-  "version": "0.14.1",
+  "version": "1.0.0",
   "author": "simp",
   "summary": "SIMPkv providers",
   "license": "Apache-2.0",
   "source": "https://github.com/simp/pupmod-simp-simpkv",
   "project_page": "https://github.com/simp/pupmod-simp-simpkv",
-  "issues_url": "https://simp-project.atlassian.net",
+  "issues_url": "https://github.com/simp/pupmod-simp-simpkv/issues",
   "tags": [
     "simp",
     "simpkv"
@@ -21,45 +21,47 @@
     {
       "operatingsystem": "CentOS",
       "operatingsystemrelease": [
-        "8",
-        "7",
-        "9"
+        "9",
+        "10"
       ]
     },
     {
       "operatingsystem": "RedHat",
       "operatingsystemrelease": [
         "8",
-        "7",
-        "9"
-      ]
-    },
-    {
-      "operatingsystem": "Rocky",
-      "operatingsystemrelease": [
-        "8",
-        "9"
-      ]
-    },
-    {
-      "operatingsystem": "AlmaLinux",
-      "operatingsystemrelease": [
-        "8",
-        "9"
+        "9",
+        "10"
       ]
     },
     {
       "operatingsystem": "OracleLinux",
       "operatingsystemrelease": [
         "8",
-        "9"
+        "9",
+        "10"
+      ]
+    },
+    {
+      "operatingsystem": "Rocky",
+      "operatingsystemrelease": [
+        "8",
+        "9",
+        "10"
+      ]
+    },
+    {
+      "operatingsystem": "AlmaLinux",
+      "operatingsystemrelease": [
+        "8",
+        "9",
+        "10"
       ]
     }
   ],
   "requirements": [
     {
-      "name": "puppet",
-      "version_requirement": ">= 7.0.0 < 9.0.0"
+      "name": "openvox",
+      "version_requirement": ">= 8.0.0 < 9.0.0"
     }
   ]
 }

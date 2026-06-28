@@ -1,3 +1,6 @@
+module Acceptance; end
+module Acceptance::Helpers; end
+
 module Acceptance::Helpers::LdapUtils
   # @return DN for a folder path
   #
