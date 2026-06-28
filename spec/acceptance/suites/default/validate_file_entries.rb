@@ -130,8 +130,8 @@ def validate_file_key_entry_absent(key, key_type, config, host)
   result = { success: true }
 
   key_path = filesystem_key_path(key, key_type, config)
-  on(host, "ls -l #{key_path}", accept_all_exit_codes: true)
-  if result.exit_code == 0
+  ls_result = on(host, "ls -l #{key_path}", accept_all_exit_codes: true)
+  if ls_result.exit_code == 0
     result = {
       success: false,
       err_msg: "Validation of #{key} absence failed: Found #{key_path}",
