@@ -30,75 +30,75 @@ read from the `simpkv::options` Hiera key instead (see below).
 
 The public API is six Puppet functions, each a thin, uniform wrapper. Using
 `simpkv::get` as the template (`lib/puppet/functions/simpkv/get.rb`), every
-function does the same three-step dance (`get.rb:115-150`):
+function does the same three-step dance (`get.rb`):
 
 1. **Validate the key** — `call_function('simpkv::support::key::validate', key)`
-   (`get.rb:117`).
+   (`get.rb`).
 2. **Load the adapter** — `call_function('simpkv::support::load')`
-   (`get.rb:120`), which attaches a `simpkv` adapter object to the catalog if
+   (`get.rb`), which attaches a `simpkv` adapter object to the catalog if
    one is not already present.
 3. **Merge + validate config, then delegate** — build `merged_options` via
-   `simpkv::support::config::merge` (`get.rb:126-127`) and call the
-   corresponding method on `catalog.simpkv` (`get.rb:134`), unwrapping the
+   `simpkv::support::config::merge` (`get.rb`) and call the
+   corresponding method on `catalog.simpkv` (`get.rb`), unwrapping the
    `{ :result, :err_msg }` results Hash.
 
 The public functions and their signatures / return contracts:
 
-- **`simpkv::put`** (`put.rb:98-137`) — `(String[1] key, NotUndef value, [Hash
+- **`simpkv::put`** (`put.rb`) — `(String[1] key, NotUndef value, [Hash
   metadata], [Hash options])` → `Boolean`. Serializes `value`+`metadata` and
   stores them. Returns `true` on success; `false` only when the op failed *and*
-  `softfail` is set (`put.rb:128-136`).
-- **`simpkv::get`** (`get.rb:110-150`) — `(String[1] key, [Hash options])` →
+  `softfail` is set (`put.rb`).
+- **`simpkv::get`** (`get.rb`) — `(String[1] key, [Hash options])` →
   `Enum[Hash,Undef]`. Returns `{ 'value' => …, 'metadata' => … }` (the
-  `'metadata'` key is omitted when empty, `get.rb:143-146`); `Undef` on a
+  `'metadata'` key is omitted when empty, `get.rb`); `Undef` on a
   soft-failed op.
-- **`simpkv::delete`** (`delete.rb:93-98`) — `(String[1] key, [Hash options])` →
+- **`simpkv::delete`** (`delete.rb`) — `(String[1] key, [Hash options])` →
   `Boolean`.
-- **`simpkv::deletetree`** (`deletetree.rb:93-98`) — `(String[1] keydir, [Hash
+- **`simpkv::deletetree`** (`deletetree.rb`) — `(String[1] keydir, [Hash
   options])` → `Boolean`. Removes a whole key folder.
-- **`simpkv::exists`** (`exists.rb:99-104`) — `(String[1] key, [Hash options])`
+- **`simpkv::exists`** (`exists.rb`) — `(String[1] key, [Hash options])`
   → `Enum[Boolean,Undef]`. `Undef` when existence could not be determined and
   `softfail` is set.
-- **`simpkv::list`** (`list.rb:112-117`) — `(String[1] keydir, [Hash options])`
+- **`simpkv::list`** (`list.rb`) — `(String[1] keydir, [Hash options])`
   → `Enum[Hash,Undef]`. Returns `{ 'keys' => {…}, 'folders' => [...] }` for the
-  folder; **non-recursive** (`list.rb:2-4`).
+  folder; **non-recursive** (`list.rb`).
 
 The `options` Hash is the same across all six functions (documented identically
-in each docstring, e.g. `get.rb:17-72`):
+in each docstring, e.g. `get.rb`):
 
 - **`app_id`** — fuzzy backend selector. When `backend` is absent, the adapter
   picks the backend whose name exactly matches `app_id`, else the longest
   backend name that is a prefix of `app_id`, else `default`
-  (`support/config/merge.rb:87-100`).
+  (`support/config/merge.rb`).
 - **`backend`** — definitive backend name; takes precedence over `app_id`. Must
   be a key in `backends` or the call fails.
 - **`backends`** — Hash of backend configs; each entry needs a `type` (which
   plugin) and an `id` (unique instance name of that plugin type).
 - **`global`** — `false` (default) namespaces the key under the node's Puppet
-  environment; `true` namespaces it globally (`simpkv.rb:295-297,317-319`).
+  environment; `true` namespaces it globally (`simpkv.rb`).
 - **`softfail`** — `false` (default) makes a failed backend op raise; `true`
   downgrades it to a `Puppet.warning` and a benign return value.
 
 Support functions (`lib/puppet/functions/simpkv/support/`):
 
-- **`simpkv::support::key::validate`** (`support/key/validate.rb:38-55`) — the
-  key spec. Keys may contain only `[a-z0-9._:\-/]` (`validate.rb:45`), may not
-  contain whitespace (`validate.rb:39-42`), and may not contain `/./` or `/../`
-  sequences (`validate.rb:51-54`). Raises `ArgumentError` on violation.
-- **`simpkv::support::config::merge`** (`support/config/merge.rb:50-113`) —
+- **`simpkv::support::key::validate`** (`support/key/validate.rb`) — the
+  key spec. Keys may contain only `[a-z0-9._:\-/]` (`validate.rb`), may not
+  contain whitespace (`validate.rb`), and may not contain `/./` or `/../`
+  sequences (`validate.rb`). Raises `ArgumentError` on violation.
+- **`simpkv::support::config::merge`** (`support/config/merge.rb`) —
   deep-merges the caller's `options` **on top of** the `simpkv::options` Hiera
-  Hash (`merge.rb:69-70`), resolves `backend` from `app_id` (`merge.rb:87-100`),
-  defaults `softfail`/`global` to `false` (`merge.rb:102-109`), injects the
+  Hash (`merge.rb`), resolves `backend` from `app_id` (`merge.rb`),
+  defaults `softfail`/`global` to `false` (`merge.rb`), injects the
   internal `environment` option from the compiler
-  (`merge.rb:110`), and — **when no `backends` are configured at all** — injects
+  (`merge.rb`), and — **when no `backends` are configured at all** — injects
   a single `default` backend of `type => 'file', id => 'auto_default'`
-  (`merge.rb:78-85`). Then validates.
-- **`simpkv::support::config::validate`** (`support/config/validate.rb:23-71`) —
+  (`merge.rb`). Then validates.
+- **`simpkv::support::config::validate`** (`support/config/validate.rb`) —
   asserts `backend`/`backends` are present and well-formed, that the selected
-  backend's `type` has a loaded plugin (`validate.rb:50-53`), and that any two
+  backend's `type` has a loaded plugin (`validate.rb`), and that any two
   backend entries sharing a `<type>/<id>` pair have *identical* config
-  (`validate.rb:58-70`).
-- **`simpkv::support::load`** (`support/load.rb:13-31`) — see the adapter note
+  (`validate.rb`).
+- **`simpkv::support::load`** (`support/load.rb`) — see the adapter note
   below.
 
 ### The adapter / plugin architecture (the interesting part)
@@ -108,68 +108,68 @@ contamination in a long-lived puppetserver, and to allow new plugin code to load
 without a puppetserver restart. Understand this before touching `lib/puppet_x/`:
 
 - **The adapter is attached to the catalog, not to a Ruby constant.**
-  `simpkv::support::load` (`support/load.rb:13-22`) checks whether the catalog
+  `simpkv::support::load` (`support/load.rb`) checks whether the catalog
   already `respond_to?(:simpkv)`; if not, it `instance_eval`s
   `lib/puppet_x/simpkv/loader.rb` **in the context of the catalog object**.
-- **`loader.rb`** (`loader.rb:21-40`) defines `simpkv`/`simpkv=` singleton
+- **`loader.rb`** (`loader.rb`) defines `simpkv`/`simpkv=` singleton
   accessors on the catalog, `instance_eval`s `simpkv.rb` to obtain an
   **anonymous** adapter `Class`, and stores a fresh instance on the catalog.
   Everything is anonymous classes loaded via `instance_eval` on purpose
-  (`loader.rb:8-13`) — that is what isolates environments.
-- **`simpkv.rb`** (`simpkv.rb:16`) is the adapter. On construction
-  (`simpkv.rb:23-89`) it globs **every module's**
-  `*/lib/puppet_x/simpkv/*_plugin.rb` (`simpkv.rb:57-58`), `instance_eval`s each
-  to get an anonymous `plugin_class` (`simpkv.rb:67-68`), and registers it by
-  **plugin type = the base filename minus `_plugin.rb`** (`simpkv.rb:69`).
+  (`loader.rb`) — that is what isolates environments.
+- **`simpkv.rb`** (`simpkv.rb`) is the adapter. On construction
+  (`simpkv.rb`) it globs **every module's**
+  `*/lib/puppet_x/simpkv/*_plugin.rb` (`simpkv.rb`), `instance_eval`s each
+  to get an anonymous `plugin_class` (`simpkv.rb`), and registers it by
+  **plugin type = the base filename minus `_plugin.rb`** (`simpkv.rb`).
   **Only the first plugin found for a given type wins**; a second is skipped with
-  a warning (`simpkv.rb:70-74`).
+  a warning (`simpkv.rb`).
 - **Per-catalog, per-`<type>/<id>` plugin instances.** `plugin_instance`
-  (`simpkv.rb:370-399`) lazily constructs and caches one plugin instance per
+  (`simpkv.rb`) lazily constructs and caches one plugin instance per
   `<type>/<id>` name and calls its `configure(options)` once
-  (`simpkv.rb:390-397`).
+  (`simpkv.rb`).
 - **Key namespacing happens in the adapter, not the plugin.** `normalize_key`
-  (`simpkv.rb:334-351`) prefixes keys with `globals/` for global keys or
+  (`simpkv.rb`) prefixes keys with `globals/` for global keys or
   `environments/<env>/` otherwise, then `Pathname#cleanpath`s away redundant
   slashes. The adapter adds the prefix before calling the plugin and strips it
-  from `list` results (`simpkv.rb:244-250`).
+  from `list` results (`simpkv.rb`).
 - **Serialization is the adapter's job, not the plugin's.** Plugins only ever
-  see/return **Strings** (`plugin_template.rb:144-147`). The adapter serializes
-  value+metadata to JSON on `put` (`simpkv.rb:472-485`) and deserializes on
-  `get`/`list` (`simpkv.rb:413-433`), including base64-encoding binary
-  (ASCII-8BIT) strings (`simpkv.rb:487-495`).
+  see/return **Strings** (`plugin_template.rb`). The adapter serializes
+  value+metadata to JSON on `put` (`simpkv.rb`) and deserializes on
+  `get`/`list` (`simpkv.rb`), including base64-encoding binary
+  (ASCII-8BIT) strings (`simpkv.rb`).
 - **The plugin contract** is spelled out in `lib/puppet_x/simpkv/plugin_template.rb`
   — the canonical starting point for a new backend. Required instance methods:
   `initialize(name)`, `configure(options)`, `name`, and
   `delete`/`deletetree`/`exists`/`get`/`list`/`put`, each returning a
-  `{ :result, :err_msg }` Hash (`plugin_template.rb:44-304`).
+  `{ :result, :err_msg }` Hash (`plugin_template.rb`).
 
 ### Gotchas / non-obvious details
 
 - **No `simp_options` seam.** Do not add `simplib::lookup('simp_options::*')`
   calls or invent a config table — this module reads only `simpkv::options`
-  Hiera (`merge.rb:69`). (Contrast with most SIMP modules.)
+  Hiera (`merge.rb`). (Contrast with most SIMP modules.)
 - **No default dependency on `simp/simplib`.** The only declared dependency is
   `puppetlabs/stdlib` (`metadata.json`). The heavy lifting is plain Ruby.
 - **`file` is the implicit fallback backend.** With no `backends` configured,
   every op silently uses a local-filesystem `file` backend named
-  `file/auto_default` (`merge.rb:78-85`) — data may land on the *puppetserver's*
+  `file/auto_default` (`merge.rb`) — data may land on the *puppetserver's*
   filesystem without any explicit config.
 - **Plugin type is derived from the filename**, and only the first of a given
-  type loads (`simpkv.rb:69-74`). Two modules shipping `file_plugin.rb` will
+  type loads (`simpkv.rb`). Two modules shipping `file_plugin.rb` will
   collide; the second is ignored with a warning.
 - **Everything under `lib/puppet_x/simpkv/` is anonymous-class-by-design.** You
   cannot use Ruby constants or class methods inside a plugin's anonymous class
-  (`plugin_template.rb:48-54`) — they attach to the `Class` object, not the
+  (`plugin_template.rb`) — they attach to the `Class` object, not the
   instance. This trips up normal-looking Ruby.
 - **`softfail` changes the return type, not just the log level.** On a failed op
   with `softfail => true`, `get`/`exists`/`list` return `Undef` and
   `put`/`delete`/`deletetree` return `false`, rather than aborting compilation
-  (`get.rb:137-140`, `put.rb:128-134`). Callers must handle the sentinel.
+  (`get.rb`, `put.rb`). Callers must handle the sentinel.
 - **`serialize`/`deserialize` are explicitly "limited, prototype-grade."** The
   code carries `FIXME`s to switch to Puppet's own (de)serialization
-  (`simpkv.rb:411-412,470-471`); binary data nested inside Hash/Array values is
-  not reliably handled (`simpkv.rb:459-468`).
-- **`list` is non-recursive** (`list.rb:2-4`) — it returns only the immediate
+  (`simpkv.rb`); binary data nested inside Hash/Array values is
+  not reliably handled (`simpkv.rb`).
+- **`list` is non-recursive** (`list.rb`) — it returns only the immediate
   keys and sub-folder names of one folder.
 
 ## The `simp_options` / `simplib::lookup` seam
@@ -177,7 +177,7 @@ without a puppetserver restart. Understand this before touching `lib/puppet_x/`:
 **N/A for this module.** simpkv has no `simp_options::*` lookups (verified by
 grep — no matches in any `.pp`/`.rb`/`.yaml`). Its only tunable is the
 `simpkv::options` Hiera Hash, read once in
-`simpkv::support::config::merge` (`merge.rb:69`) and deep-merged under the
+`simpkv::support::config::merge` (`merge.rb`) and deep-merged under the
 per-call `options` argument. Do not add a `simp_options` seam here.
 
 ## Dependencies
@@ -266,12 +266,12 @@ bundle exec rake beaker:suites[multiple_plugins]
 ```
 
 Relevant gem pins (from `Gemfile`): the Puppet gem is installed **on its own**
-via `gem 'puppet', puppet_version` (`Gemfile:29`) with `puppet_version`
-defaulting to `['>= 7', '< 9']` (`Gemfile:23`) — this module installs the
-`puppet` gem, not `openvox`. Other pins: `rubocop ~> 1.88.0` (`Gemfile:16`),
-`puppetlabs_spec_helper ~> 8.0.0` (`Gemfile:30`), `simp-rake-helpers ~> 5.24.0`
-(`Gemfile:36`), `simp-beaker-helpers ~> 2.0.0` (`Gemfile:53`).
-`spec/spec_helper.rb:11` requires `puppetlabs_spec_helper/module_spec_helper`.
+via `gem 'puppet', puppet_version` (`Gemfile`) with `puppet_version`
+defaulting to `['>= 7', '< 9']` (`Gemfile`) — this module installs the
+`puppet` gem, not `openvox`. Other pins: `rubocop ~> 1.88.0` (`Gemfile`),
+`puppetlabs_spec_helper ~> 8.0.0` (`Gemfile`), `simp-rake-helpers ~> 5.24.0`
+(`Gemfile`), `simp-beaker-helpers ~> 2.0.0` (`Gemfile`).
+`spec/spec_helper.rb` requires `puppetlabs_spec_helper/module_spec_helper`.
 
 ## Conventions
 
@@ -280,11 +280,11 @@ defaulting to `['>= 7', '< 9']` (`Gemfile:23`) — this module installs the
   Regenerate `REFERENCE.md` after changing any docstring or signature.
 - **Keep the `options` documentation identical across all six public
   functions** — the `app_id`/`backend`/`backends`/`global`/`softfail` option
-  block is duplicated verbatim in each (e.g. `get.rb:17-72`, `put.rb:22-75`);
+  block is duplicated verbatim in each (e.g. `get.rb`, `put.rb`);
   update them together.
 - **Route new business logic through the support functions**, mirroring the
   validate-key → load → merge-config → delegate pattern used by every public
-  function (`get.rb:117-134`); don't reach into the adapter directly.
+  function (`get.rb`); don't reach into the adapter directly.
 - **New backends go in `lib/puppet_x/simpkv/<type>_plugin.rb`** and must follow
   `plugin_template.rb` exactly: an anonymous `plugin_class`, no constants/class
   methods, String-only key values, `{ :result, :err_msg }` returns, and its own
