@@ -14,11 +14,8 @@ compile time. The module ships two backends — a local-filesystem `file` plugin
 (`lib/puppet_x/simpkv/ldap_plugin.rb`) — and any other module can contribute
 more by dropping a `*_plugin.rb` under its own `lib/puppet_x/simpkv/`.
 
-This is a **pure library module**: there are no manifests, classes, defines,
-types, `data/`, or `templates/` (`ls` of the repo root — the only code lives
-under `lib/`). Everything is Ruby: the public API is a set of Puppet functions
-in `lib/puppet/functions/simpkv/`, and the framework/adapter machinery is in
-`lib/puppet_x/simpkv/`.
+This is a **pure library module**: the shipped module root has no manifests, classes, defines, types, `data/`, or `templates/` — the only shipped code lives under `lib/`. Everything shipped is Ruby: the public API is a set of Puppet functions
+in `lib/puppet/functions/simpkv/`, and the framework/adapter machinery is in `lib/puppet_x/simpkv/`. (Test fixtures under `spec/support/modules/` — notably the `simpkv_test` fixture module — do contain Puppet manifests, defines, and types, but those are test-only and not part of the shipped module.)
 
 There is **no `simp_options` seam** in this module. Unlike most SIMP modules,
 `simpkv` performs no `simplib::lookup('simp_options::*', …)` calls — there are
