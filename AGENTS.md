@@ -291,7 +291,5 @@ defaulting to `['>= 7', '< 9']` (`Gemfile`) — this module installs the
   exception handling / retry / timeout logic.
 - **Do not add a `simp_options` seam or a `simp/simplib` dependency.** This
   module intentionally has neither.
-- `Gemfile`, `spec/spec_helper.rb`, and `.github/workflows/pr_tests.yml` are
-  baseline-managed (puppetsync) — push changes to those files upstream to the
-  baseline, not here.
+- Several baseline files carry a **puppetsync** notice — e.g. `Gemfile`, `spec/spec_helper.rb`, `.github/workflows/pr_tests.yml`, and the `.gitignore`/`.pdkignore` dotfiles — so they are baseline-managed and the next sync overwrites local edits. Check each file's header for the notice rather than treating this list as exhaustive; push changes to any such file upstream to the baseline, not here.
 - Match the existing Ruby style enforced by the pinned `rubocop` (`.rubocop.yml`).
