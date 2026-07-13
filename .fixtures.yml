@@ -14,8 +14,12 @@ fixtures:
     # This needs to be in place for the rspec-puppet Hiera 5 hook to work
     # No idea why, it may be because Puppet sees a custom backend and loads all
     # of the global parts.
+  # puppet_fixtures (via voxpupuli-test) does not interpolate the old
+  # "#{source_dir}" tokens, and because a symlinks: block is present it will not
+  # auto-create the module self-symlink either. Targets are written relative to
+  # the link location (spec/fixtures/modules/).
   symlinks:
-    simpkv: "#{source_dir}"
-    test_plugins1: "#{File.join(source_dir, 'spec', 'support', 'modules', 'test_plugins1')}"
-    test_plugins2: "#{File.join(source_dir, 'spec', 'support', 'modules', 'test_plugins2')}"
-    simpkv_test: "#{File.join(source_dir, 'spec', 'support', 'modules', 'simpkv_test')}"
+    simpkv: "../../.."
+    test_plugins1: "../../support/modules/test_plugins1"
+    test_plugins2: "../../support/modules/test_plugins2"
+    simpkv_test: "../../support/modules/simpkv_test"
