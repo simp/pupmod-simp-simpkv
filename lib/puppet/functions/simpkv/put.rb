@@ -101,8 +101,8 @@ Puppet::Functions.create_function(:'simpkv::put') do
 
     # metadata is distinct from options, so there can be no confusion with simpkv
     # options and this key-specific additional data
-    optional_param 'Hash',      :metadata
-    optional_param 'Hash',      :options
+    optional_param 'Hash', :metadata
+    optional_param 'Hash', :options
   end
 
   def put(key, value, metadata = {}, options = {})
