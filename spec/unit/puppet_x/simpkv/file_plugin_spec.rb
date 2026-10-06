@@ -173,7 +173,7 @@ describe 'simpkv file plugin anonymous class' do
         options = {
           'backend'  => 'test',
           'backends' => {
-            'test'  => {
+            'test' => {
               'id'        => 'test',
               'type'      => 'file',
               'root_path' => '/can/not/be/created',

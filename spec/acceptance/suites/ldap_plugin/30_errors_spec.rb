@@ -133,7 +133,7 @@ describe 'ldap_plugin errors' do
 
             it 'fails to compile when TLS certs are invalid' do
               # client is using different certs than the LDAP server knows about!
-              client_fqdn =  fact_on(client, 'fqdn').strip
+              client_fqdn = fact_on(client, 'fqdn').strip
               tls_cert    =  "#{new_pki_certs_dir}/public/#{client_fqdn}.pub"
               tls_key     =  "#{new_pki_certs_dir}/private/#{client_fqdn}.pem"
               tls_cacert  =  "#{new_pki_certs_dir}/cacerts/cacerts.pem"
