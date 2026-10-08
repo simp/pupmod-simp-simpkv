@@ -14,7 +14,7 @@
 * [`simpkv::put`](#simpkv--put): Sets the data at `key` to the specified `value` in the configured backend. Optionally sets metadata along with the `value`.
 * [`simpkv::support::config::merge`](#simpkv--support--config--merge): Create merged backend configuration and then validate it.  The merge entails the following operations: * The `options` argument is merged wit
 * [`simpkv::support::config::validate`](#simpkv--support--config--validate): Validate backend configuration
-* [`simpkv::support::key::validate`](#simpkv--support--key--validate): Validates key conforms to the simpkv key specification  * simpkv key specification    * Key must contain only the following characters:      
+* [`simpkv::support::key::validate`](#simpkv--support--key--validate): Validates key conforms to the simpkv key specification  * simpkv key specification    * Key must contain only the following characters:
 * [`simpkv::support::load`](#simpkv--support--load): Load simpkv adapter and plugins and add simpkv 'extension' to the catalog instance, if it is not present
 
 ## Functions
@@ -1092,4 +1092,3 @@ Returns: `Nil`
 Raises:
 
 * `LoadError` if simpkv adapter software fails to load
-
